@@ -135,8 +135,8 @@ class Location {
 }
 
 class Coordinates {
-  double? lat;
-  double? long;
+  num? lat;
+  num? long;
 
   Coordinates({this.lat, this.long});
 

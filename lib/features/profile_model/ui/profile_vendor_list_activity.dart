@@ -101,10 +101,10 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
                 child: Container(
                   margin: Platform.isIOS
                       ? EdgeInsets.only(
-                          top: 245,
+                          top: 245,left: 20, right: 20
                         )
                       : EdgeInsets.only(
-                          top: 165,
+                          top: 165,left: 20, right: 20
                         ),
                   child: SingleChildScrollView(
                     child: Column(
