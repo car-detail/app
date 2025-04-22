@@ -163,6 +163,7 @@ class CommonWidget {
     );
   }
 
+<<<<<<< HEAD
   static Widget getTextRich(String title, String value,
       {Color titlecolor = Colors.black,
       Color valuecolor = Colors.black,
@@ -184,6 +185,43 @@ class CommonWidget {
                     fontSize: textsize),
               )
             ]));
+=======
+  static Widget getTextRich(
+      String title,
+      String value, {
+        Color titlecolor = Colors.black,
+        Color valuecolor = Colors.green,
+        double textsize = 12, // Reduced text size for compactness
+        int maxLine = 2, // Reduce the number of max lines
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0), // Smaller vertical padding
+      child: Text.rich(
+        maxLines: maxLine,
+        overflow: TextOverflow.ellipsis,
+        TextSpan(
+          text: title,
+          style: TextStyle(
+            fontFamily: "PopSemi",
+            color: titlecolor,
+            fontSize: textsize,
+            fontWeight: FontWeight.bold, // Keep title bold for emphasis
+          ),
+          children: [
+            TextSpan(
+              text: value,
+              style: TextStyle(
+                fontFamily: "PopReg",
+                color: valuecolor,
+                fontSize: textsize,
+                fontWeight: FontWeight.normal, // Regular weight for value
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
   }
 
   static Widget getMendatroyTextRich(String title,

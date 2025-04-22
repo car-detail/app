@@ -187,12 +187,40 @@ class _OfferListScreenState extends State<OfferListScreen> {
                             );
                           })
                       : Center(
+<<<<<<< HEAD
                           child: Container(
                             margin: EdgeInsets.only(left: 10, right: 10),
                             child: CommonWidget.getTextWidgetTitle(
                                 "Add your first Offer by clicking on the '+' button below."),
                           ),
                         ))
+=======
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.lightbulb_outline, color: ColorClass.base_color, size: 24),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: CommonWidget.getTextWidgetTitle(
+                              "No offers yet! Tap the '+' button below to create an exciting deal and attract more bookings.",
+                              color: Colors.black87,
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  ))
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
             else
               Expanded(
                   child: Container(

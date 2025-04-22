@@ -115,6 +115,7 @@ class _HomeActivityState extends State<HomeActivity> {
             ),
           ),
           if (vendorId != "")
+<<<<<<< HEAD
           Container(
             margin: EdgeInsets.all(15),
             child: Row(
@@ -161,6 +162,80 @@ class _HomeActivityState extends State<HomeActivity> {
               ],
             ),
           ),
+=======
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Your Store is Online",
+                          style: TextStyle(
+                            fontFamily: "PopSemi",
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Do you want to make it Offline?",
+                          style: TextStyle(
+                            fontFamily: "PopSemi",
+                            fontStyle: FontStyle.italic,
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    activeColor: ColorClass.base_color,
+                    inactiveThumbColor: Colors.red,
+                    inactiveTrackColor: Colors.red[100],
+                    value: true,
+                    onChanged: (val) {
+                      CommonPopUp.showalertDialog(
+                        context,
+                        "",
+                        "Are you sure you want to make the store offline?",
+                        "No",
+                        "Yes",
+                        "offline",
+                            () => Navigator.pop(context),
+                            () async {
+                          Navigator.pop(context);
+                          makeOffLine(context);
+                        },
+                        190,
+                        positivetitlecolorButton: ColorClass.red,
+                        navtextColorButton: ColorClass.green,
+                        isboldtitle: false,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
           Container(
             margin: EdgeInsets.all(15),
             child: Column(
@@ -299,6 +374,7 @@ class _HomeActivityState extends State<HomeActivity> {
               ],
             ),
           ),
+<<<<<<< HEAD
           if(records.length > 0)
             Container(
                 margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
@@ -459,6 +535,180 @@ class _HomeActivityState extends State<HomeActivity> {
                     "No Booking Added Yet."),
               ),
             )
+=======
+          if (records.isNotEmpty) ...[
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: CommonWidget.getTextWidget500("Current Bookings"),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: records.length,
+                padding: const EdgeInsets.only(bottom: 16),
+                itemBuilder: (context, index) {
+                  final data = records[index];
+
+                  return GestureDetector(
+                    onTap: () {
+                      // CommonWidget.navigateToScreen(context, SpecialistsActivity(data.sId.toString()));
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  data.createdByImage ?? "",
+                                  height: 80,
+                                  width: 60,
+                                  fit: BoxFit.cover,
+                                  filterQuality: FilterQuality.low,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 80,
+                                    width: 60,
+                                    color: Colors.grey[300],
+                                    child: Icon(Icons.person, color: Colors.grey[600]),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CommonWidget.getTextWidgetTitle(
+                                      "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}",
+                                      color: Colors.green.shade900, // Darker shade of green
+                                      textsize: 15,                 // Slightly bigger
+                                      textAlign: TextAlign.start,   // Better alignment for labels
+                                    ),
+                                    const SizedBox(height: 3), // Adds spacing between each row
+                                    // Slot with compact UI
+                                    CommonWidget.getTextRich(
+                                      "Slot: ",
+                                      CommonWidget.convertToLocalTime(data.timeSlot ?? ""),
+                                      titlecolor: Colors.black,
+                                      valuecolor: Colors.green.shade600,
+                                      textsize: 12, // Reduced font size
+                                    ),
+
+// Price with compact UI
+                                    CommonWidget.getTextRich(
+                                      "Price: ",
+                                      "${data.price ?? "-"}",
+                                      titlecolor: Colors.black,
+                                      valuecolor: Colors.green.shade600,
+                                      textsize: 12, // Consistent small font
+                                    ),
+
+// Date with compact UI
+                                    CommonWidget.getTextRich(
+                                      "Date: ",
+                                      DateFormat('dd-MM-yyyy').format(DateTime.parse(data.date ?? "")),
+                                      titlecolor: Colors.black,
+                                      valuecolor: Colors.green.shade600,
+                                      textsize: 12, // Reduced font size
+                                    ),
+
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              InkWell(
+                                onTap: () {
+                                  try {
+                                    final Uri phoneUri = Uri(
+                                      scheme: 'tel',
+                                      path: data.createdByMobile,
+                                    );
+                                    launchUrl(phoneUri);
+                                  } catch (e) {
+                                    print(e);
+                                  }
+                                },
+                                child: Container(
+                                  height: 40,
+                                  width: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: ColorClass.base_color,
+                                  ),
+                                  child: const Icon(Icons.call, color: Colors.white, size: 22),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (data.orderStatus == "Pending")
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () {
+                                      putStatusCompleted(context, data);
+                                    },
+                                    child: CommonWidget.getButtonWidget(
+                                      "Completed",
+                                      ColorClass.base_color,
+                                      ColorClass.base_color,
+                                      height: 36,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () {
+                                      showDetailPopUp(context, data);
+                                    },
+                                    child: CommonWidget.getButtonWidget(
+                                      "Cancel",
+                                      Colors.white,
+                                      ColorClass.base_color,
+                                      textcolor: ColorClass.base_color,
+                                      height: 36,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ] else if (offerListData.isEmpty && records.isEmpty) ...[
+            Expanded(
+              child: Center(
+                child: CommonWidget.getTextWidgetPopSemi(
+                  "Pro Tip: Boost your chances of getting bookings by running attractive offers!",
+                  size: 13,
+                  color: Colors.grey[700]!,
+                ),
+              ),
+
+            )
+          ]
+
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
         ],
       ),
     );
@@ -513,6 +763,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   ),
                 ),
               ),
+<<<<<<< HEAD
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(10),
@@ -626,6 +877,125 @@ class _HomeActivityState extends State<HomeActivity> {
                 ),
               ),
             ],
+=======
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[100], // Light modern background
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Reason for Cancel",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: ColorClass.base_color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 10),
+              Divider(color: Colors.grey[300], thickness: 1),
+              SizedBox(height: 10),
+              CommonWidget.getTextWidgetPopReg(
+                "You will not be able to undo this process once continued.\nAre you sure you want to cancel this booking request?",
+                textAlign: TextAlign.center,
+                textsize: 12,
+              ),
+              SizedBox(height: 12),
+              TextField(
+                controller: reasone,
+                maxLines: 4,
+                keyboardType: TextInputType.text,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontFamily: "Krub500",
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: "Enter reason...",
+                  hintStyle: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 14,
+                  ),
+                  fillColor: Colors.grey[200], // soft background
+                  filled: true,
+                  contentPadding: EdgeInsets.all(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[400]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[400]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: ColorClass.base_color, width: 1.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          "No",
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        Navigator.pop(context);
+                        putStatusCancel(context, data);
+                      },
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color, // Primary color of your app
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          "Yes",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        )
+        ],
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
           )),
     );
     showDialog(

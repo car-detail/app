@@ -162,6 +162,7 @@ class _OfferScreenState extends State<OfferScreen> {
                           ),
                         ],
                       ),
+<<<<<<< HEAD
                       CommonWidget.getTextWidgetSubTitle("Add Offer Image",
                           textsize: 16),
                       GestureDetector(
@@ -207,10 +208,64 @@ class _OfferScreenState extends State<OfferScreen> {
                                   child: CommonWidget.getTextWidgetPopbold(
                                       "Upload Image",
                                       color: Colors.white))
+=======
+                      // CommonWidget.getTextWidgetSubTitle("Add Offer Image",
+                      //     textsize: 16),
+                      GestureDetector(
+                        onTap: () async {
+                          BaseActivity.showFilePicker(context, (List<File>? list) {
+                            if (list != null) {
+                              for (int i = 0; i < list.length; i++) {
+                                if (selectedFiles.length < 1) {
+                                  setState(() {
+                                    selectedFiles.add(list[i]);
+                                  });
+                                } else {
+                                  CommonWidget.errorShowSnackBarFor(
+                                    context,
+                                    "You can only upload 1 offer image.",
+                                  );
+                                  break;
+                                }
+                              }
+                            }
+                            print("Selected file count: ${selectedFiles.length}");
+                          });
+                        },
+                        child: Container(
+                          width: 170,
+                          margin: EdgeInsets.only(top: 10),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: ColorClass.base_color,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.cloud_upload_rounded, color: Colors.white, size: 22),
+                              SizedBox(width: 8),
+                              CommonWidget.getTextWidgetPopbold(
+                                selectedFiles.isNotEmpty ? "1 Image Added" : "Upload Image",
+                                color: Colors.white,
+                                textsize: 14,
+                              ),
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
                             ],
                           ),
                         ),
                       ),
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
                       SizedBox(
                         height: 10,
                       ),
@@ -379,7 +434,11 @@ class _OfferScreenState extends State<OfferScreen> {
     List<CheckDialogBox> typeList = [];
     for (var i in servicesData) {
       CheckDialogBox data =
+<<<<<<< HEAD
       CheckDialogBox(i.serviceTitle ?? "", i.sId.toString());
+=======
+      CheckDialogBox(i.categoryName ?? "", i.sId.toString());
+>>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
       typeList.add(data);
     }
     showDialog(
