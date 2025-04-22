@@ -163,29 +163,6 @@ class CommonWidget {
     );
   }
 
-<<<<<<< HEAD
-  static Widget getTextRich(String title, String value,
-      {Color titlecolor = Colors.black,
-      Color valuecolor = Colors.black,
-      double textsize = 14,
-      int maxLine = 5}) {
-    return Text.rich(
-        maxLines: maxLine,
-        overflow: TextOverflow.ellipsis,
-        TextSpan(
-            text: title,
-            style: TextStyle(
-                fontFamily: "PopSemi", color: titlecolor, fontSize: textsize),
-            children: [
-              TextSpan(
-                text: value,
-                style: TextStyle(
-                    fontFamily: "PopReg",
-                    color: valuecolor,
-                    fontSize: textsize),
-              )
-            ]));
-=======
   static Widget getTextRich(
       String title,
       String value, {
@@ -221,7 +198,6 @@ class CommonWidget {
         ),
       ),
     );
->>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
   }
 
   static Widget getMendatroyTextRich(String title,

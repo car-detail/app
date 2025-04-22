@@ -13,9 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 import '../../../Common/CommonPopUp.dart';
 import '../../../Common/ContainerDecoration.dart';
+import '../../../Common/PromoCarousel.dart';
 import '../../booking_model/data_model/booking_list_bean.dart';
 import '../../booking_model/model/complete_model_bean.dart';
 import '../../dashboard_module/model/vendor_details_main_bean.dart';
@@ -55,7 +57,7 @@ class _HomeActivityState extends State<HomeActivity> {
     //getCategory(context);
     //getServices(context);
     setState(() {
-      vendorId = sharedPreferences!.getString(Constant.vendorId)??"";
+      vendorId = sharedPreferences!.getString(Constant.vendorId) ?? "";
     });
 
     if (sharedPreferences!.getString(Constant.vendorId) != "" &&
@@ -84,20 +86,19 @@ class _HomeActivityState extends State<HomeActivity> {
                 ),
                 Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                        CommonWidget.getTextWidget500(
-                            sharedPreferences?.getString(Constant.location) ??
-                                "",
-                            color: Colors.white),
-                      ],
-                    )),
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    CommonWidget.getTextWidget500(
+                        sharedPreferences?.getString(Constant.location) ?? "",
+                        color: Colors.white),
+                  ],
+                )),
                 GestureDetector(
                   onTap: () {
                     CommonWidget.navigateToScreen(
@@ -115,54 +116,6 @@ class _HomeActivityState extends State<HomeActivity> {
             ),
           ),
           if (vendorId != "")
-<<<<<<< HEAD
-          Container(
-            margin: EdgeInsets.all(15),
-            child: Row(
-              children: [
-                const Expanded(
-                    child: Text(
-                      "Your Store is now Online, Do you want to make it Offline?",
-                      style: TextStyle(fontFamily: "PopSemi",
-                          fontStyle: FontStyle.italic,
-                          color: Colors.black,
-                          fontSize: 14),
-                      textAlign: TextAlign.start,
-                    )
-
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                SizedBox(
-                  height: 20,
-                  child: Switch(
-                      activeColor: ColorClass.base_color,
-                      inactiveThumbColor: Colors.red,
-                      inactiveTrackColor: Colors.red[100],
-                      value: true,
-                      onChanged: (onChanged) {
-                        CommonPopUp.showalertDialog(
-                            context,
-                            "",
-                            "Are you sure you want to make the store offline?",
-                            "No",
-                            "Yes",
-                            "offline",
-                                () => Navigator.pop(context), () async {
-                          Navigator.pop(context);
-                          makeOffLine(context);
-                        },
-                            190,
-                            positivetitlecolorButton: ColorClass.red,
-                            navtextColorButton: ColorClass.green,
-                            isboldtitle: false);
-                      }),
-                ),
-              ],
-            ),
-          ),
-=======
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -219,8 +172,8 @@ class _HomeActivityState extends State<HomeActivity> {
                         "No",
                         "Yes",
                         "offline",
-                            () => Navigator.pop(context),
-                            () async {
+                        () => Navigator.pop(context),
+                        () async {
                           Navigator.pop(context);
                           makeOffLine(context);
                         },
@@ -234,15 +187,13 @@ class _HomeActivityState extends State<HomeActivity> {
                 ],
               ),
             ),
-
->>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
           Container(
             margin: EdgeInsets.all(15),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if(offerListData.length > 0)
+                if (offerListData.length > 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -257,11 +208,11 @@ class _HomeActivityState extends State<HomeActivity> {
                       )
                     ],
                   ),
-                if(offerListData.length > 0)
+                if (offerListData.length > 0)
                   SizedBox(
                     height: 5,
                   ),
-                if(offerListData.length > 0)
+                if (offerListData.length > 0)
                   Container(
                     height: 150,
                     child: ListView.builder(
@@ -274,9 +225,11 @@ class _HomeActivityState extends State<HomeActivity> {
                             onTap: () {
                               CommonWidget.navigateToScreen(
                                   context,
-                                  SpecialistsActivity(
-                                      offerListData[index].service?.id
-                                          .toString() ?? ""));
+                                  SpecialistsActivity(offerListData[index]
+                                          .service
+                                          ?.id
+                                          .toString() ??
+                                      ""));
                             },
                             child: Container(
                               margin: EdgeInsets.only(right: 10),
@@ -285,49 +238,50 @@ class _HomeActivityState extends State<HomeActivity> {
                                 children: [
                                   ClipRRect(
                                       borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
+                                          BorderRadius.all(Radius.circular(20)),
                                       child: Image.network(
                                         offerListData[index].image ?? "",
                                         height: 150,
                                         fit: BoxFit.fill,
-                                        width: 270, errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Image.asset(
-                                          'assets/images/chat_profile.png',
-                                          fit: BoxFit.cover,
-                                          height: 60,
-                                          width: 60,
-                                        );
-                                      },
+                                        width: 270,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/chat_profile.png',
+                                            fit: BoxFit.cover,
+                                            height: 60,
+                                            width: 60,
+                                          );
+                                        },
                                       )),
                                   Align(
                                       alignment: Alignment.bottomLeft,
                                       child: Container(
-                                          margin: EdgeInsets.fromLTRB(
-                                              0, 0, 0, 0),
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 0),
                                           child: Column(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.end,
+                                                MainAxisAlignment.end,
                                             crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Container(
                                                 width: double.infinity,
-                                                color:
-                                                Colors.black.withOpacity(0.5),
+                                                color: Colors.black
+                                                    .withOpacity(0.5),
                                                 margin:
-                                                EdgeInsets.only(right: 10),
+                                                    EdgeInsets.only(right: 10),
                                                 padding: EdgeInsets.only(
                                                   left: 5,
                                                   right: 5,
                                                 ),
                                                 child: CommonWidget
                                                     .getTextWidget500(
-                                                    "Get ${offerListData[index]
-                                                        .discount}% off",
-                                                    size: 14,
-                                                    color: Colors.white,
-                                                    textAlign: TextAlign.start),
+                                                        "Get ${offerListData[index].discount}% off",
+                                                        size: 14,
+                                                        color: Colors.white,
+                                                        textAlign:
+                                                            TextAlign.start),
                                               ),
                                               Container(
                                                 width: double.infinity,
@@ -335,14 +289,13 @@ class _HomeActivityState extends State<HomeActivity> {
                                                     color: Colors.black
                                                         .withOpacity(0.5),
                                                     borderRadius:
-                                                    const BorderRadius.only(
+                                                        const BorderRadius.only(
                                                       bottomRight:
-                                                      Radius.circular(15),
+                                                          Radius.circular(15),
                                                       bottomLeft:
-                                                      Radius.circular(15),
+                                                          Radius.circular(15),
                                                     )),
-                                                margin:
-                                                const EdgeInsets.only(
+                                                margin: const EdgeInsets.only(
                                                     right: 10),
                                                 padding: const EdgeInsets.only(
                                                     right: 5,
@@ -351,7 +304,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                                 child: Text(
                                                   maxLines: 2,
                                                   offerListData[index]
-                                                      .description ??
+                                                          .description ??
                                                       "",
                                                   style: const TextStyle(
                                                     fontFamily: "Pop500",
@@ -359,8 +312,8 @@ class _HomeActivityState extends State<HomeActivity> {
                                                     fontSize: 14,
                                                   ),
                                                   textAlign: TextAlign.start,
-                                                  overflow: TextOverflow
-                                                      .ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -374,168 +327,6 @@ class _HomeActivityState extends State<HomeActivity> {
               ],
             ),
           ),
-<<<<<<< HEAD
-          if(records.length > 0)
-            Container(
-                margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                child: CommonWidget.getTextWidget500("Current Booking")),
-          if(records.length > 0)
-            Expanded(
-                child: ListView.builder(
-                    itemCount: records.length,
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      var data = records[index];
-                      return GestureDetector(
-                        onTap: () {
-                          //CommonWidget.navigateToScreen(context, SpecialistsActivity(data.sId.toString()));
-                        },
-                        child: Container(
-                            margin: EdgeInsets.fromLTRB(15, 5, 15, 5),
-                            padding: EdgeInsets.all(10),
-                            decoration: ContainerDecoration
-                                .getboderwithshadowfillcolorblueE7F0FF(),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Image.network(
-                                      data.createdByImage ?? "",
-                                      height: 80,
-                                      width: 60,
-                                      filterQuality: FilterQuality.low,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          CommonWidget.getTextWidgetTitle(
-                                            "${data.createdByFirstName ??
-                                                " "} ${data.createdByLastName ??
-                                                " "}",
-                                            color: ColorClass.base_color,
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                                children: [
-                                                  CommonWidget.getTextRich(
-                                                    "Slot : ",
-                                                    "${CommonWidget
-                                                        .convertToLocalTime(
-                                                        data.timeSlot ?? " ")}",
-                                                  ),
-                                                  CommonWidget.getTextRich(
-                                                    "Price : ",
-                                                    "${data.price ?? " "}",
-                                                  ),
-                                                  CommonWidget.getTextRich(
-                                                    "Date : ",
-                                                    "${DateFormat('dd-MM-yyyy')
-                                                        .format(DateTime.parse(
-                                                        data.date ?? ""))}",
-                                                  ),
-                                                ],
-                                              ),
-                                              InkWell(
-                                                onTap: () {
-                                                  try {
-                                                    final Uri emailLaunchUri =
-                                                    Uri(
-                                                      scheme: 'tel',
-                                                      path: data
-                                                          .createdByMobile,
-                                                    );
-                                                    launchUrl(emailLaunchUri);
-                                                  } catch (e) {
-                                                    print(e);
-                                                  }
-                                                },
-                                                child: Container(
-                                                    height: 35,
-                                                    width: 35,
-                                                    padding: EdgeInsets.all(5),
-                                                    decoration: BoxDecoration(
-                                                        borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                        color: ColorClass
-                                                            .base_color),
-                                                    child: Icon(
-                                                      Icons.call,
-                                                      color: Colors.white,
-                                                      size: 25,
-                                                    )),
-                                              )
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                if (data.orderStatus == "Pending")
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {
-                                            putStatusCompleted(context, data);
-                                          },
-                                          child: CommonWidget.getButtonWidget(
-                                              "Completed",
-                                              ColorClass.base_color,
-                                              ColorClass.base_color,
-                                              height: 30),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () {
-                                            showDetailPopUp(context, data);
-                                          },
-                                          child: CommonWidget.getButtonWidget(
-                                              "Cancel",
-                                              Colors.white,
-                                              ColorClass.base_color,
-                                              textcolor: ColorClass.base_color,
-                                              height: 30),
-                                        ),
-                                      )
-                                    ],
-                                  )
-                              ],
-                            )),
-                      );
-                    })),
-          if(offerListData.length == 0 && records.length == 0)
-            Expanded(
-              child: Center(
-                child: CommonWidget.getTextWidgetPopSemi(
-                    "No Booking Added Yet."),
-              ),
-            )
-=======
           if (records.isNotEmpty) ...[
             Container(
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -553,7 +344,8 @@ class _HomeActivityState extends State<HomeActivity> {
                       // CommonWidget.navigateToScreen(context, SpecialistsActivity(data.sId.toString()));
                     },
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Color(0xFFE8F5E9),
@@ -583,7 +375,8 @@ class _HomeActivityState extends State<HomeActivity> {
                                     height: 80,
                                     width: 60,
                                     color: Colors.grey[300],
-                                    child: Icon(Icons.person, color: Colors.grey[600]),
+                                    child: Icon(Icons.person,
+                                        color: Colors.grey[600]),
                                   ),
                                 ),
                               ),
@@ -594,15 +387,20 @@ class _HomeActivityState extends State<HomeActivity> {
                                   children: [
                                     CommonWidget.getTextWidgetTitle(
                                       "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}",
-                                      color: Colors.green.shade900, // Darker shade of green
-                                      textsize: 15,                 // Slightly bigger
-                                      textAlign: TextAlign.start,   // Better alignment for labels
+                                      color: Colors.green
+                                          .shade900, // Darker shade of green
+                                      textsize: 15, // Slightly bigger
+                                      textAlign: TextAlign
+                                          .start, // Better alignment for labels
                                     ),
-                                    const SizedBox(height: 3), // Adds spacing between each row
+                                    const SizedBox(
+                                        height:
+                                            3), // Adds spacing between each row
                                     // Slot with compact UI
                                     CommonWidget.getTextRich(
                                       "Slot: ",
-                                      CommonWidget.convertToLocalTime(data.timeSlot ?? ""),
+                                      CommonWidget.convertToLocalTime(
+                                          data.timeSlot ?? ""),
                                       titlecolor: Colors.black,
                                       valuecolor: Colors.green.shade600,
                                       textsize: 12, // Reduced font size
@@ -620,12 +418,12 @@ class _HomeActivityState extends State<HomeActivity> {
 // Date with compact UI
                                     CommonWidget.getTextRich(
                                       "Date: ",
-                                      DateFormat('dd-MM-yyyy').format(DateTime.parse(data.date ?? "")),
+                                      DateFormat('dd-MM-yyyy').format(
+                                          DateTime.parse(data.date ?? "")),
                                       titlecolor: Colors.black,
                                       valuecolor: Colors.green.shade600,
                                       textsize: 12, // Reduced font size
                                     ),
-
                                   ],
                                 ),
                               ),
@@ -649,7 +447,8 @@ class _HomeActivityState extends State<HomeActivity> {
                                     shape: BoxShape.circle,
                                     color: ColorClass.base_color,
                                   ),
-                                  child: const Icon(Icons.call, color: Colors.white, size: 22),
+                                  child: const Icon(Icons.call,
+                                      color: Colors.white, size: 22),
                                 ),
                               )
                             ],
@@ -704,19 +503,26 @@ class _HomeActivityState extends State<HomeActivity> {
                   color: Colors.grey[700]!,
                 ),
               ),
-
             )
-          ]
-
->>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
+          ],
+          Container(
+            child: Column(
+              children: [
+                SizedBox(height: 30), // Add spacing from top
+                PromoCarousel(), // 👈 Add the carousel here
+                SizedBox(height: 20),
+                // Other existing widgets...
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
   putStatusCompleted(BuildContext context, Records datas) async {
-    var response = await dataManager!.putStatusCompleted(
-        context, datas.sId.toString());
+    var response =
+        await dataManager!.putStatusCompleted(context, datas.sId.toString());
     var data = CompletedModelBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
@@ -735,8 +541,10 @@ class _HomeActivityState extends State<HomeActivity> {
     }
   }
 
-  showDetailPopUp(BuildContext context,
-      Records data,) {
+  showDetailPopUp(
+    BuildContext context,
+    Records data,
+  ) {
     AlertDialog alert = AlertDialog(
       contentPadding: EdgeInsets.zero,
       backgroundColor: Colors.white,
@@ -763,239 +571,125 @@ class _HomeActivityState extends State<HomeActivity> {
                   ),
                 ),
               ),
-<<<<<<< HEAD
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(10),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100], // Light modern background
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      margin: EdgeInsets.only(left: 25, right: 25),
-                      width: double.infinity,
-                      child: Text(
-                        "Reason For Cancel", // ?? "",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: ColorClass.base_color,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
+                    Text(
+                      "Reason for Cancel",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ColorClass.base_color,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Container(
-                        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                        child: Divider(
-                          height: 3,
-                          color: Color(0xffdedede),
-                        )),
-                    Container(
-                        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                        child: Column(
-                          children: [
-                            CommonWidget.getTextWidgetPopReg(
-                                "You will not be able to undo this process once continue! Are you want to cancel this booking request?",
-                                textsize: 12),
-                            Container(
-                              margin: EdgeInsets.only(top: 10, bottom: 10),
-                              height: 120,
-                              child: TextField(
-                                controller: reasone,
-                                maxLines: 5,
-                                keyboardType: TextInputType.emailAddress,
+                    SizedBox(height: 10),
+                    Divider(color: Colors.grey[300], thickness: 1),
+                    SizedBox(height: 10),
+                    CommonWidget.getTextWidgetPopReg(
+                      "You will not be able to undo this process once continued.\nAre you sure you want to cancel this booking request?",
+                      textAlign: TextAlign.center,
+                      textsize: 12,
+                    ),
+                    SizedBox(height: 12),
+                    TextField(
+                      controller: reasone,
+                      maxLines: 4,
+                      keyboardType: TextInputType.text,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontFamily: "Krub500",
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "Enter reason...",
+                        hintStyle: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 14,
+                        ),
+                        fillColor: Colors.grey[200], // soft background
+                        filled: true,
+                        contentPadding: EdgeInsets.all(12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[400]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[400]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                              color: ColorClass.base_color, width: 1.5),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "No",
                                 style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: "Krub500",
-                                    fontSize: 16),
-                                decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        borderSide: BorderSide(
-                                            color: ColorClass.light_browne,
-                                            width: 1,
-                                            style: BorderStyle.solid)),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        borderSide: BorderSide(
-                                            color: ColorClass.light_browne,
-                                            width: 1,
-                                            style: BorderStyle.solid)),
-                                    contentPadding:
-                                    EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                    filled: true,
-                                    fillColor: ColorClass.light_browne,
-                                    hintText: "Enter Reason....",
-                                    hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500),
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        borderSide: BorderSide(
-                                            color: ColorClass.light_browne))),
-                                //controller: userid,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Container(
-                                          margin: EdgeInsets.only(right: 5),
-                                          child: CommonWidget.getButtonWidget(
-                                              "No",
-                                              Colors.green[300]!,
-                                              Colors.green[300]!)),
-                                    )),
-                                Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
-                                        //FocusManager.instance.primaryFocus?.unfocus();
-                                        Navigator.pop(context);
-                                        putStatusCancel(context, data);
-                                      },
-                                      child: Container(
-                                          margin: EdgeInsets.only(left: 5),
-                                          child: CommonWidget.getButtonWidget(
-                                              "Yes",
-                                              Colors.red[400]!,
-                                              Colors.red[400]!)),
-                                    ))
-                              ],
-                            )
-                          ],
-                        )),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              Navigator.pop(context);
+                              putStatusCancel(context, data);
+                            },
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: ColorClass
+                                    .base_color, // Primary color of your app
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Yes",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   ],
                 ),
-              ),
-            ],
-=======
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[100], // Light modern background
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Reason for Cancel",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ColorClass.base_color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 10),
-              Divider(color: Colors.grey[300], thickness: 1),
-              SizedBox(height: 10),
-              CommonWidget.getTextWidgetPopReg(
-                "You will not be able to undo this process once continued.\nAre you sure you want to cancel this booking request?",
-                textAlign: TextAlign.center,
-                textsize: 12,
-              ),
-              SizedBox(height: 12),
-              TextField(
-                controller: reasone,
-                maxLines: 4,
-                keyboardType: TextInputType.text,
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontFamily: "Krub500",
-                  fontSize: 14,
-                ),
-                decoration: InputDecoration(
-                  hintText: "Enter reason...",
-                  hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 14,
-                  ),
-                  fillColor: Colors.grey[200], // soft background
-                  filled: true,
-                  contentPadding: EdgeInsets.all(12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: ColorClass.base_color, width: 1.5),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "No",
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        Navigator.pop(context);
-                        putStatusCancel(context, data);
-                      },
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: ColorClass.base_color, // Primary color of your app
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "Yes",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               )
             ],
-          ),
-        )
-        ],
->>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
           )),
     );
     showDialog(
@@ -1065,6 +759,7 @@ class _HomeActivityState extends State<HomeActivity> {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }
+
   makeOffLine(BuildContext context) async {
     var response = await dataManager!.makeOffLine(context);
     var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));

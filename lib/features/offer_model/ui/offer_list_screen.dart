@@ -187,14 +187,6 @@ class _OfferListScreenState extends State<OfferListScreen> {
                             );
                           })
                       : Center(
-<<<<<<< HEAD
-                          child: Container(
-                            margin: EdgeInsets.only(left: 10, right: 10),
-                            child: CommonWidget.getTextWidgetTitle(
-                                "Add your first Offer by clicking on the '+' button below."),
-                          ),
-                        ))
-=======
                     child: Container(
                       margin: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       padding: EdgeInsets.all(12),
@@ -220,7 +212,6 @@ class _OfferListScreenState extends State<OfferListScreen> {
                     ),
 
                   ))
->>>>>>> 5685f242ff1ad28fee55833583424e8bd456bf1e
             else
               Expanded(
                   child: Container(
