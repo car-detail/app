@@ -131,7 +131,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   12,
                                   textAlign: TextAlign.start)),
                           CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Mobile Number", mobileController,
+                              "Enter Mobile Number(Optional)", mobileController,
                               keyboardType: TextInputType.number),
                           CommonWidget.getTextFieldWithgrayboder(
                               "Write about services..", aboutController,
@@ -353,11 +353,11 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   message: "Please enter service capacity.",
                                   context: context))
                                 return;
-                              else if (BaseActivity.checkEmptyField(
-                                  editingController: mobileController,
-                                  message: "Please enter mobile number.",
-                                  context: context))
-                                return;
+                              // else if (BaseActivity.checkEmptyField(
+                              //     editingController: mobileController,
+                              //     message: "Please enter mobile number.",
+                              //     context: context))
+                              //   return;
                               else if (BaseActivity.checkEmptyField(
                                   editingController: aboutController,
                                   message: "Please enter about your service.",

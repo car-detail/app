@@ -99,7 +99,6 @@ class _RegistorVendorActivityState extends State<RegistorVendorActivity> {
     }
   }
   postImageNew(BuildContext context) async {
-
     List<File> image = [selectedFiles[0]];
     var response = await dataManager!.postImage(image, context);
     var data = ImageModuleData.fromJson(jsonDecode(response.body));
@@ -236,8 +235,8 @@ class _RegistorVendorActivityState extends State<RegistorVendorActivity> {
                                       "Enter Shop Name", shopNameController),
                                   CommonWidget.getTextFieldWithgrayboder(
                                       "Enter Email Address", emailController, keyboardType: TextInputType.emailAddress),
-                                  CommonWidget.getTextFieldWithgrayboder(
-                                      "Enter Mobile Number", mobileController, keyboardType: TextInputType.number),
+                                  // CommonWidget.getTextFieldWithgrayboder(
+                                  //     "Enter Mobile Number", mobileController, keyboardType: TextInputType.number),
                                   Row(
                                     children: [
                                       Expanded(
@@ -495,12 +494,14 @@ class _RegistorVendorActivityState extends State<RegistorVendorActivity> {
                                             message: "Please Enter Email Address.",
                                             context: context)) {
                                           return;
-                                        }*/ else if (BaseActivity.checkEmptyField(
-                                            editingController: mobileController,
-                                            message: "Please Enter Mobile.",
-                                            context: context)) {
-                                          return;
-                                        }else if (BaseActivity.checkEmptyField(
+                                        }*/
+                                        // else if (BaseActivity.checkEmptyField(
+                                        //     editingController: mobileController,
+                                        //     message: "Please Enter Mobile.",
+                                        //     context: context)) {
+                                        //   return;
+                                        // }
+                                        else if (BaseActivity.checkEmptyField(
                                             editingController: openController,
                                             message: "Please Select Shop Open Time.",
                                             context: context)) {
