@@ -56,7 +56,6 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     servicesDataManager = ServicesDataManager(sharedPreferences!);
-    aboutController.text = "Best Car washing center";
     getCategory(context);
   }
 
@@ -105,27 +104,35 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                             height: 10,
                           ),
                           CommonWidget.getTextFieldWithgrayboder(
+                              "Enter Service Title", titleController),
+                          CommonWidget.getTextFieldWithgrayboderandclickable(
+                              "Select Category", categoryController, () {
+                            showCatDialog();
+                          }, "dropdown"),
+                          CommonWidget.getTextFieldWithgrayboder(
                               "Enter Service Cost", priceController,
                               keyboardType: TextInputType.number),
-
                           CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Mobile Number", mobileController, keyboardType: TextInputType.number),
-                          CommonWidget.getTextFieldWithgrayboderandclickable(
-                              "Enter Service Duration", durationController,(){showTimeRequierd();}, "dropdown"),
-                          // Container(
-                          //     margin: EdgeInsets.only(left: 10, right: 10),
-                          //     child: CommonWidget.getTextWidget300(
-                          //         "*Provide the duration in minute to complete one services(ex:-30).",
-                          //         12,
-                          //         textAlign: TextAlign.start)),
-                          CommonWidget.getTextFieldWithgrayboderandclickable(
-                              "Enter Services Capacity", timeSlotController,(){showCapacity();}, "dropdown"),
+                              "Enter Service Duration", durationController,
+                              keyboardType: TextInputType.number),
+                          Container(
+                              margin: EdgeInsets.only(left: 10, right: 10),
+                              child: CommonWidget.getTextWidget300(
+                                  "*Provide the duration in minute to complete one services(ex:-30).",
+                                  12,
+                                  textAlign: TextAlign.start)),
+                          CommonWidget.getTextFieldWithgrayboder(
+                              "Enter Services Capacity", timeSlotController,
+                              keyboardType: TextInputType.number),
                           Container(
                               margin: EdgeInsets.only(left: 10, right: 10),
                               child: CommonWidget.getTextWidget300(
                                   "*Enter number of services complete in one hour.",
                                   12,
                                   textAlign: TextAlign.start)),
+                          CommonWidget.getTextFieldWithgrayboder(
+                              "Enter Mobile Number(Optional)", mobileController,
+                              keyboardType: TextInputType.number),
                           CommonWidget.getTextFieldWithgrayboder(
                               "Write about services..", aboutController,
                               maxline: 6, height: 120),
@@ -135,29 +142,29 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                             onTap: () async {
                               //var data = await BaseActivity.pickmultipleFile();
                               BaseActivity.showFilePicker(context,
-                                      (List<File>? list) {
-                                    var data = list;
+                                  (List<File>? list) {
+                                var data = list;
+                                if (data != null) {
+                                  setState(() {
                                     if (data != null) {
-                                      setState(() {
-                                        if (data != null) {
-                                          for (int i = 0; i < data.length; i++) {
-                                            setState(() {
-                                              if (selectedFiles.length < 1)
-                                                selectedFiles.add(data[i]);
-                                            });
-                                            if (selectedFiles.length == 1 &&
-                                                i < data.length - 1) {
-                                              CommonWidget.errorShowSnackBarFor(
-                                                  context,
-                                                  "You can't add more then 1 Cover image.");
-                                              break;
-                                            }
-                                          }
+                                      for (int i = 0; i < data.length; i++) {
+                                        setState(() {
+                                          if (selectedFiles.length < 1)
+                                            selectedFiles.add(data[i]);
+                                        });
+                                        if (selectedFiles.length == 1 &&
+                                            i < data.length - 1) {
+                                          CommonWidget.errorShowSnackBarFor(
+                                              context,
+                                              "You can't add more then 1 Cover image.");
+                                          break;
                                         }
-                                      });
+                                      }
                                     }
-                                    print(selectedFiles.length);
                                   });
+                                }
+                                print(selectedFiles.length);
+                              });
                             },
                             child: Container(
                               color: ColorClass.base_color,
@@ -201,7 +208,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                                   top: 10, left: 10),
                                               child: CommonWidget
                                                   .determineImageAsset(
-                                                  selectedFiles[index].path)),
+                                                      selectedFiles[index].path)),
                                           Align(
                                               alignment: Alignment.topRight,
                                               child: GestureDetector(
@@ -228,29 +235,29 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                             onTap: () async {
                               //var data = await BaseActivity.pickmultipleFile();
                               BaseActivity.showFilePicker(context,
-                                      (List<File>? list) {
-                                    var data = list;
+                                  (List<File>? list) {
+                                var data = list;
+                                if (data != null) {
+                                  setState(() {
                                     if (data != null) {
-                                      setState(() {
-                                        if (data != null) {
-                                          for (int i = 0; i < data.length; i++) {
-                                            setState(() {
-                                              if (selectedDetailsFiles.length < 5)
-                                                selectedDetailsFiles.add(data[i]);
-                                            });
-                                            if (selectedDetailsFiles.length == 5 &&
-                                                i < data.length - 1) {
-                                              CommonWidget.errorShowSnackBarFor(
-                                                  context,
-                                                  "You can't add more then 5 Details image.");
-                                              break;
-                                            }
-                                          }
+                                      for (int i = 0; i < data.length; i++) {
+                                        setState(() {
+                                          if (selectedDetailsFiles.length < 5)
+                                            selectedDetailsFiles.add(data[i]);
+                                        });
+                                        if (selectedDetailsFiles.length == 5 &&
+                                            i < data.length - 1) {
+                                          CommonWidget.errorShowSnackBarFor(
+                                              context,
+                                              "You can't add more then 5 Details image.");
+                                          break;
                                         }
-                                      });
+                                      }
                                     }
-                                    print(selectedDetailsFiles.length);
                                   });
+                                }
+                                print(selectedDetailsFiles.length);
+                              });
                             },
                             child: Container(
                               color: ColorClass.base_color,
@@ -294,8 +301,8 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                                   top: 10, left: 10),
                                               child: CommonWidget
                                                   .determineImageAsset(
-                                                  selectedDetailsFiles[index]
-                                                      .path)),
+                                                      selectedDetailsFiles[index]
+                                                          .path)),
                                           Align(
                                               alignment: Alignment.topRight,
                                               child: GestureDetector(
@@ -317,73 +324,67 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   }),
                             ),
                           SizedBox(
-                            height: 20,
+                            height: 10,
                           ),
                           GestureDetector(
-                              onTap: () async {
-                                //FocusManager.instance.primaryFocus?.unfocus();
-                                 if (BaseActivity.checkEmptyField(
-                                    editingController: mobileController,
-                                    message: "Please Enter Mobile.",
-                                    context: context)) {
-                                  return;
-                                } /*else if (imageURl == "") {
-                                          CommonWidget.successShowSnackBarFor(
-                                              context, "Please Select Profile Image");
-                                          return;
-                                        }*/
-                                /*else if (BaseActivity.checkEmptyField(
-                                            editingController: categoryController,
-                                            message: "Please select category.",
-                                            context: context))
-                                          return;*/
-                                else if (BaseActivity.checkEmptyField(
-                                    editingController: priceController,
-                                    message: "Please enter service cost.",
-                                    context: context))
-                                  return;
-                                else if (BaseActivity.checkEmptyField(
-                                    editingController: durationController,
-                                    message: "Please enter service duration.",
-                                    context: context))
-                                  return;
-                                else if (BaseActivity.checkEmptyField(
-                                    editingController: timeSlotController,
-                                    message: "Please enter service capacity.",
-                                    context: context))
-                                  return;
-                                else if (BaseActivity.checkEmptyField(
-                                    editingController: aboutController,
-                                    message: "Please enter about your service.",
-                                    context: context))
-                                  return;
-                                /* else if (selectedFiles.length < 1) {
-                                          CommonWidget.errorShowSnackBarFor(
-                                              context, "Please select cover image");
-                                          return;
-                                        } else if (selectedDetailsFiles.length < 3) {
-                                          CommonWidget.errorShowSnackBarFor(context,
-                                              "Please select atleast 3 detail image");
-                                          return;
-                                        }*/ else {
-                                  List<String> imageList = [];
-                                  if(selectedFiles.length>0)
-                                    await postImage(context);
-                                  for (var i = 0;
+                            onTap: () async {
+                              if (BaseActivity.checkEmptyField(
+                                  editingController: titleController,
+                                  message: "Please enter service title.",
+                                  context: context))
+                                return;
+                              else if (BaseActivity.checkEmptyField(
+                                  editingController: categoryController,
+                                  message: "Please select category.",
+                                  context: context))
+                                return;
+                              else if (BaseActivity.checkEmptyField(
+                                  editingController: priceController,
+                                  message: "Please enter service cost.",
+                                  context: context))
+                                return;
+                              else if (BaseActivity.checkEmptyField(
+                                  editingController: durationController,
+                                  message: "Please enter service duration.",
+                                  context: context))
+                                return;
+                              else if (BaseActivity.checkEmptyField(
+                                  editingController: timeSlotController,
+                                  message: "Please enter service capacity.",
+                                  context: context))
+                                return;
+                              // else if (BaseActivity.checkEmptyField(
+                              //     editingController: mobileController,
+                              //     message: "Please enter mobile number.",
+                              //     context: context))
+                              //   return;
+                              else if (BaseActivity.checkEmptyField(
+                                  editingController: aboutController,
+                                  message: "Please enter about your service.",
+                                  context: context))
+                                return;
+                              else if (selectedFiles.length < 1) {
+                                CommonWidget.errorShowSnackBarFor(
+                                    context, "Please select cover image");
+                                return;
+                              } else if (selectedDetailsFiles.length < 3) {
+                                CommonWidget.errorShowSnackBarFor(context,
+                                    "Please select atleast 3 detail image");
+                                return;
+                              }
+                              List<String> imageList = [];
+                              await postImage(context);
+                              for (var i = 0;
                                   i < selectedDetailsFiles.length;
                                   i++) {
-                                    imageList.add(await postMultiImage(
-                                        context, [selectedDetailsFiles[i]]));
-                                  }
-                                  postServices(imageList);
-                                }
-                              },
-                              child: Container(
-                                child: CommonWidget.getGradinetButton("Submit",
-                                    startcolor: 0xff1CA669,
-                                    endcolor: 0xff1CA669,
-                                    height: 40),
-                              )),
+                                imageList.add(await postMultiImage(
+                                    context, [selectedDetailsFiles[i]]));
+                              }
+                              postServices(imageList);
+                            },
+                            child: CommonWidget.getButtonWidget("Add Services",
+                                ColorClass.base_color, ColorClass.base_color),
+                          )
                         ]),
                   ),
                 ),
@@ -392,44 +393,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
           )),
     );
   }
-  showCapacity() {
-    List<CheckDialogBox> typeList = [];
-    List<String> time = ["1", "2", "3", "4", "5","6", "10", "10-15", "15-20", "More then 25"];
-    for (var i in time) {
-      CheckDialogBox data =
-      CheckDialogBox(i, i);
-      typeList.add(data);
-    }
-    showDialog(
-        context: context,
-        builder: (context) {
-          return SearchDialogWithSingleSelect(typeList, "Select Capacity",
-                  (String id, String name) {
-                setState(() {
-                  timeSlotController.text = name;
-                });
-              });
-        });
-  }
-  showTimeRequierd() {
-    List<CheckDialogBox> typeList = [];
-    List<String> time = ["0.5hr - 1hr","1hr - 2hr", "2hr - 3hr", "3hr - 4hr", "4hr - 5hr", "More then 5hr."];
-    for (var i in time) {
-      CheckDialogBox data =
-      CheckDialogBox(i, i);
-      typeList.add(data);
-    }
-    showDialog(
-        context: context,
-        builder: (context) {
-          return SearchDialogWithSingleSelect(typeList, "Select Service Durations",
-                  (String id, String name) {
-                setState(() {
-                  durationController.text = name;
-                });
-              });
-        });
-  }
+
   getCategory(BuildContext context) async {
     var response = await servicesDataManager!.getcategory(context);
     var data = CategoryModelData.fromJson(jsonDecode(response.body));

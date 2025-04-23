@@ -115,7 +115,7 @@ class _OfferScreenState extends State<OfferScreen> {
                       CommonWidget.getTextFieldWithgrayboder(
                           "Enter Description", descriptionController),
                       CommonWidget.getTextFieldWithgrayboder(
-                          "Enter Discount", discountController),
+                          "Enter Discount(Optional)", discountController),
                       Row(
                         children: [
                           Expanded(
@@ -281,11 +281,11 @@ class _OfferScreenState extends State<OfferScreen> {
                     message: "Enter description of offer.",
                     context: context))
                   return;
-                if (BaseActivity.checkEmptyField(
-                    editingController: discountController,
-                    message: "Enter discount of offer.",
-                    context: context))
-                  return;
+                // if (BaseActivity.checkEmptyField(
+                //     editingController: discountController,
+                //     message: "Enter discount of offer.",
+                //     context: context))
+                //   return;
                 if (int.parse(discountController.text) > 100) {
                   CommonWidget.errorShowSnackBarFor(
                       context, "Discount percentage should be less then 100%");
