@@ -286,8 +286,8 @@ class _OfferScreenState extends State<OfferScreen> {
                 //     message: "Enter discount of offer.",
                 //     context: context))
                 //   return;
-                if (int.parse(discountController.text) > 100) {
-                  CommonWidget.errorShowSnackBarFor(
+                if (int.parse(discountController.text.isEmpty ? '0' : discountController.text) > 100) {
+                    CommonWidget.errorShowSnackBarFor(
                       context, "Discount percentage should be less then 100%");
                   return;
                 }if (BaseActivity.checkEmptyField(
@@ -296,7 +296,7 @@ class _OfferScreenState extends State<OfferScreen> {
                     context: context))
                   return;
                 if (BaseActivity.checkEmptyField(
-                    editingController: discountController,
+                    editingController: validUntilController,
                     message: "Enter valid date to.",
                     context: context))
                   return;

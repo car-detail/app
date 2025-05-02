@@ -277,7 +277,9 @@ class _HomeActivityState extends State<HomeActivity> {
                                                 ),
                                                 child: CommonWidget
                                                     .getTextWidget500(
-                                                        "Get ${offerListData[index].discount}% off",
+                                                        offerListData[index]
+                                                                .title ??
+                                                            "",
                                                         size: 14,
                                                         color: Colors.white,
                                                         textAlign:
@@ -496,12 +498,17 @@ class _HomeActivityState extends State<HomeActivity> {
             ),
           ] else if (offerListData.isEmpty && records.isEmpty) ...[
             Expanded(
-              child: Center(
-                child: CommonWidget.getTextWidgetPopSemi(
-                  "Pro Tip: Boost your chances of getting bookings by running attractive offers!",
-                  size: 13,
-                  color: Colors.grey[700]!,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Center(
+                    child: CommonWidget.getTextWidgetPopSemi(
+                      "Pro Tip: Boost your chances of getting bookings by running attractive offers!",
+                      size: 13,
+                      color: Colors.grey[700]!,
+                    ),
+                  ),
+                ],
               ),
             )
           ],
@@ -514,7 +521,7 @@ class _HomeActivityState extends State<HomeActivity> {
                 // Other existing widgets...
               ],
             ),
-          )
+          ),
         ],
       ),
     );

@@ -44,8 +44,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
     setState(() {
       venderId = sharedPreferences!.getString(Constant.vendorId) ?? "";
     });
-    if (venderId != "")
-      getCategory(context);
+    if (venderId != "") getCategory(context);
   }
 
   @override
@@ -158,15 +157,20 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                               12)
                                         ],
                                       ),
-                                      SizedBox(height: 5,),
+                                      SizedBox(
+                                        height: 5,
+                                      ),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          if(data.averageRating != null && data.averageRating != 0)
+                                          if (data.averageRating != null &&
+                                              data.averageRating != 0)
                                             Row(
                                               children: [
                                                 Image.asset(
-                                                  CommonWidget.getImagePath("stars1.png"),
+                                                  CommonWidget.getImagePath(
+                                                      "stars1.png"),
                                                   height: 20,
                                                   width: 20,
                                                 ),
@@ -175,12 +179,15 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                                     14)
                                               ],
                                             ),
-                                          if(data.offers.length >0)
-                                            CommonWidget.getButtonWidget("Offer Applied", Colors.orange[300]!, Colors.orange[300]!, height: 30, size: 12),
-
+                                          if (data.offers.length > 0)
+                                            CommonWidget.getButtonWidget(
+                                                "Offer Applied",
+                                                Colors.orange[300]!,
+                                                Colors.orange[300]!,
+                                                height: 30,
+                                                size: 12),
                                         ],
                                       ),
-
                                     ],
                                   )),
                             );
@@ -218,13 +225,14 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
         floatingActionButton: venderId != "null"
             ? FloatingActionButton(
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context)
+                      .push(
                     MaterialPageRoute(
                       builder: (context) => AddServicesActivity(),
                     ),
-                  ).then((onValue){
-                    if(onValue == true && venderId != "")
-                    getCategory(context);
+                  )
+                      .then((onValue) {
+                    if (onValue == true && venderId != "") getCategory(context);
                   });
                 },
                 backgroundColor: ColorClass.base_color,
