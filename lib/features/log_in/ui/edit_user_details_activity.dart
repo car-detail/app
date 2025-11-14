@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
 import 'package:car_app/features/log_in/model/user_detail_model_bean.dart';
+import 'package:car_app/features/log_in/model/vendor_details_bean.dart';
+import 'package:car_app/features/resister_vendor_model/ui/simple_add_shop_activity.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,7 +15,6 @@ import '../../../Common/BaseActivity.dart';
 import '../../../Common/Color.dart';
 import '../../../Common/CommonWidget.dart';
 import '../../../Models/image_module_data.dart';
-import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
 import '../data_manager/LoginDataManager.dart';
 
 class EditUserDetailsActivity extends StatefulWidget {
@@ -76,15 +78,51 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
       sharedPreferences!
           .setString(Constant.id, data.data!.sId.toString() ?? "");
       CommonWidget.successShowSnackBarFor(context, data.message??"");
-      if(widget.type == "otp")
-      //CommonWidget.navigateToKillAllScreen(context, DashboardActivity());
-      CommonWidget.navigateToKillAllScreen(context, RegistorVendorActivity());
-      else
+      if(widget.type == "otp") {
+        // After profile completion, check if user has vendor details
+        await _checkVendorDetailsAndRedirect();
+      } else {
         Navigator.pop(context, true);
+      }
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }
+
+  Future<void> _checkVendorDetailsAndRedirect() async {
+    try {
+      // Get updated user details to check for vendor information
+      var response = await loginDataManager!.getUserDetails(context);
+      
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        // If API error, go to dashboard
+        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+        return;
+      }
+      
+      var data = VendorDetailBean.fromJson(jsonDecode(response.body));
+      if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
+        // Check if user has vendor details
+        if (data.data![0].vendorDetails != null && data.data![0].vendorDetails!.isNotEmpty) {
+          // User has vendor details, go to dashboard
+          print("✅ User has vendor details, going to dashboard");
+          CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+        } else {
+          // User doesn't have vendor details, redirect to shop setup
+          print("❌ User doesn't have vendor details, redirecting to shop setup");
+          CommonWidget.navigateToKillAllScreen(context, const SimpleAddShopActivity());
+        }
+      } else {
+        // Error getting user details, go to dashboard
+        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+      }
+    } catch (e) {
+      print("Error checking vendor details: $e");
+      // On error, go to dashboard
+      CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+    }
+  }
+
   postImage(BuildContext context) async {
     List<File> image = [selectedFiles[0]];
     var response = await loginDataManager!.postImage(
@@ -112,7 +150,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 45, left: 15),
+              margin: const EdgeInsets.only(top: 45, left: 15),
               child: InkWell(
                 onTap: (){
                   Navigator.pop(context, true);
@@ -125,15 +163,15 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
               ),
             ),
             Expanded(child: Container(
-              margin: Platform.isIOS
-                  ? EdgeInsets.only(top: 320)
-                  : EdgeInsets.only(top: 250),
+              margin: kIsWeb
+                  ? const EdgeInsets.only(top: 320)
+                  : const EdgeInsets.only(top: 250),
               child: Column(
                 children: [
                   //Image(image: AssetImage('assets/images/login_image.png')),
                   Expanded(
                       child: Container(
-                        margin: EdgeInsets.only(left: 20, right: 20),
+                        margin: const EdgeInsets.only(left: 20, right: 20),
                         child: SingleChildScrollView(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -146,7 +184,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                   alignment: Alignment.center,
                                   child: Stack(
                                     children: [
-                                      if (selectedFiles.length == 0)
+                                      if (selectedFiles.isEmpty)
                                         ClipOval(
                                           child: Image.asset(
                                             CommonWidget.getImagePath("chat_profile.png"),
@@ -155,7 +193,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                             fit: BoxFit.fill,
                                           ),
                                         ),
-                                      if (selectedFiles.length > 0)
+                                      if (selectedFiles.isNotEmpty)
                                         ClipOval(
                                           child: CommonWidget.determineImageAsset(
                                               selectedFiles[0].path ?? ""),
@@ -163,7 +201,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                       Positioned(
                                         bottom: 5,
                                         right: 0,
-                                        child: Container(
+                                        child: SizedBox(
                                           width: 30,
                                           height: 30,
                                           child: Container(
@@ -176,17 +214,15 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                                 var data = await BaseActivity.pickmedia(false);
                                                 if (data != null) {
                                                   setState(() {
-                                                    if (data != null) {
-                                                      selectedFiles.clear();
-                                                      for (int i = 0;
-                                                      i < data.length;
-                                                      i++) {
-                                                        setState(() {
-                                                          selectedFiles.add(data[i]);
-                                                        });
-                                                      }
+                                                    selectedFiles.clear();
+                                                    for (int i = 0;
+                                                    i < data.length;
+                                                    i++) {
+                                                      setState(() {
+                                                        selectedFiles.add(data[i]);
+                                                      });
                                                     }
-                                                  });
+                                                                                                    });
                                                 }
                                                 print(selectedFiles.length);
                                                 postImage(context);
@@ -204,7 +240,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                     "Enter Last Name", lastNameController),
                                 CommonWidget.getTextFieldWithgrayboder(
                                     "Enter Email Address", emailController),
-                                SizedBox(
+                                const SizedBox(
                                   height: 20,
                                 ),
                                 GestureDetector(

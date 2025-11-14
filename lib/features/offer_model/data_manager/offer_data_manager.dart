@@ -15,7 +15,7 @@ class OfferDataManager{
   postImage(List<File> file, BuildContext context) {
     return apiFuntions.sendMultipartRequest(
       context,
-      "${Constant.uploadFile}",
+      Constant.uploadFile,
       file,
       <String, dynamic>{},
     );
@@ -52,7 +52,7 @@ class OfferDataManager{
       String image) {
     return apiFuntions.postdatauser(
       context,
-      "${Constant.addOffer}",
+      Constant.addOffer,
       <String, dynamic>{
         "title": title,
         "vendor": sharedPreferences.getString(Constant.vendorId) ?? "",
@@ -60,13 +60,16 @@ class OfferDataManager{
         "description": description,
         "image": image,
         "discount": discount,
-        "validFrom": validFrom,
+        "validFrom": "${DateTime.now().year.toString().padLeft(4, '0')}-"
+            "${DateTime.now().month.toString().padLeft(2, '0')}-"
+            "${DateTime.now().day.toString().padLeft(2, '0')} 00:00:00.000",
         "validUntil": validUntil,
         "location": {
           "name": sharedPreferences.getString(Constant.location) ?? "",
           "coordinates": {
+            "long": double.parse(sharedPreferences.getString(Constant.long) ?? "0.0"),
             "lat": double.parse(sharedPreferences.getString(Constant.lat) ?? "0.0"),
-            "long": double.parse(sharedPreferences.getString(Constant.long) ?? "0.0")
+
           }
         },
         "isActive": true,

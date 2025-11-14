@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:bot_toast/bot_toast.dart';
+// import 'package:bot_toast/bot_toast.dart'; // Disabled for web compatibility
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -163,27 +164,41 @@ class CommonWidget {
     );
   }
 
-  static Widget getTextRich(String title, String value,
-      {Color titlecolor = Colors.black,
-      Color valuecolor = Colors.black,
-      double textsize = 14,
-      int maxLine = 5}) {
-    return Text.rich(
+  static Widget getTextRich(
+      String title,
+      String value, {
+        Color titlecolor = Colors.black,
+        Color valuecolor = Colors.green,
+        double textsize = 12, // Reduced text size for compactness
+        int maxLine = 2, // Reduce the number of max lines
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0), // Smaller vertical padding
+      child: Text.rich(
         maxLines: maxLine,
         overflow: TextOverflow.ellipsis,
         TextSpan(
-            text: title,
-            style: TextStyle(
-                fontFamily: "PopSemi", color: titlecolor, fontSize: textsize),
-            children: [
-              TextSpan(
-                text: value,
-                style: TextStyle(
-                    fontFamily: "PopReg",
-                    color: valuecolor,
-                    fontSize: textsize),
-              )
-            ]));
+          text: title,
+          style: TextStyle(
+            fontFamily: "PopSemi",
+            color: titlecolor,
+            fontSize: textsize,
+            fontWeight: FontWeight.bold, // Keep title bold for emphasis
+          ),
+          children: [
+            TextSpan(
+              text: value,
+              style: TextStyle(
+                fontFamily: "PopReg",
+                color: valuecolor,
+                fontSize: textsize,
+                fontWeight: FontWeight.normal, // Regular weight for value
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   static Widget getMendatroyTextRich(String title,
@@ -192,7 +207,7 @@ class CommonWidget {
         text: title,
         style:
             TextStyle(fontFamily: "PopSemi", color: titlecolor, fontSize: 14),
-        children: [
+        children: const [
           TextSpan(
             text: "*",
             style: TextStyle(
@@ -244,18 +259,18 @@ class CommonWidget {
             color: Colors.black, fontFamily: "PopReg", fontSize: fontsize),
         decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
                 borderSide: BorderSide(
                     color: ColorClass.base_color,
                     width: 1,
                     style: BorderStyle.solid)),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
                 borderSide: BorderSide(
                     color: ColorClass.middel_gray_base,
                     width: 1,
                     style: BorderStyle.solid)),
-            contentPadding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+            contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
             filled: true,
             fillColor: ColorClass.base_light_color,
             hintText: hinttext,
@@ -264,7 +279,7 @@ class CommonWidget {
                 fontSize: fontsize,
                 fontWeight: FontWeight.w300),
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
                 borderSide: BorderSide(color: ColorClass.light_browne))),
         //controller: userid,
       ),
@@ -286,7 +301,7 @@ class CommonWidget {
             color: Colors.black, fontFamily: "PopReg", fontSize: fontsize),
         decoration: InputDecoration(
           suffixIcon: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Image(
               image: AssetImage("assets/images/$image.png"),
               height: 12,
@@ -294,19 +309,19 @@ class CommonWidget {
               color: ColorClass.base_color,
             ),
           ),
-          contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+          contentPadding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
           filled: true,
           fillColor: ColorClass.base_light_color,
           hintText: hinttext,
           hintStyle: TextStyle(color: Colors.grey, fontSize: fontsize),
           focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
               borderSide: BorderSide(
                   color: ColorClass.base_color,
                   width: 1,
                   style: BorderStyle.solid)),
           enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
               borderSide: BorderSide(
                   color: ColorClass.light_gray_base,
                   width: 1,
@@ -332,10 +347,10 @@ class CommonWidget {
         onTap: funtion,
         keyboardType: TextInputType.text,
         style:
-            TextStyle(color: Colors.black, fontFamily: "PopReg", fontSize: 14),
+            const TextStyle(color: Colors.black, fontFamily: "PopReg", fontSize: 14),
         decoration: InputDecoration(
           suffixIcon: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Image(
               image: AssetImage("assets/images/$image.png"),
               height: 12,
@@ -343,26 +358,26 @@ class CommonWidget {
             ),
           ),
           prefixIcon: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Image(
               image: AssetImage("assets/images/$image2.png"),
               height: 12,
               width: 12,
             ),
           ),
-          contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+          contentPadding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
           filled: true,
           fillColor: Colors.white,
           hintText: hinttext,
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
           focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
               borderSide: BorderSide(
                   color: ColorClass.base_color,
                   width: 1,
                   style: BorderStyle.solid)),
           enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
               borderSide: BorderSide(
                   color: ColorClass.light_gray_base,
                   width: 1,
@@ -379,7 +394,7 @@ class CommonWidget {
       double height = 35,
       int textColor = 0xffFFFFFF}) {
     return Container(
-      padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
       width: width,
       height: height,
       decoration: BoxDecoration(
@@ -389,7 +404,7 @@ class CommonWidget {
           end: Alignment.topRight,
         ),
         //color: Color(0xffFF701C),
-        borderRadius: BorderRadius.all(Radius.circular(20)),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: Center(
         child: Text(
@@ -407,12 +422,12 @@ class CommonWidget {
   static Widget getButtonWidget(String title, Color bgcolor, Color bodercolor,
       {double size = 14, double height = 40, Color textcolor = Colors.white}) {
     return Container(
-      padding: EdgeInsets.fromLTRB(10, 3, 10, 3),
+      padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
       height: height,
       decoration: BoxDecoration(
         color: bgcolor,
         border: Border.all(color: bodercolor, width: 1),
-        borderRadius: BorderRadius.all(Radius.circular(20)),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: Center(
         child: Text(
@@ -433,7 +448,7 @@ class CommonWidget {
           color: ColorClass.base_color,
         ),
         Container(
-          margin: EdgeInsets.only(top: 45, left: 10),
+          margin: const EdgeInsets.only(top: 45, left: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -442,20 +457,20 @@ class CommonWidget {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Image(
+                child: const Image(
                   image: AssetImage("assets/images/left_icon.png"),
                   width: 30,
                   height: 30,
                 ),
               )else
-                Container(height: 30,width: 30,)
+                SizedBox(height: 30,width: 30,)
               ,
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(left: 5, right: 5),
+                  margin: const EdgeInsets.only(left: 5, right: 5),
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontFamily: "Popbold",
                         color: Colors.white,
                         fontSize: 18),
@@ -463,7 +478,7 @@ class CommonWidget {
                   ),
                 ),
               ),
-              Container(
+              SizedBox(
                 height: 30,
                 width: 30,
               )
@@ -520,16 +535,16 @@ class CommonWidget {
       bool isBack = true}) {
     return Stack(
       children: [
-        Container(
+        SizedBox(
           height: 120,
           width: double.infinity,
-          child: Image(
+          child: const Image(
             image: AssetImage("assets/images/top_bar_new.png"),
             fit: BoxFit.fill,
           ),
         ),
         Container(
-          margin: EdgeInsets.only(top: 0, left: 10),
+          margin: const EdgeInsets.only(top: 0, left: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -544,8 +559,8 @@ class CommonWidget {
                     }
                   },
                   child: Container(
-                    margin: EdgeInsets.only(left: 10, top: 45),
-                    child: Image(
+                    margin: const EdgeInsets.only(left: 10, top: 45),
+                    child: const Image(
                       image: AssetImage("assets/images/left_icon.png"),
                       width: 30,
                       height: 30,
@@ -554,16 +569,16 @@ class CommonWidget {
                 )
               else
                 Container(
-                  margin: EdgeInsets.only(right: 10, top: 45),
+                  margin: const EdgeInsets.only(right: 10, top: 45),
                   height: 40,
                   width: 30,
                 ),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(top: 45, left: 5, right: 5),
+                  margin: const EdgeInsets.only(top: 45, left: 5, right: 5),
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontFamily: "Popbold",
                         color: Colors.white,
                         fontSize: 16),
@@ -573,11 +588,11 @@ class CommonWidget {
               ),
               if (isHome)
                 Container(
-                  margin: EdgeInsets.only(right: 10, top: 45),
+                  margin: const EdgeInsets.only(right: 10, top: 45),
                   child: Builder(builder: (context) {
                     return IconButton(
                       icon: Image.asset(
-                        'assets/images/${icon}.png',
+                        'assets/images/$icon.png',
                         height: 25,
                         width: 25,
                         color: Colors.white,
@@ -601,7 +616,7 @@ class CommonWidget {
                 )
               else
                 Container(
-                  margin: EdgeInsets.only(right: 10, top: 45),
+                  margin: const EdgeInsets.only(right: 10, top: 45),
                   height: 40,
                   width: 30,
                 )
@@ -626,7 +641,7 @@ class CommonWidget {
           width: size,
         ),
         Container(
-            margin: EdgeInsets.only(left: 5),
+            margin: const EdgeInsets.only(left: 5),
             child: CommonWidget.getTextWidgetPopReg(text,
                 textsize: textsixe, color: textcolor)),
       ],
@@ -648,7 +663,7 @@ class CommonWidget {
         ),
         Expanded(
           child: Container(
-              margin: EdgeInsets.only(left: 5),
+              margin: const EdgeInsets.only(left: 5),
               child: CommonWidget.getTextWidgetPopReg(text,
                   textsize: textsixe, textAlign: textAlign, color: color)),
         )
@@ -657,7 +672,7 @@ class CommonWidget {
   }
 
   static Widget gettopbarandroid() {
-    if (Platform.isAndroid) {
+    if (!kIsWeb) {
       return Container(
         color: ColorClass.base_color,
         width: double.infinity,
@@ -669,7 +684,7 @@ class CommonWidget {
   }
 
   static double gettopmaeginforAndropid() {
-    if (Platform.isAndroid) {
+    if (!kIsWeb) {
       return 15;
     } else {
       return 45;
@@ -701,13 +716,13 @@ class CommonWidget {
                     style: BorderStyle.solid)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(radius)),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Color(0xffdedede),
                     width: 1,
                     style: BorderStyle.solid)),
-            contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+            contentPadding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
             suffixIcon: Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Image(
                   image: AssetImage("assets/images/$image.png"),
                   height: 15,
@@ -716,11 +731,11 @@ class CommonWidget {
             filled: true,
             fillColor: Colors.white,
             hintText: hinttext,
-            hintStyle: TextStyle(
+            hintStyle: const TextStyle(
                 color: Colors.grey, fontSize: 15, fontWeight: FontWeight.w500),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(radius)),
-                borderSide: BorderSide(color: Color(0xffdedede)))),
+                borderSide: const BorderSide(color: Color(0xffdedede)))),
         //controller: userid,
       ),
     );
@@ -750,13 +765,13 @@ class CommonWidget {
                     style: BorderStyle.solid)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(radius)),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                     color: Color(0xffdedede),
                     width: 1,
                     style: BorderStyle.solid)),
-            contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+            contentPadding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
             prefixIcon: Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Image(
                   image: AssetImage("assets/images/$image.png"),
                   height: 15,
@@ -765,11 +780,11 @@ class CommonWidget {
             filled: true,
             fillColor: Colors.white,
             hintText: hinttext,
-            hintStyle: TextStyle(
+            hintStyle: const TextStyle(
                 color: Colors.grey, fontSize: 15, fontWeight: FontWeight.w500),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(radius)),
-                borderSide: BorderSide(color: Color(0xffdedede)))),
+                borderSide: const BorderSide(color: Color(0xffdedede)))),
         //controller: userid,
       ),
     );
@@ -789,14 +804,16 @@ class CommonWidget {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
 */
 
-    BotToast.showText(
-      contentPadding: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 3),
-      contentColor: Colors.red[100]!,
-      text: message,
-      textStyle: TextStyle(
-          color: Colors.red, fontWeight: FontWeight.w500, fontSize: 16),
-    );
+    final snackBar = SnackBar(
+        backgroundColor: Colors.red[100],
+        content: Container(
+            child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Colors.red, fontWeight: FontWeight.w500, fontSize: 16),
+        )));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   static successShowSnackBarFor(BuildContext context, String message) {
@@ -811,14 +828,16 @@ class CommonWidget {
         )));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
 
-    BotToast.showText(
-      contentPadding: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 3),
-      contentColor: Colors.green[100]!,
-      text: message,
-      textStyle: TextStyle(
-          color: Colors.green, fontWeight: FontWeight.w500, fontSize: 16),
-    );
+    final snackBar = SnackBar(
+        backgroundColor: Colors.green[100],
+        content: Container(
+            child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Colors.green, fontWeight: FontWeight.w500, fontSize: 16),
+        )));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   static showalertDialogwithimage(
@@ -842,7 +861,7 @@ class CommonWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      content: Container(
+      content: SizedBox(
           height: height,
           child: Stack(
             children: [
@@ -852,7 +871,7 @@ class CommonWidget {
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Image(
+                  child: const Image(
                     image: AssetImage("assets/images/delete.png"),
                     height: 25,
                     width: 25,
@@ -860,7 +879,7 @@ class CommonWidget {
                 ),
               ),
               Container(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   children: [
                     if (isboldtitle)
@@ -878,23 +897,23 @@ class CommonWidget {
                         width: 60,
                       ),
                     Container(
-                      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                       child: Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Color(0xff535353),
                             fontSize: 15,
                             fontWeight: FontWeight.normal),
                       ),
                     ),
                     Container(
-                        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                        child: Divider(
+                        margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                        child: const Divider(
                           height: 3,
                           color: Color(0xffdedede),
                         )),
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: Row(
                         mainAxisAlignment: mainAxisAlignment,
@@ -904,17 +923,17 @@ class CommonWidget {
                               child: GestureDetector(
                                 onTap: negativefuntion,
                                 child: Container(
-                                  margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                                  padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
+                                  margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                  padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                                   decoration: BoxDecoration(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(20)),
+                                        const BorderRadius.all(Radius.circular(20)),
                                     color: Color(nevcolor),
                                   ),
                                   child: Text(
                                     negativetitle,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
@@ -926,7 +945,7 @@ class CommonWidget {
                             Container(
                               height: 40,
                               width: 1,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Color(0xffE8E3E3),
                               ),
                             ),
@@ -934,17 +953,17 @@ class CommonWidget {
                             child: GestureDetector(
                               onTap: positivefuntion,
                               child: Container(
-                                margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                                padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
+                                margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                                 decoration: BoxDecoration(
                                   color: Color(povColor),
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
+                                      const BorderRadius.all(Radius.circular(20)),
                                 ),
                                 child: Text(
                                   positivetitle,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold),
@@ -1181,7 +1200,7 @@ class CommonWidget {
         otherOptions: OtherOptions(
             height: 300,
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
                 color: Colors.white,
                 border: Border.all(
                   color: ColorClass.middel_gray_base,
@@ -1194,7 +1213,7 @@ class CommonWidget {
   static Future<String> getHtmlValueFromEditor(
       HtmlEditorController controller) async {
     var txt = await controller.getText();
-    if (txt.contains('src=\"data:')) {
+    if (txt.contains('src="data:')) {
       txt =
           '<text removed due to base-64 data, displaying the text could cause the app to crash>';
     }

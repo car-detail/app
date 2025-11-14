@@ -54,7 +54,7 @@ class _BookingActivityState extends State<BookingActivity> {
     return Scaffold(
       body: Column(
         children: [
-          Container(
+          SizedBox(
             height: 250,
             child: Stack(
               children: [
@@ -66,7 +66,7 @@ class _BookingActivityState extends State<BookingActivity> {
                     fit: BoxFit.cover,
                   ),
                 Container(
-                  margin: EdgeInsets.only(top: 45, left: 10, right: 10),
+                  margin: const EdgeInsets.only(top: 45, left: 10, right: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -88,7 +88,7 @@ class _BookingActivityState extends State<BookingActivity> {
           ),
           Expanded(
               child: Container(
-            margin: EdgeInsets.all(15),
+            margin: const EdgeInsets.all(15),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -98,13 +98,13 @@ class _BookingActivityState extends State<BookingActivity> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
+                          padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
+                          decoration: BoxDecoration(
+                              color: const Color(0xff1cb2731a),
+                              borderRadius: BorderRadius.circular(20)),
                           child: CommonWidget.getTextWidget300(
                               bookingdata.categoryName ?? "", 14,
-                              color: ColorClass.base_color),
-                          padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
-                          decoration: BoxDecoration(
-                              color: Color(0xff1CB2731A),
-                              borderRadius: BorderRadius.circular(20))),
+                              color: ColorClass.base_color)),
                       Row(
                         children: [
                           Image.asset(
@@ -117,7 +117,7 @@ class _BookingActivityState extends State<BookingActivity> {
                       ),
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   CommonWidget.getTextWidget500(bookingdata.serviceTitle ?? "",
@@ -125,16 +125,16 @@ class _BookingActivityState extends State<BookingActivity> {
                   CommonWidget.getTextWidget300(
                       bookingdata.location?.name ?? "", 14,
                       color: ColorClass.dark_gray_base),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   CommonWidget.getTextWidget500("Book A Slot",
                       color: ColorClass.base_color),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   CommonWidget.getTextWidget300("Service Type", 14),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   Row(
@@ -168,11 +168,11 @@ class _BookingActivityState extends State<BookingActivity> {
                       )
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   CommonWidget.getTextWidget300("Service Type", 14),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   Row(
@@ -200,7 +200,7 @@ class _BookingActivityState extends State<BookingActivity> {
                           }, "clander"),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 5,
                       ),
                       Expanded(
@@ -224,7 +224,7 @@ class _BookingActivityState extends State<BookingActivity> {
                   ),
                   CommonWidget.getTextWidget300(
                       "Estimate service time will be 1hr 50mins.", 12),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   CommonWidget.getTextWidget500("Note for Service Provider"),
@@ -234,7 +234,7 @@ class _BookingActivityState extends State<BookingActivity> {
             ),
           )),
           Container(
-              margin: EdgeInsets.fromLTRB(15, 0, 15, 25),
+              margin: const EdgeInsets.fromLTRB(15, 0, 15, 25),
               child: CommonWidget.getButtonWidget(
                   "Continue", ColorClass.base_color, ColorClass.base_color,
                   textcolor: Colors.white))

@@ -5,6 +5,7 @@ import 'package:car_app/features/log_in/ui/iotp_screen_activity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,18 +43,35 @@ class _LoginActivityState extends State<LoginActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     loginDataManager = LoginDataManager(sharedPreferences!);
-    var possition = await _determinePosition();
-    print(
-        "============================================================= ${possition.toString()}");
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(possition.latitude, possition.longitude);
-    print("========================= ${placemarks?[0].locality}");
-    sharedPreferences!
-        .setString(Constant.location, placemarks?[0].locality ?? "");
-    sharedPreferences!
-        .setString(Constant.lat, possition.latitude.toString());
-    sharedPreferences!
-        .setString(Constant.long, possition.longitude.toString());
+    
+    try {
+      if (kIsWeb) {
+        // For web, use default location or skip geocoding
+        sharedPreferences!.setString(Constant.location, "Web Location");
+        sharedPreferences!.setString(Constant.lat, "0.0");
+        sharedPreferences!.setString(Constant.long, "0.0");
+        return;
+      }
+      
+      var possition = await _determinePosition();
+      print(
+          "============================================================= ${possition.toString()}");
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(possition.latitude, possition.longitude);
+      print("========================= ${placemarks[0].locality}");
+      sharedPreferences!
+          .setString(Constant.location, placemarks[0].locality ?? "");
+      sharedPreferences!
+          .setString(Constant.lat, possition.latitude.toString());
+      sharedPreferences!
+          .setString(Constant.long, possition.longitude.toString());
+    } catch (e) {
+      print("Error getting location: $e");
+      // Set default values on error
+      sharedPreferences!.setString(Constant.location, "Unknown Location");
+      sharedPreferences!.setString(Constant.lat, "0.0");
+      sharedPreferences!.setString(Constant.long, "0.0");
+    }
   }
 
   @override
@@ -65,16 +83,33 @@ class _LoginActivityState extends State<LoginActivity> {
               fit: BoxFit.cover)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            widget.title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          centerTitle: true,
+        ),
         body: Container(
-          margin: Platform.isIOS
-              ? EdgeInsets.only(top: 320)
-              : EdgeInsets.only(top: 250),
+          margin: kIsWeb
+              ? const EdgeInsets.only(top: 280)
+              : const EdgeInsets.only(top: 280),
           child: Column(
             children: [
               //Image(image: AssetImage('assets/images/login_image.png')),
               Expanded(
                   child: Container(
-                margin: EdgeInsets.only(left: 20, right: 20),
+                margin: const EdgeInsets.only(left: 20, right: 20),
                 child: SingleChildScrollView(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -86,7 +121,7 @@ class _LoginActivityState extends State<LoginActivity> {
                             "Enter your mobile number to login",
                             color: ColorClass.middel_gray_base,
                             textsize: 14),
-                        SizedBox(
+                        const SizedBox(
                           height: 10,
                         ),
                         CommonWidget.getTextFieldWithgrayboderWithIcon(
@@ -94,7 +129,7 @@ class _LoginActivityState extends State<LoginActivity> {
                             "mobile_phone_rect",
                             mobileController,
                             keytype: TextInputType.phone),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         GestureDetector(

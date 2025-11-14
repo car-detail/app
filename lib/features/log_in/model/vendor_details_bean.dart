@@ -13,16 +13,16 @@ class VendorDetailBean {
     if (json['data'] != null) {
       data = <VendorDetailData>[];
       json['data'].forEach((v) {
-        data!.add(new VendorDetailData.fromJson(v));
+        data!.add(VendorDetailData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -64,24 +64,24 @@ class VendorDetailData {
     if (json['vendorDetails'] != null) {
       vendorDetails = <VendorDetails>[];
       json['vendorDetails'].forEach((v) {
-        vendorDetails!.add(new VendorDetails.fromJson(v));
+        vendorDetails!.add(VendorDetails.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['image'] = this.image;
-    data['email'] = this.email;
-    data['mobile'] = this.mobile;
-    data['isNewUser'] = this.isNewUser;
-    data['roleName'] = this.roleName;
-    if (this.vendorDetails != null) {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['firstName'] = firstName;
+    data['lastName'] = lastName;
+    data['image'] = image;
+    data['email'] = email;
+    data['mobile'] = mobile;
+    data['isNewUser'] = isNewUser;
+    data['roleName'] = roleName;
+    if (vendorDetails != null) {
       data['vendorDetails'] =
-          this.vendorDetails!.map((v) => v.toJson()).toList();
+          vendorDetails!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -132,7 +132,7 @@ class VendorDetails {
     mobile = json['mobile'];
     displayPicture = json['displayPicture'];
     location = json['location'] != null
-        ? new Location.fromJson(json['location'])
+        ? Location.fromJson(json['location'])
         : null;
     openTime = json['openTime'];
     closeTime = json['closeTime'];
@@ -148,26 +148,26 @@ class VendorDetails {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['displayName'] = this.displayName;
-    data['officialEmail'] = this.officialEmail;
-    data['mobile'] = this.mobile;
-    data['displayPicture'] = this.displayPicture;
-    if (this.location != null) {
-      data['location'] = this.location!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['displayName'] = displayName;
+    data['officialEmail'] = officialEmail;
+    data['mobile'] = mobile;
+    data['displayPicture'] = displayPicture;
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
-    data['openTime'] = this.openTime;
-    data['closeTime'] = this.closeTime;
-    data['timeZone'] = this.timeZone;
-    data['createdBy'] = this.createdBy;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    data['isShopOpen'] = this.isShopOpen;
-    data['isVerified'] = this.isVerified;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['openTime'] = openTime;
+    data['closeTime'] = closeTime;
+    data['timeZone'] = timeZone;
+    data['createdBy'] = createdBy;
+    data['isActive'] = isActive;
+    data['isDeleted'] = isDeleted;
+    data['isShopOpen'] = isShopOpen;
+    data['isVerified'] = isVerified;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -181,15 +181,15 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     coordinates = json['coordinates'] != null
-        ? new Coordinates.fromJson(json['coordinates'])
+        ? Coordinates.fromJson(json['coordinates'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    if (this.coordinates != null) {
-      data['coordinates'] = this.coordinates!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    if (coordinates != null) {
+      data['coordinates'] = coordinates!.toJson();
     }
     return data;
   }
@@ -207,9 +207,9 @@ class Coordinates {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['lat'] = this.lat;
-    data['long'] = this.long;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['long'] = long;
     return data;
   }
 }

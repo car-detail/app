@@ -10,14 +10,14 @@ class UserDetailsModelBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -90,26 +90,26 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['isActive'] = this.isActive;
-    data['isDelete'] = this.isDelete;
-    data['createdBy'] = this.createdBy;
-    data['updatedBy'] = this.updatedBy;
-    data['createdAt'] = this.createdAt;
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['image'] = this.image;
-    data['email'] = this.email;
-    data['isEmailVerified'] = this.isEmailVerified;
-    data['mobile'] = this.mobile;
-    data['isNewUser'] = this.isNewUser;
-    data['roleName'] = this.roleName;
-    data['status'] = this.status;
-    data['fcmToken'] = this.fcmToken;
-    data['deviceId'] = this.deviceId;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['isActive'] = isActive;
+    data['isDelete'] = isDelete;
+    data['createdBy'] = createdBy;
+    data['updatedBy'] = updatedBy;
+    data['createdAt'] = createdAt;
+    data['firstName'] = firstName;
+    data['lastName'] = lastName;
+    data['image'] = image;
+    data['email'] = email;
+    data['isEmailVerified'] = isEmailVerified;
+    data['mobile'] = mobile;
+    data['isNewUser'] = isNewUser;
+    data['roleName'] = roleName;
+    data['status'] = status;
+    data['fcmToken'] = fcmToken;
+    data['deviceId'] = deviceId;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }

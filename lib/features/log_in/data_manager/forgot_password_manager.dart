@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Api/ApiFuntion.dart';
-import '../../../Common/Constant.dart';
 
 class ForgotPasswordDataManager{
   SharedPreferences sharedPreferences;

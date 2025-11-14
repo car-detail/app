@@ -22,7 +22,7 @@ class ApiFuntions {
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     print(context);
     print(token);
-    print("${Constant.baseurl}${endpoint}");
+    print("${Constant.baseurl}$endpoint");
     try {
       List<InternetAddress> result = [];
       if(!kIsWeb) {
@@ -31,15 +31,24 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         if (cycle == true) showLoaderDialog(context);
         final response = await http
-            .get(Uri.parse('${Constant.baseurl}${endpoint}'), headers: {
-          "Authorization": "Bearer $token"
+            .get(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
+          "Authorization": "Bearer $token",
+          "ngrok-skip-browser-warning": "true"
         });
         print(response.statusCode);
         print(response.body);
         if (response.statusCode == 200) {
           if (cycle == true) Navigator.pop(context);
-          Map<String, dynamic> message = (jsonDecode(response.body));
-          return response;
+          // Check if response is JSON before parsing
+          try {
+            Map<String, dynamic> message = (jsonDecode(response.body));
+            return response;
+          } catch (e) {
+            print("Error parsing JSON: $e");
+            print("Response body: ${response.body}");
+            // Return the response even if it's not JSON (like HTML error pages)
+            return response;
+          }
         }else if(response.statusCode == 401){
           if (cycle == true) Navigator.pop(context);
           /*CommonWidget.errorShowSnackBarFor(
@@ -57,8 +66,9 @@ class ApiFuntions {
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           var data = ErrorModel.fromJson(jsonDecode(response.body));
-          if(data.message!.length>0)
-          CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          if(data.message!.isNotEmpty) {
+            CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          }
           print(response.body);
           return response;
           //Common.showToast(mes);
@@ -90,7 +100,7 @@ class ApiFuntions {
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     print(context);
     print(token);
-    print("${Constant.baseurl}${endpoint}");
+    print("${Constant.baseurl}$endpoint");
     try {
       List<InternetAddress> result = [];
       if(!kIsWeb) {
@@ -99,7 +109,7 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         if (cycle == true) showLoaderDialog(context);
         final response = await http
-            .delete(Uri.parse('${Constant.baseurl}${endpoint}'), headers: {
+            .delete(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
           "Authorization": "Bearer $token"
         });
         print(response.statusCode);
@@ -125,8 +135,9 @@ class ApiFuntions {
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           var data = ErrorModel.fromJson(jsonDecode(response.body));
-          if(data.message!.length>0)
-          CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          if(data.message!.isNotEmpty) {
+            CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          }
           print(response.body);
           return response;
           //Common.showToast(mes);
@@ -169,13 +180,14 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         showLoaderDialog(context);
         final response = await http.post(
-            Uri.parse('${Constant.baseurl}${endpoint}'),
+            Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
-              "Authorization": "Bearer $token"
+              "Authorization": "Bearer $token",
+              "ngrok-skip-browser-warning": "true"
             });
-        print("${Constant.baseurl}${endpoint}");
+        print("${Constant.baseurl}$endpoint");
         print(response.statusCode);
         print(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -197,8 +209,9 @@ class ApiFuntions {
         else {
           Navigator.pop(context);
           var data = ErrorModel.fromJson(jsonDecode(response.body));
-          if(data.message!.length>0)
+          if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          }
           print(response.body);
           return response;
         }
@@ -238,13 +251,14 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         showLoaderDialog(context);
         final response = await http.put(
-            Uri.parse('${Constant.baseurl}${endpoint}'),
+            Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
-              "Authorization": "Bearer $token"
+              "Authorization": "Bearer $token",
+              "ngrok-skip-browser-warning": "true"
             });
-        print("${Constant.baseurl}${endpoint}");
+        print("${Constant.baseurl}$endpoint");
         print(response.statusCode);
         print(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -264,8 +278,9 @@ class ApiFuntions {
         }else {
           Navigator.pop(context);
           var data = ErrorModel.fromJson(jsonDecode(response.body));
-          if(data.message!.length>0)
+          if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          }
           print(response.body);
           return response;
           //Common.showToast(mes);
@@ -300,17 +315,17 @@ class ApiFuntions {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('${Constant.baseurl}${url}'),
+        Uri.parse('${Constant.baseurl}$url'),
       );
       request.headers.addAll({
-    "Content-Type": "application/json",
-    "Authorization": "Bearer $token"
+    "Authorization": "Bearer $token",
+    "ngrok-skip-browser-warning": "true"
     });
       // Add files to the request
       for (var file in files) {
         var fileName = file.path.split('/').last;
 
-        var contentType;
+        MediaType? contentType;
         if (fileName.endsWith('.pdf') || fileName.endsWith('.PDF')) {
           contentType = MediaType('application', 'pdf');
         } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
@@ -360,7 +375,7 @@ class ApiFuntions {
       var response = await http.Response.fromStream(streamedResponse);
       print('responseBody ${streamedResponse.request}');
       print('responseBody ${response.body}');
-      print('responseBody ${response}');
+      print('responseBody $response');
 
       // Handle the response
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -383,8 +398,9 @@ class ApiFuntions {
       else {
         Navigator.pop(context);
         var data = ErrorModel.fromJson(jsonDecode(response.body));
-        if(data.message!.length>0)
+        if(data.message!.isNotEmpty) {
           CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+        }
         print(response.body);
         return response;
       }
@@ -410,13 +426,13 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         showLoaderDialog(context);
         final response = await http.patch(
-            Uri.parse('${Constant.baseurl}${endpoint}'),
+            Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
               "Authorization": "Bearer $token"
             });
-        print("${Constant.baseurl}${endpoint}");
+        print("${Constant.baseurl}$endpoint");
         print(response.statusCode);
         print(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -450,7 +466,7 @@ class ApiFuntions {
 
           if (message['message'].length > 0) {
             var mes = message['message'][0];
-            CommonWidget.errorShowSnackBarFor(context, "${mes} Error Code");
+            CommonWidget.errorShowSnackBarFor(context, "$mes Error Code");
           }
           var mes = message['message'];
           print(response.body);
@@ -487,7 +503,7 @@ class ApiFuntions {
             color: ColorClass.base_color,
           ),
           Container(
-              margin: EdgeInsets.only(left: 7), child: Text("Loading...")),
+              margin: const EdgeInsets.only(left: 7), child: const Text("Loading...")),
         ],
       ),
     );
@@ -507,7 +523,7 @@ class ApiFuntions {
             child: Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
               color: Colors.red, fontWeight: FontWeight.w500, fontSize: 16),
         )));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);

@@ -60,11 +60,11 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
         children: [
           Container(
             color: ColorClass.base_color,
-            padding: EdgeInsets.only(top: 45, bottom: 10),
+            padding: const EdgeInsets.only(top: 45, bottom: 10),
             child: Stack(
               children: [
                 Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
+                  margin: const EdgeInsets.only(left: 10, right: 10),
                   color: ColorClass.base_color,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -97,7 +97,7 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
           ),
           Expanded(
               child: Container(
-            margin: EdgeInsets.all(15),
+            margin: const EdgeInsets.all(15),
             child: ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
@@ -111,7 +111,7 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
                               servicesData[index].sId.toString()));
                     },
                     child: Container(
-                        margin: EdgeInsets.only(bottom: 10),
+                        margin: const EdgeInsets.only(bottom: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -122,7 +122,7 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
                               width: 70,
                               fit: BoxFit.fill,
                             )),
-                            SizedBox(
+                            const SizedBox(
                               width: 10,
                             ),
                             Expanded(

@@ -11,10 +11,10 @@ class ContainerDecoration{
       borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
       boxShadow: [
         BoxShadow(
-          color: Color(0xffdedede).withOpacity(0.5),
+          color: const Color(0xffdedede).withOpacity(0.5),
           spreadRadius: 3,
           blurRadius: 5,
-          offset: Offset(0, 2),
+          offset: const Offset(0, 2),
         ),
       ],
     );

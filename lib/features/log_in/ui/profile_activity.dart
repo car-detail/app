@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Api/ApiFuntion.dart';
@@ -67,9 +68,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
           .setString(Constant.roleName, data.data?[0].roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data?[0].sId.toString() ?? "");
-      if (data.data![0].vendorDetails!.isNotEmpty)
+      if (data.data![0].vendorDetails!.isNotEmpty) {
         sharedPreferences!.setString(Constant.vendorId,
             data.data?[0].vendorDetails![0].sId.toString() ?? "");
+      }
       setState(() {
         firstNameController.text = data.data?[0].firstName ?? "";
         lastNameController.text = data.data?[0].lastName ?? "";
@@ -141,7 +143,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 45, left: 15),
+              margin: const EdgeInsets.only(top: 45, left: 15),
               child: InkWell(
                 onTap: (){
                   Navigator.pop(context, true);
@@ -155,16 +157,16 @@ class _ProfileActivityState extends State<ProfileActivity> {
             ),
             Expanded(
               child: Container(
-                  margin: Platform.isIOS
-                      ? EdgeInsets.only(top: 245,)
-                      : EdgeInsets.only(
+                  margin: !kIsWeb
+                      ? const EdgeInsets.only(top: 245,)
+                      : const EdgeInsets.only(
                     top: 165,),
                 child: Column(
                   children: [
                     //Image(image: AssetImage('assets/images/login_image.png')),
                     Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(left: 20, right: 20),
+                          margin: const EdgeInsets.only(left: 20, right: 20),
                           child: SingleChildScrollView(
                             child: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -176,7 +178,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                     alignment: Alignment.center,
                                     child: Stack(
                                       children: [
-                                        if (profileurl != "" && selectedFiles.length == 0)
+                                        if (profileurl != "" && selectedFiles.isEmpty)
                                           ClipOval(
                                             child: /*Image.asset(
                                           CommonWidget.getImagePath("chat_profile.png"),
@@ -201,7 +203,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                               fit: BoxFit.fill,
                                             ),
                                           ),
-                                        if (selectedFiles.length > 0)
+                                        if (selectedFiles.isNotEmpty)
                                           ClipOval(
                                             child: CommonWidget.determineImageAsset(
                                                 selectedFiles[0].path ?? ""),
@@ -209,7 +211,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                         Positioned(
                                           bottom: 5,
                                           right: 0,
-                                          child: Container(
+                                          child: SizedBox(
                                             width: 30,
                                             height: 30,
                                             child: Container(
@@ -224,17 +226,15 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                                   await BaseActivity.pickmedia(false);
                                                   if (data != null) {
                                                     setState(() {
-                                                      if (data != null) {
-                                                        selectedFiles.clear();
-                                                        for (int i = 0;
-                                                        i < data.length;
-                                                        i++) {
-                                                          setState(() {
-                                                            selectedFiles.add(data[i]);
-                                                          });
-                                                        }
+                                                      selectedFiles.clear();
+                                                      for (int i = 0;
+                                                      i < data.length;
+                                                      i++) {
+                                                        setState(() {
+                                                          selectedFiles.add(data[i]);
+                                                        });
                                                       }
-                                                    });
+                                                                                                        });
                                                   }
                                                   print(selectedFiles.length);
                                                   postImage(context);
@@ -252,7 +252,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                       "Enter Last Name", lastNameController),
                                   CommonWidget.getTextFieldWithgrayboder(
                                       "Enter Email Address", emailController),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 20,
                                   ),
                                   GestureDetector(

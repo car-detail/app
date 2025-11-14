@@ -84,7 +84,7 @@ class _ZoomableImageListState extends State<ZoomableImageList> {
                               decoration: BoxDecoration(
                                   color: ColorClass.base_color,
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(25))),
+                                      const BorderRadius.all(Radius.circular(25))),
                               child: IconButton(
                                 color: Colors.white,
                                 icon: const Icon(Icons.arrow_back),
@@ -103,7 +103,7 @@ class _ZoomableImageListState extends State<ZoomableImageList> {
                             decoration: BoxDecoration(
                                 color: ColorClass.base_color,
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(25))),
+                                    const BorderRadius.all(Radius.circular(25))),
                             child: IconButton(
                               color: Colors.white,
                               icon: const Icon(Icons.arrow_forward),

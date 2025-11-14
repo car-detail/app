@@ -10,14 +10,14 @@ class VerifyOtpModelBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -39,10 +39,10 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['accessToken'] = this.accessToken;
-    data['refreshToken'] = this.refreshToken;
-    data['refreshTokenExpireTime'] = this.refreshTokenExpireTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['accessToken'] = accessToken;
+    data['refreshToken'] = refreshToken;
+    data['refreshTokenExpireTime'] = refreshTokenExpireTime;
     return data;
   }
 }

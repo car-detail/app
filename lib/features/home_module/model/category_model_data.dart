@@ -13,16 +13,16 @@ class CategoryModelData {
     if (json['data'] != null) {
       data = <CategoryData>[];
       json['data'].forEach((v) {
-        data!.add(new CategoryData.fromJson(v));
+        data!.add(CategoryData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -65,16 +65,16 @@ class CategoryData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['categoryTitle'] = this.categoryTitle;
-    data['logoImage'] = this.logoImage;
-    data['categoryDescription'] = this.categoryDescription;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['categoryTitle'] = categoryTitle;
+    data['logoImage'] = logoImage;
+    data['categoryDescription'] = categoryDescription;
+    data['isActive'] = isActive;
+    data['isDeleted'] = isDeleted;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }

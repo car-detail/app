@@ -13,7 +13,7 @@ import '../../../Common/Constant.dart';
 import '../../../Common/ContainerDecoration.dart';
 import '../../offer_model/data_manager/offer_data_manager.dart';
 import '../../offer_model/model/offer_list_model_bean.dart';
-import '../../offer_model/ui/offer_screen.dart';
+import '../../offer_model/ui/enhanced_offer_screen.dart';
 import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
 
 class ViewOfferListViaDetail extends StatefulWidget {
@@ -60,7 +60,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
             CommonWidget.gettopbar("Offers", context),
             if (venderId != "")
               Expanded(
-                  child: offerListData.length > 0
+                  child: offerListData.isNotEmpty
                       ? ListView.builder(
                           itemCount: offerListData.length,
                           padding: EdgeInsets.zero,
@@ -73,8 +73,8 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                                 SpecialistsActivity(data.sId.toString()));*/
                               },
                               child: Container(
-                                  margin: EdgeInsets.fromLTRB(15, 5, 15, 5),
-                                  padding: EdgeInsets.all(10),
+                                  margin: const EdgeInsets.fromLTRB(15, 5, 15, 5),
+                                  padding: const EdgeInsets.all(10),
                                   decoration: ContainerDecoration
                                       .getboderwithshadowfillcolorblueE7F0FF(
                                     colorbg: data.isCurrentlyActive
@@ -105,7 +105,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                                               },
                                             ),
                                           ),
-                                          SizedBox(
+                                          const SizedBox(
                                             width: 10,
                                           ),
                                           Expanded(
@@ -126,7 +126,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                                           ))
                                         ],
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         height: 10,
                                       ),
                                       CommonWidget.getTextWidgetPopReg(
@@ -195,7 +195,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                           })
                       : Center(
                           child: Container(
-                            margin: EdgeInsets.only(left: 10, right: 10),
+                            margin: const EdgeInsets.only(left: 10, right: 10),
                             child: CommonWidget.getTextWidgetTitle(
                                 "Add your first Offer by clicking on the '+' button below."),
                           ),
@@ -203,20 +203,20 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
             else
               Expanded(
                   child: Container(
-                margin: EdgeInsets.all(15),
+                margin: const EdgeInsets.all(15),
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CommonWidget.getTextWidget500(
                           "You Need to Add your shop first."),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       InkWell(
                         onTap: () {
                           CommonWidget.navigateToScreen(
-                              context, RegistorVendorActivity());
+                              context, const RegistorVendorActivity());
                         },
                         child: CommonWidget.getButtonWidget("Add Shop",
                             ColorClass.base_color, ColorClass.base_color,
@@ -233,7 +233,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                   Navigator.of(context)
                       .push(
                     MaterialPageRoute(
-                      builder: (context) => OfferScreen(),
+                      builder: (context) => const EnhancedOfferScreen(),
                     ),
                   )
                       .then((onValue) {
@@ -241,7 +241,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                   });
                 },
                 backgroundColor: ColorClass.base_color,
-                child: Icon(
+                child: const Icon(
                   Icons.add,
                   color: Colors.white,
                 )) // Hides the FAB

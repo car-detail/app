@@ -33,12 +33,12 @@ class _SearchDialogWithSingleSelectMultiIdState
   void filterSearchResults(String query) {
     if (query.isNotEmpty) {
       List<CheckDialogBox> dummyListData = [];
-      widget.teacherData.forEach((item) {
+      for (var item in widget.teacherData) {
         if (item.title.toLowerCase().contains(query.toLowerCase()) ||
             item.id.toString().toLowerCase().contains(query.toLowerCase())) {
           dummyListData.add(item);
         }
-      });
+      }
       setState(() {
         filteredTeacherData = dummyListData;
       });
@@ -57,7 +57,7 @@ class _SearchDialogWithSingleSelectMultiIdState
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      content: Container(
+      content: SizedBox(
         height: MediaQuery.of(context).size.height * 0.5,
         width: MediaQuery.of(context).size.width * 0.9,
         child: Stack(
@@ -69,8 +69,8 @@ class _SearchDialogWithSingleSelectMultiIdState
                   Navigator.pop(context);
                 },
                 child: Container(
-                  padding: EdgeInsets.only(top: 10, right: 10),
-                  child: Image(
+                  padding: const EdgeInsets.only(top: 10, right: 10),
+                  child: const Image(
                     image: AssetImage("assets/images/delete.png"),
                     height: 25,
                     width: 25,
@@ -80,12 +80,12 @@ class _SearchDialogWithSingleSelectMultiIdState
             ),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    margin: EdgeInsets.only(left: 25, right: 25),
+                    margin: const EdgeInsets.only(left: 25, right: 25),
                     width: double.infinity,
                     child: CommonWidget.getTextWidgetPopSemi(widget.title, color: ColorClass.base_color),
                   ),
@@ -104,7 +104,7 @@ class _SearchDialogWithSingleSelectMultiIdState
                       },
                       child: Container(
                         width: double.infinity,
-                        margin: EdgeInsets.fromLTRB(15, 0, 15, 5),
+                        margin: const EdgeInsets.fromLTRB(15, 0, 15, 5),
                         child: CommonWidget.getTextWidgetPopReg(
                           "All",textAlign: TextAlign.start
                         ),
@@ -112,7 +112,7 @@ class _SearchDialogWithSingleSelectMultiIdState
                     ),
                   if (widget.isAll)
                     Container(
-                      margin: EdgeInsets.only(left: 10, right: 10),
+                      margin: const EdgeInsets.only(left: 10, right: 10),
                       child: Divider(
                         color: ColorClass.middel_gray_base,
                         height: 1,
@@ -120,7 +120,7 @@ class _SearchDialogWithSingleSelectMultiIdState
                     ),
                   Expanded(
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                       child: ListView.builder(
                         itemCount: filteredTeacherData.length,
                         padding: EdgeInsets.zero,
@@ -136,11 +136,11 @@ class _SearchDialogWithSingleSelectMultiIdState
                               child: Column(
                                 children: [
                                   Container(
-                                    margin: EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(5),
+                                    width: double.infinity,
                                     child: CommonWidget.getTextWidgetPopReg(
                                         "${data.title ?? ""}",textsize: 14, textAlign: TextAlign.start
                                     ),
-                                    width: double.infinity,
                                   ),
                                   Divider(
                                     color: ColorClass.middel_gray_base,

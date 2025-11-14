@@ -24,13 +24,13 @@ class AddShopDataManager {
   }
   getVendorDetails(BuildContext context) {
     return apiFuntions.getdatauser(context,
-        "${Constant.getVendorDetails}");
+        Constant.getVendorDetails);
   }
 
   postImage(List<File> file, BuildContext context) {
     return apiFuntions.sendMultipartRequest(
       context,
-      "${Constant.uploadFile}",
+      Constant.uploadFile,
       file,
       <String, dynamic>{},
     );
@@ -52,21 +52,33 @@ class AddShopDataManager {
       String categoryId,
       List<String> detailImage,
       String coverImage,
+      List<String> days,
+      double long,
+      double late,
+      String name,
       BuildContext context) async {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     return apiFuntions
-        .postdatauser(context, "${Constant.captureVendor}", <String, dynamic>{
+        .postdatauser(context, Constant.captureVendor, <String, dynamic>{
       "displayName": displayName,
       "officialEmail": email,
       "mobile": mobile,
       "displayPicture": profileImage,
+      // "location": {
+      //   "name": sharedPreferences.getString(Constant.location) ?? "",
+      //   "coordinates": {
+      //     "long": double.parse(sharedPreferences.getString(Constant.long)??"0.0"),
+      //     "lat": double.parse(sharedPreferences.getString(Constant.lat) ?? "0.0")
+      //   }
+      // },
       "location": {
-        "name": sharedPreferences.getString(Constant.location) ?? "",
+        "name": name,
         "coordinates": {
-          "long": double.parse(sharedPreferences.getString(Constant.long)??"0.0"),
-          "lat": double.parse(sharedPreferences.getString(Constant.lat) ?? "0.0")
+          "long": long,
+          "lat": late
         }
       },
+      "daysAvailable": days,
       "openTime": openTime,
       "closeTime": closeTime,
       "timeZone": currentTimeZone,
@@ -75,8 +87,8 @@ class AddShopDataManager {
       "timeSlotCapacity": timeSlot,
       "price": price,
       "serviceDuration": duration,
-      "categoryName": "Car wash.",
-      "categoryId": "6717403221480d697d60d26d",
+      "categoryName": catName,
+      "categoryId": categoryId,
       "detailImages": detailImage,
       "coverImage": coverImage,
     });
@@ -87,7 +99,10 @@ class AddShopDataManager {
       String mobile,
       String profileImage,
       String openTime,
-      String closeTime,
+      String closeTime,List<String> days,
+      double long,
+      double lat,
+      String name,
       BuildContext context) async {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     return apiFuntions
@@ -97,12 +112,13 @@ class AddShopDataManager {
       "mobile": mobile,
       "displayPicture": profileImage,
       "location": {
-        "name": sharedPreferences.getString(Constant.location) ?? "",
+        "name": name,
         "coordinates": {
-          "lat": double.parse(sharedPreferences.getString(Constant.lat) ?? "0.0"),
-          "long": double.parse(sharedPreferences.getString(Constant.long)??"0.0")
+          "long": long,
+          "lat": lat
         }
       },
+      "daysAvailable": days,
       "openTime": openTime,
       "closeTime": closeTime,
       "timeZone": currentTimeZone

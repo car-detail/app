@@ -10,14 +10,14 @@ class RateReviewModelBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new RateReviewModelData.fromJson(json['data']) : null;
+    data = json['data'] != null ? RateReviewModelData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -37,29 +37,29 @@ class RateReviewModelData {
     if (json['reviews'] != null) {
       reviews = <Reviews>[];
       json['reviews'].forEach((v) {
-        reviews!.add(new Reviews.fromJson(v));
+        reviews.add(Reviews.fromJson(v));
       });
     }
     totalCount = json['totalCount'];
     if (json['myReview'] != null) {
       myReview = <Reviews>[];
       json['myReview'].forEach((v) {
-        myReview!.add(new Reviews.fromJson(v));
+        myReview.add(Reviews.fromJson(v));
       });
     }
     alreadyCustomer = json['already_customer'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.reviews != null) {
-      data['reviews'] = this.reviews!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (reviews != null) {
+      data['reviews'] = reviews.map((v) => v.toJson()).toList();
     }
-    data['totalCount'] = this.totalCount;
-    if (this.myReview != null) {
-      data['myReview'] = this.myReview!.map((v) => v.toJson()).toList();
+    data['totalCount'] = totalCount;
+    if (myReview != null) {
+      data['myReview'] = myReview.map((v) => v.toJson()).toList();
     }
-    data['already_customer'] = this.alreadyCustomer;
+    data['already_customer'] = alreadyCustomer;
     return data;
   }
 }
@@ -88,7 +88,7 @@ class Reviews {
     sId = json['_id'];
     serviceId = json['serviceId'];
     userId =
-    json['userId'] != null ? new UserId.fromJson(json['userId']) : null;
+    json['userId'] != null ? UserId.fromJson(json['userId']) : null;
     reviewText = json['reviewText'];
     rating = json['rating'];
     createdAt = json['createdAt'];
@@ -97,17 +97,17 @@ class Reviews {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['serviceId'] = this.serviceId;
-    if (this.userId != null) {
-      data['userId'] = this.userId!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['serviceId'] = serviceId;
+    if (userId != null) {
+      data['userId'] = userId!.toJson();
     }
-    data['reviewText'] = this.reviewText;
-    data['rating'] = this.rating;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['reviewText'] = reviewText;
+    data['rating'] = rating;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -130,12 +130,12 @@ class UserId {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['email'] = this.email;
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['image'] = this.image;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['email'] = email;
+    data['firstName'] = firstName;
+    data['lastName'] = lastName;
+    data['image'] = image;
     return data;
   }
 }

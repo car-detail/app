@@ -12,17 +12,22 @@ class ServicesModelData {
     statusCode = json['statusCode'];
     if (json['data'] != null) {
       data = <ServicesData>[];
-      json['data'].forEach((v) {
-        data!.add(new ServicesData.fromJson(v));
-      });
+      if (json['data'] is List) {
+        (json['data'] as List).forEach((v) {
+          data!.add(ServicesData.fromJson(v));
+        });
+      } else {
+        print("❌ ServicesModelData: 'data' field is not a List, it's: ${json['data'].runtimeType}");
+        print("❌ ServicesModelData: 'data' value: ${json['data']}");
+      }
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -34,6 +39,7 @@ class ServicesData {
   String? sId;
   String? serviceTitle;
   String? about;
+  String? description;
   int? price;
   String? serviceDuration;
   String? categoryName;
@@ -48,6 +54,7 @@ class ServicesData {
       {this.sId,
         this.serviceTitle,
         this.about,
+        this.description,
         this.price,
         this.serviceDuration,
         this.categoryName,
@@ -62,13 +69,14 @@ class ServicesData {
     sId = json['_id'];
     serviceTitle = json['serviceTitle'];
     about = json['about'];
+    description = json['description'];
     price = json['price'];
     serviceDuration = json['serviceDuration'];
     categoryName = json['categoryName'];
     coverImage = json['coverImage'];
     mobile = json['mobile'];
     location = json['location'] != null
-        ? new Location.fromJson(json['location'])
+        ? Location.fromJson(json['location'])
         : null;
     vendorImage = json['vendorImage'];
     vendorName = json['vendorName'];
@@ -76,21 +84,21 @@ class ServicesData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['serviceTitle'] = this.serviceTitle;
-    data['about'] = this.about;
-    data['price'] = this.price;
-    data['serviceDuration'] = this.serviceDuration;
-    data['categoryName'] = this.categoryName;
-    data['coverImage'] = this.coverImage;
-    data['mobile'] = this.mobile;
-    if (this.location != null) {
-      data['location'] = this.location!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['serviceTitle'] = serviceTitle;
+    data['about'] = about;
+    data['price'] = price;
+    data['serviceDuration'] = serviceDuration;
+    data['categoryName'] = categoryName;
+    data['coverImage'] = coverImage;
+    data['mobile'] = mobile;
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
-    data['vendorImage'] = this.vendorImage;
-    data['vendorName'] = this.vendorName;
-    data['vendorMobile'] = this.vendorMobile;
+    data['vendorImage'] = vendorImage;
+    data['vendorName'] = vendorName;
+    data['vendorMobile'] = vendorMobile;
     return data;
   }
 }
@@ -104,15 +112,15 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     coordinates = json['coordinates'] != null
-        ? new Coordinates.fromJson(json['coordinates'])
+        ? Coordinates.fromJson(json['coordinates'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    if (this.coordinates != null) {
-      data['coordinates'] = this.coordinates!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    if (coordinates != null) {
+      data['coordinates'] = coordinates!.toJson();
     }
     return data;
   }
@@ -130,9 +138,9 @@ class Coordinates {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['lat'] = this.lat;
-    data['long'] = this.long;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['long'] = long;
     return data;
   }
 }

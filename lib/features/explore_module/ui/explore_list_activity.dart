@@ -11,7 +11,7 @@ import '../../specialists_module/ui/specialists_activity.dart';
 import '../data_manager/explore_list_data_manager.dart';
 
 class ExploreListActivity extends StatefulWidget {
-  ExploreListActivity({super.key});
+  const ExploreListActivity({super.key});
 
   @override
   State<ExploreListActivity> createState() => _CategoriesListActivityState();
@@ -55,23 +55,24 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
         children: [
           Container(
             color: ColorClass.base_color,
-            padding: EdgeInsets.only(top: 45, bottom: 10),
+            padding: const EdgeInsets.only(top: 45, bottom: 10),
             child: Stack(
               children: [
                 Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
+                  margin: const EdgeInsets.only(left: 10, right: 10),
                   color: ColorClass.base_color,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
                         onTap: (){
-                          //Navigator.pop(context);
+                          Navigator.pop(context);
                         },
-                        child: Container(
+                        child: Image.asset(
+                          CommonWidget.getImagePath("backspace.png"),
                           height: 40,
                           width: 40,
-                        )
+                        ),
                       ),
                       Expanded(child: CommonWidget.getTextWidget500("Explore",color: Colors.white,size: 18)),
                       Image.asset(
@@ -86,7 +87,7 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
             ),
           ),
           Expanded(child: Container(
-            margin: EdgeInsets.all(15),
+            margin: const EdgeInsets.all(15),
             child: ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
@@ -97,7 +98,7 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
                 CommonWidget.navigateToScreen(context, SpecialistsActivity(servicesData[index].sId.toString()));
               },
               child: Container(
-                margin: EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.only(bottom: 10),
                 child:
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -114,7 +115,7 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
                                   width: 70,);
                               },
                             )),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(

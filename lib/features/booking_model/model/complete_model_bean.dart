@@ -10,14 +10,14 @@ class CompletedModelBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new CompletedModelData.fromJson(json['data']) : null;
+    data = json['data'] != null ? CompletedModelData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -75,21 +75,21 @@ class CompletedModelData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['price'] = this.price;
-    data['createdBy'] = this.createdBy;
-    data['vendorId'] = this.vendorId;
-    data['serviceId'] = this.serviceId;
-    data['orderStatus'] = this.orderStatus;
-    data['timeSlot'] = this.timeSlot;
-    data['date'] = this.date;
-    data['notificationSent'] = this.notificationSent;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['price'] = price;
+    data['createdBy'] = createdBy;
+    data['vendorId'] = vendorId;
+    data['serviceId'] = serviceId;
+    data['orderStatus'] = orderStatus;
+    data['timeSlot'] = timeSlot;
+    data['date'] = date;
+    data['notificationSent'] = notificationSent;
+    data['isActive'] = isActive;
+    data['isDeleted'] = isDeleted;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }

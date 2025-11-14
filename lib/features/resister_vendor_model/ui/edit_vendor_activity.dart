@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import 'package:car_app/Common/CommonPopUp.dart';
 import 'package:car_app/features/resister_vendor_model/model/edit_vendor_bean.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Api/ApiFuntion.dart';
@@ -28,9 +30,22 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
   var openController = TextEditingController();
   var closeController = TextEditingController();
   var profileController = TextEditingController();
+  var addressController = TextEditingController();
+  double long = 0.0;
+  double late = 0.0;
   List<File> selectedFiles = [];
   String imageURl = "";
   String networkImage = "";
+  final List<String> weekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+  List<bool> isChecked = List.generate(7, (_) => false);
 
   ApiFuntions apiFuntions = ApiFuntions();
   AddShopDataManager? dataManager;
@@ -53,6 +68,12 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
   }
 
   captureVendor(BuildContext context) async {
+    List<String> weekdaysSeleted = [];
+    for(int i= 0; i<isChecked.length ;i++){
+      if(isChecked[i] == true){
+        weekdaysSeleted.add(weekdays[i]);
+      }
+    }
     var response = await dataManager!.editCaptureVendor(
         shopNameController.text,
         emailController.text,
@@ -60,6 +81,10 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
         imageURl,
         openController.text,
         closeController.text,
+        weekdaysSeleted,
+        long,
+        late,
+        addressController.text,
         context);
     var data = CaptureVendorBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
@@ -96,7 +121,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 45, left: 15),
+              margin: const EdgeInsets.only(top: 45, left: 15),
               child: InkWell(
                 onTap: (){
                   Navigator.pop(context, true);
@@ -109,33 +134,33 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
               ),
             ),
             Expanded(child: Container(
-              margin: Platform.isIOS
-                  ? EdgeInsets.only(top: 245,)
-                  : EdgeInsets.only(
-                  top: 165,),
+              margin: kIsWeb
+                  ? const EdgeInsets.only(top: 245,)
+                  : const EdgeInsets.only(
+                  top: 245,),
               child: Column(
                 children: [
                   //Image(image: AssetImage('assets/images/login_image.png')),
                   Expanded(
                       child: Container(
-                        margin: EdgeInsets.only(left: 20, right: 20, bottom: 30),
+                        margin: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
                         child: SingleChildScrollView(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                CommonWidget.getTextWidgetTitle("Add Shop Details",
+                                CommonWidget.getTextWidgetTitle("Edit Shop Details",
                                     color: ColorClass.base_color, textsize: 20),
                                 CommonWidget.getTextWidgetSubTitle(
                                     "Please add the shop details for user better experience.",
                                     color: ColorClass.middel_gray_base,
                                     textsize: 14),
-                                SizedBox(height: 10,),
+                                const SizedBox(height: 10,),
                                 Container(
                                   alignment: Alignment.center,
                                   child: Stack(
                                     children: [
-                                      if (selectedFiles.length == 0 && networkImage == "")
+                                      if (selectedFiles.isEmpty && networkImage == "")
                                         ClipOval(
                                           child: Image.asset(
                                             CommonWidget.getImagePath(
@@ -145,12 +170,12 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                             fit: BoxFit.fill,
                                           ),
                                         ),
-                                      if (selectedFiles.length > 0)
+                                      if (selectedFiles.isNotEmpty)
                                         ClipOval(
                                           child: CommonWidget.determineImageAsset(
                                               selectedFiles[0].path ?? ""),
                                         ),
-                                      if(selectedFiles.length == 0 && networkImage != "")
+                                      if(selectedFiles.isEmpty && networkImage != "")
                                         ClipOval(
                                           child: CommonWidget.determineImageInternetNew(
                                               networkImage),
@@ -158,7 +183,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                       Positioned(
                                         bottom: 5,
                                         right: 0,
-                                        child: Container(
+                                        child: SizedBox(
                                           width: 30,
                                           height: 30,
                                           child: Container(
@@ -173,17 +198,15 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                                 await BaseActivity.pickmedia(false);
                                                 if (data != null) {
                                                   setState(() {
-                                                    if (data != null) {
-                                                      selectedFiles.clear();
-                                                      for (int i = 0;
-                                                      i < data.length;
-                                                      i++) {
-                                                        setState(() {
-                                                          selectedFiles.add(data[i]);
-                                                        });
-                                                      }
+                                                    selectedFiles.clear();
+                                                    for (int i = 0;
+                                                    i < data.length;
+                                                    i++) {
+                                                      setState(() {
+                                                        selectedFiles.add(data[i]);
+                                                      });
                                                     }
-                                                  });
+                                                                                                    });
                                                 }
                                                 print(selectedFiles.length);
                                                 postImage(context);
@@ -201,6 +224,44 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                     "Enter Email Address", emailController, keyboardType: TextInputType.emailAddress),
                                 CommonWidget.getTextFieldWithgrayboder(
                                     "Enter Mobile Number", mobileController, keyboardType: TextInputType.number),
+                                SizedBox(
+                                  height: 40,
+                                  child: AddressAutocompleteTextField(
+                                      decoration: InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                              borderSide: BorderSide(
+                                                  color: ColorClass.base_color,
+                                                  width: 1,
+                                                  style: BorderStyle.solid)),
+                                          enabledBorder: OutlineInputBorder(
+                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                              borderSide: BorderSide(
+                                                  color: ColorClass.middel_gray_base,
+                                                  width: 1,
+                                                  style: BorderStyle.solid)),
+                                          contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                          filled: true,
+                                          fillColor: ColorClass.base_light_color,
+                                          hintText: "Enter Address",
+                                          hintStyle: TextStyle(
+                                              color: Colors.grey[800],
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w300),
+                                          border: OutlineInputBorder(
+                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                              borderSide: BorderSide(color: ColorClass.light_browne))),
+                                      mapsApiKey: 'AIzaSyBFtrosISezP-8z2NwTWKhD_5pNHoi0wRw',
+                                      controller: addressController,
+                                      onSuggestionClick: (place){
+                                        addressController.text  = "";
+                                        addressController.text = place.name??"";
+                                        long = place.lng??0.0;
+                                        late = place.lat??0.0;
+                                      },
+                                      language: 'en-US'
+                                  ),
+                                ),
                                 Row(
                                   children: [
                                     Expanded(
@@ -213,7 +274,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                         });
                                       }, "clock"),
                                     ),
-                                    SizedBox(width: 10,),
+                                    const SizedBox(width: 10,),
                                     Expanded(
                                       child: CommonWidget
                                           .getTextFieldWithgrayboderandclickable(
@@ -226,9 +287,41 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                     )
                                   ],
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   height: 20,
                                 ),
+                                SizedBox(
+                                    width: double.infinity,
+                                    child: CommonWidget.getTextWidget500("Select Days",textAlign: TextAlign.left)),
+                                const SizedBox(height: 10,),
+                                SizedBox(
+                                  height: 140,
+                                  child: GridView.count(
+                                    padding: EdgeInsets.zero,
+                                    crossAxisCount: 3, // 2 columns, change to 3 if you prefer
+                                    childAspectRatio: 3, // Wider cells
+                                    children: List.generate(weekdays.length, (index) {
+                                      return Card(
+                                        elevation: 2,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        child: Row(
+                                          children: [
+                                            Checkbox(
+                                              value: isChecked[index],
+                                              activeColor: ColorClass.base_color,
+                                              onChanged: (bool? value) {
+                                                setState(() {
+                                                  isChecked[index] = value ?? false;
+                                                });
+                                              },
+                                            ),
+                                            Text(weekdays[index]),
+                                          ],
+                                        ),
+                                      );
+                                    }),),
+                                ),
+                                const SizedBox(height: 10,),
                                 GestureDetector(
                                     onTap: () {
                                       //FocusManager.instance.primaryFocus?.unfocus();
@@ -237,14 +330,19 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                           message: "Please Enter Shop Name.",
                                           context: context)) {
                                         return;
-                                      } else if (BaseActivity.checkEmptyField(
+                                      } /*else if (BaseActivity.checkEmptyField(
                                           editingController: emailController,
                                           message: "Please Enter Email Address.",
                                           context: context)) {
                                         return;
-                                      } else if (BaseActivity.checkEmptyField(
+                                      }*/ else if (BaseActivity.checkEmptyField(
                                           editingController: mobileController,
                                           message: "Please Enter Mobile.",
+                                          context: context)) {
+                                        return;
+                                      }else if (BaseActivity.checkEmptyField(
+                                          editingController: addressController,
+                                          message: "Please Enter Address.",
                                           context: context)) {
                                         return;
                                       }else if (BaseActivity.checkEmptyField(
@@ -257,11 +355,11 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                           message: "Please Select Shop Close Time.",
                                           context: context)) {
                                         return;
-                                      } else if (imageURl == "") {
+                                      } /*else if (imageURl == "") {
                                         CommonWidget.successShowSnackBarFor(
                                             context, "Please Select Profile Image");
                                         return;
-                                      } else {
+                                      }*/ else {
                                         captureVendor(context);
                                       }
                                     },
@@ -296,8 +394,16 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
       openController.text = CommonWidget.convertToLocalTimeWithAMPM(data.data![0].openTime??"");
       closeController.text = CommonWidget.convertToLocalTimeWithAMPM(data.data![0].closeTime??"");
       setState(() {
+        addressController.text = data.data![0].location!.name??"";
+        long = data.data![0].location!.coordinates!.long??0.0;
+        late = data.data![0].location!.coordinates!.lat??0.0;
         networkImage = data.data![0].displayPicture??"";
         imageURl = data.data![0].displayPicture??"";
+        for(int i = 0; i<weekdays.length; i++){
+          if(data.data![0].daysAvailable.contains(weekdays[i])){
+            isChecked[i] = true;
+          }
+        }
       });
       //CommonWidget.navigateToScreen(context, OTPScreenActivity());
     } else {

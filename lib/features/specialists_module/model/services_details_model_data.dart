@@ -10,14 +10,14 @@ class ServicesDetailsBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new ServicesDetailsData.fromJson(json['data']) : null;
+    data = json['data'] != null ? ServicesDetailsData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -94,11 +94,11 @@ class ServicesDetailsData {
     coverImage = json['coverImage'];
     mobile = json['mobile'];
     location = json['location'] != null
-        ? new Location.fromJson(json['location'])
+        ? Location.fromJson(json['location'])
         : null;
     createdBy = json['createdBy'];
     vendorId = json['vendorId'] != null
-        ? new VendorId.fromJson(json['vendorId'])
+        ? VendorId.fromJson(json['vendorId'])
         : null;
     promotionPlanPrice = json['promotionPlanPrice'];
     promotionSerialNumber = json['promotionSerialNumber'];
@@ -107,7 +107,7 @@ class ServicesDetailsData {
     if (json['timeSlots'] != null) {
       timeSlots = <TimeSlots>[];
       json['timeSlots'].forEach((v) {
-        timeSlots!.add(new TimeSlots.fromJson(v));
+        timeSlots!.add(TimeSlots.fromJson(v));
       });
     }
     createdAt = json['createdAt'];
@@ -118,48 +118,48 @@ class ServicesDetailsData {
     if (json['offers'] != null) {
       offers = <Offers>[];
       json['offers'].forEach((v) {
-        offers!.add(new Offers.fromJson(v));
+        offers.add(Offers.fromJson(v));
       });
     }
     id = json['id'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['serviceTitle'] = this.serviceTitle;
-    data['about'] = this.about;
-    data['timeSlotCapacity'] = this.timeSlotCapacity;
-    data['price'] = this.price;
-    data['serviceDuration'] = this.serviceDuration;
-    data['categoryName'] = this.categoryName;
-    data['categoryId'] = this.categoryId;
-    data['detailImages'] = this.detailImages;
-    data['coverImage'] = this.coverImage;
-    data['mobile'] = this.mobile;
-    if (this.location != null) {
-      data['location'] = this.location!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['serviceTitle'] = serviceTitle;
+    data['about'] = about;
+    data['timeSlotCapacity'] = timeSlotCapacity;
+    data['price'] = price;
+    data['serviceDuration'] = serviceDuration;
+    data['categoryName'] = categoryName;
+    data['categoryId'] = categoryId;
+    data['detailImages'] = detailImages;
+    data['coverImage'] = coverImage;
+    data['mobile'] = mobile;
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
-    data['createdBy'] = this.createdBy;
-    if (this.vendorId != null) {
-      data['vendorId'] = this.vendorId!.toJson();
+    data['createdBy'] = createdBy;
+    if (vendorId != null) {
+      data['vendorId'] = vendorId!.toJson();
     }
-    data['promotionPlanPrice'] = this.promotionPlanPrice;
-    data['promotionSerialNumber'] = this.promotionSerialNumber;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    if (this.timeSlots != null) {
-      data['timeSlots'] = this.timeSlots!.map((v) => v.toJson()).toList();
+    data['promotionPlanPrice'] = promotionPlanPrice;
+    data['promotionSerialNumber'] = promotionSerialNumber;
+    data['isActive'] = isActive;
+    data['isDeleted'] = isDeleted;
+    if (timeSlots != null) {
+      data['timeSlots'] = timeSlots!.map((v) => v.toJson()).toList();
     }
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
-    data['average_rating'] = this.averageRating;
-    data['total_reviews'] = this.totalReviews;
-    if (this.offers != null) {
-      data['offers'] = this.offers!.map((v) => v.toJson()).toList();
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
+    data['average_rating'] = averageRating;
+    data['total_reviews'] = totalReviews;
+    if (offers != null) {
+      data['offers'] = offers.map((v) => v.toJson()).toList();
     }
-    data['id'] = this.id;
+    data['id'] = id;
     return data;
   }
 }
@@ -173,15 +173,15 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     coordinates = json['coordinates'] != null
-        ? new Coordinates.fromJson(json['coordinates'])
+        ? Coordinates.fromJson(json['coordinates'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    if (this.coordinates != null) {
-      data['coordinates'] = this.coordinates!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    if (coordinates != null) {
+      data['coordinates'] = coordinates!.toJson();
     }
     return data;
   }
@@ -199,9 +199,9 @@ class Coordinates {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['lat'] = this.lat;
-    data['long'] = this.long;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['long'] = long;
     return data;
   }
 }
@@ -232,7 +232,7 @@ class VendorId {
     mobile = json['mobile'];
     displayPicture = json['displayPicture'];
     location = json['location'] != null
-        ? new Location.fromJson(json['location'])
+        ? Location.fromJson(json['location'])
         : null;
     openTime = json['openTime'];
     closeTime = json['closeTime'];
@@ -240,17 +240,17 @@ class VendorId {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['displayName'] = this.displayName;
-    data['mobile'] = this.mobile;
-    data['displayPicture'] = this.displayPicture;
-    if (this.location != null) {
-      data['location'] = this.location!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['displayName'] = displayName;
+    data['mobile'] = mobile;
+    data['displayPicture'] = displayPicture;
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
-    data['openTime'] = this.openTime;
-    data['closeTime'] = this.closeTime;
-    data['isShopOpen'] = this.isShopOpen;
+    data['openTime'] = openTime;
+    data['closeTime'] = closeTime;
+    data['isShopOpen'] = isShopOpen;
     return data;
   }
 }
@@ -273,12 +273,12 @@ class TimeSlots {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['slot'] = this.slot;
-    data['capacity'] = this.capacity;
-    data['booked'] = this.booked;
-    data['_id'] = this.sId;
-    data['id'] = this.id;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['slot'] = slot;
+    data['capacity'] = capacity;
+    data['booked'] = booked;
+    data['_id'] = sId;
+    data['id'] = id;
     return data;
   }
 }
@@ -312,14 +312,14 @@ class Offers {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['title'] = this.title;
-    data['description'] = this.description;
-    data['image'] = this.image;
-    data['discount'] = this.discount;
-    data['service'] = this.service;
-    data['validUntil'] = this.validUntil;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['title'] = title;
+    data['description'] = description;
+    data['image'] = image;
+    data['discount'] = discount;
+    data['service'] = service;
+    data['validUntil'] = validUntil;
     return data;
   }
 }

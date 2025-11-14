@@ -71,12 +71,29 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
             image: DecorationImage(
                 image: AssetImage('assets/images/login_image.png'),
                 fit: BoxFit.cover)),
-        child: Scaffold(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
           backgroundColor: Colors.transparent,
-          body: Container(
-            margin: Platform.isAndroid
-                ? EdgeInsets.only(top: 260)
-                : EdgeInsets.only(top: 310),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            "Verify OTP",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: Container(
+            margin: !kIsWeb
+                ? const EdgeInsets.only(top: 280)
+                : const EdgeInsets.only(top: 280),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -126,7 +143,7 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
                             defaultPinTheme: PinTheme(
                               width: 56,
                               height: 56,
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                 fontSize: 20,
                                 color: Colors.black,
                               ),
@@ -179,7 +196,7 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
   postOTP(BuildContext context) async {
     var response = await loginDataManager!.postOTP(
         _fieldOne.text,
-        widget.data.data!.details ?? "",
+        widget.data.data?.details ?? "",
         widget.mobileNo,
         context);
     var data = VerifyOtpModelBean.fromJson(jsonDecode(response.body));
@@ -201,8 +218,16 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
 
   getUser(BuildContext context) async {
     var response = await loginDataManager!.getUserDetails(context);
-    var data = VendorDetailBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
+    
+    // Check if response is HTML (error page) instead of JSON
+    if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+      CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+      return;
+    }
+    
+    try {
+      var data = VendorDetailBean.fromJson(jsonDecode(response.body));
+      if (data.status == "success") {
       sharedPreferences!
           .setString(Constant.firstName, data.data?[0].firstName ?? "");
       sharedPreferences!
@@ -217,17 +242,32 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
           .setString(Constant.roleName, data.data?[0].roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data?[0].sId.toString() ?? "");
-      if(data.data![0].vendorDetails!.isNotEmpty)
-      sharedPreferences!
+      
+      // Debug vendor details
+      print("🔍 Vendor Details Debug:");
+      print("🔍 vendorDetails exists: ${data.data?[0].vendorDetails != null}");
+      print("🔍 vendorDetails length: ${data.data?[0].vendorDetails?.length ?? 0}");
+      if(data.data?[0].vendorDetails != null && data.data![0].vendorDetails!.isNotEmpty) {
+        print("🔍 vendorDetails[0].sId: ${data.data![0].vendorDetails![0].sId}");
+        sharedPreferences!
           .setString(Constant.vendorId, data.data?[0].vendorDetails![0].sId.toString() ?? "");
+        print("✅ Vendor ID stored: ${data.data?[0].vendorDetails![0].sId}");
+      } else {
+        print("❌ No vendor details found - vendor ID not stored");
+        print("❌ This means the user needs to complete vendor registration first");
+      }
       if (data.data?[0].isNewUser == true) {
         CommonWidget.navigateToScreen(context, EditUserDetailsActivity("otp"));
       } else {
-        CommonWidget.navigateToKillAllScreen(context, DashboardActivity());
+        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
       }
       //CommonWidget.navigateToScreen(context, OTPScreenActivity());
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      }
+    } catch (e) {
+      print("Error parsing user details: $e");
+      CommonWidget.errorShowSnackBarFor(context, "Error parsing user details. Please try again.");
     }
   }
 }
@@ -269,7 +309,7 @@ class OtpInput extends StatelessWidget {
                     style: BorderStyle.solid)),
             counterText: '',
             hintStyle: const TextStyle(color: Colors.black, fontSize: 20.0),
-            border: OutlineInputBorder(
+            border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(20)),
                 borderSide: BorderSide(color: Color(0xffdedede)))),
         onChanged: (value) {

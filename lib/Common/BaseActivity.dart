@@ -24,24 +24,21 @@ class BaseActivity {
   }
 
   static Future<List<XFile>?> pickmultipleImageAndroid13() async {
-    final ImagePicker _imagePicker = ImagePicker();
+    final ImagePicker imagePicker = ImagePicker();
     /*final pickedImage =
         await _imagePicker.pickImage(source: ImageSource.gallery);
 
 */
     try {
       final pickedImage =
-          await _imagePicker.pickMultiImage(maxHeight: 1000, maxWidth: 1000);
-      if (pickedImage != null) {
-        print("file.name ${pickedImage[0].name}");
-        print("file.path ${pickedImage[0].path}");
-        return pickedImage;
-      } else {
-        return pickedImage;
-      }
-    } catch (e) {
+          await imagePicker.pickMultiImage(maxHeight: 1000, maxWidth: 1000);
+      print("file.name ${pickedImage[0].name}");
+      print("file.path ${pickedImage[0].path}");
+      return pickedImage;
+        } catch (e) {
       print(e);
     }
+    return null;
   }
 
   static Future<List<File>?> pickmultipleFile(
@@ -61,34 +58,36 @@ class BaseActivity {
       bool allowMultiple = true}) async {
     List<File> file = [];
     try {
-      FilePickerResult? _imagePicker = await FilePicker.platform.pickFiles(
+      FilePickerResult? imagePicker = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowMultiple: allowMultiple,
         allowedExtensions: allowedExtensions,
       );
-      if (_imagePicker != null) {
-        file.addAll(_imagePicker.paths.map((path) => File(path!)).toList());
+      if (imagePicker != null) {
+        file.addAll(imagePicker.paths.map((path) => File(path!)).toList());
       }
       return file;
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
   static Future<List<File>?> pickmedia(bool allowMultiple) async {
     List<File> file = [];
     try {
-      FilePickerResult? _imagePicker = await FilePicker.platform.pickFiles(
+      FilePickerResult? imagePicker = await FilePicker.platform.pickFiles(
         allowMultiple: allowMultiple,
         type: FileType.media,
       );
-      if (_imagePicker != null) {
-        file.addAll(_imagePicker.paths.map((path) => File(path!)).toList());
+      if (imagePicker != null) {
+        file.addAll(imagePicker.paths.map((path) => File(path!)).toList());
       }
       return file;
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
   /*static Future<List<File>?> pickImage(bool allowMultiple) async {
@@ -115,12 +114,12 @@ class BaseActivity {
         status = await Permission.storage.request();
       }*/
       //if (status.isGranted) {
-        FilePickerResult? _imagePicker = await FilePicker.platform.pickFiles(
+        FilePickerResult? imagePicker = await FilePicker.platform.pickFiles(
           allowMultiple: allowMultiple,
           type: FileType.image,
         );
-        if (_imagePicker != null) {
-          files.addAll(_imagePicker.paths.map((path) => File(path!)).toList());
+        if (imagePicker != null) {
+          files.addAll(imagePicker.paths.map((path) => File(path!)).toList());
         }
       /*} else {
         print("Permission not granted");
@@ -156,7 +155,7 @@ class BaseActivity {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            content: Container(
+            content: SizedBox(
               height: 156,
               width: MediaQuery.of(context).size.width * 0.9,
               child: Stack(
@@ -168,8 +167,8 @@ class BaseActivity {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        padding: EdgeInsets.only(top: 10, right: 10),
-                        child: Image(
+                        padding: const EdgeInsets.only(top: 10, right: 10),
+                        child: const Image(
                           image: AssetImage("assets/images/delete.png"),
                           height: 25,
                           width: 25,
@@ -179,25 +178,25 @@ class BaseActivity {
                   ),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          margin: EdgeInsets.only(left: 25, right: 25),
+                          margin: const EdgeInsets.only(left: 25, right: 25),
                           width: double.infinity,
                           child: CommonWidget.getTextWidgetPopSemi(
                               "Choose Option For Attachment",
                               color: ColorClass.base_color),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 10,
                         ),
                         Divider(
                           height: 1,
                           color: ColorClass.light_gray_base,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 15,
                         ),
                         Row(

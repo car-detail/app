@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File;
+import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:car_app/Common/CommonPopUp.dart';
 import 'package:car_app/Common/CommonWidget.dart';
@@ -16,9 +18,12 @@ import '../../../Models/check_dialog_box.dart';
 import '../../../Models/image_module_data.dart';
 import '../../home_module/model/category_model_data.dart';
 import '../../search_pop_up/search_dialog_with_single_select.dart';
+import '../model/services_list_bean.dart';
 
 class AddServicesActivity extends StatefulWidget {
-  const AddServicesActivity({super.key});
+  final ServicesListData? serviceToEdit;
+  
+  const AddServicesActivity({super.key, this.serviceToEdit});
 
   @override
   State<AddServicesActivity> createState() => _AddServicesActivityState();
@@ -33,16 +38,25 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
   var categoryController = TextEditingController();
   var mobileController = TextEditingController();
   List<File> selectedFiles = [];
-  List<File> selectedDetailsFiles = [];
   String categoryId = "";
 
   ApiFuntions apiFuntions = ApiFuntions();
   ServicesDataManager? servicesDataManager;
   SharedPreferences? sharedPreferences;
-  String coverImage = "";
-  List<String> detailsImage = [];
+  String serviceImage = "";
   List<CategoryData> categoryData = [];
-
+  final List<String> carWashStatements = [
+    "Quick wash, lasting shine!",
+    "Refresh your ride today!",
+    "Where clean cars happen.",
+    "Shine on the move.",
+    "Your car’s second home.",
+    "Drive clean, feel great.",
+    "Perfect wash, every time.",
+    "Sparkle your journey.",
+    "Fast. Fresh. Flawless.",
+    "We make cars smile!",
+  ];
   @override
   void initState() {
     super.initState();
@@ -56,9 +70,33 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     servicesDataManager = ServicesDataManager(sharedPreferences!);
+    
+    if (widget.serviceToEdit != null) {
+      // Populate fields for editing
+      titleController.text = widget.serviceToEdit!.serviceTitle ?? "";
+      aboutController.text = widget.serviceToEdit!.about ?? "";
+      durationController.text = widget.serviceToEdit!.serviceDuration ?? "0.5hr - 1hr";
+      timeSlotController.text = widget.serviceToEdit!.timeSlotCapacity ?? "5";
+      priceController.text = widget.serviceToEdit!.price?.toString() ?? "0";
+      categoryController.text = widget.serviceToEdit!.categoryName ?? "";
+      categoryId = widget.serviceToEdit!.categoryId ?? "";
+      mobileController.text = widget.serviceToEdit!.mobile ?? "";
+      
+      // Set existing image
+      serviceImage = widget.serviceToEdit!.coverImage ?? "";
+    } else {
+      // Default values for new service
+      durationController.text = "0.5hr - 1hr";
+      timeSlotController.text = "5";
+      setRandomText();
+    }
     getCategory(context);
   }
-
+  void setRandomText() {
+    final random = Random();
+    int randomIndex = random.nextInt(carWashStatements.length);
+    aboutController.text = carWashStatements[randomIndex];
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -72,7 +110,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                margin: EdgeInsets.only(top: 45, left: 15),
+                margin: const EdgeInsets.only(top: 45, left: 15),
                 child: InkWell(
                   onTap: (){
                     Navigator.pop(context, true);
@@ -86,21 +124,24 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
               ),
               Expanded(
                 child: Container(
-                  margin: Platform.isIOS
-                      ? EdgeInsets.only(top: 245, left: 15, right: 15, bottom: 30)
-                      : EdgeInsets.only(
+                  margin: kIsWeb
+                      ? const EdgeInsets.only(top: 165, left: 15, right: 15, bottom: 30)
+                      : const EdgeInsets.only(
                           top: 165, left: 15, right: 15, bottom: 30),
                   child: SingleChildScrollView(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CommonWidget.getTextWidgetTitle("Add Services",
+                          CommonWidget.getTextWidgetTitle(
+                              widget.serviceToEdit != null ? "Edit Service" : "Add Services",
                               textsize: 22, color: ColorClass.base_color),
                           CommonWidget.getTextWidgetSubTitle(
-                              "Please add the services for user better experience.",
+                              widget.serviceToEdit != null 
+                                  ? "Update your service details for better customer experience."
+                                  : "Please add the services for user better experience.",
                               textsize: 12,
                               color: ColorClass.middel_gray_base),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
                           CommonWidget.getTextFieldWithgrayboder(
@@ -110,33 +151,61 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                             showCatDialog();
                           }, "dropdown"),
                           CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Service Cost", priceController,
+                              "Enter Service Cost (Optional)", priceController,
                               keyboardType: TextInputType.number),
-                          CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Service Duration", durationController,
-                              keyboardType: TextInputType.number),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Enter Service Duration", durationController,
+                          //     keyboardType: TextInputType.number),
+                          // Container(
+                          //     margin: EdgeInsets.only(left: 10, right: 10),
+                          //     child: CommonWidget.getTextWidget300(
+                          //         "*Provide the duration in minute to complete one services(ex:-30).",
+                          //         12,
+                          //         textAlign: TextAlign.start)),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Enter Services Capacity", timeSlotController,
+                          //     keyboardType: TextInputType.number),
+                          // Container(
+                          //     margin: EdgeInsets.only(left: 10, right: 10),
+                          //     child: CommonWidget.getTextWidget300(
+                          //         "*Enter number of services complete in one hour.",
+                          //         12,
+                          //         textAlign: TextAlign.start)),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Enter Mobile Number(Optional)", mobileController,
+                          //     keyboardType: TextInputType.number),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Write about services..", aboutController,
+                          //     maxline: 6, height: 120),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Enter Service Title", titleController),
+                          // CommonWidget.getTextFieldWithgrayboderandclickable(
+                          //     "Select Category", categoryController, () {
+                          //   showCatDialog();
+                          // }, "dropdown"),
+                          // CommonWidget.getTextFieldWithgrayboder(
+                          //     "Enter Service Cost", priceController,
+                          //     keyboardType: TextInputType.number),
+                          CommonWidget.getTextFieldWithgrayboderandclickable(
+                              "Enter Service Duration", durationController,(){showTimeRequierd();}, "dropdown"),
+                          // Container(
+                          //     margin: EdgeInsets.only(left: 10, right: 10),
+                          //     child: CommonWidget.getTextWidget300(
+                          //         "*Provide the duration in minute to complete one services(ex:-30).",
+                          //         12,
+                          //         textAlign: TextAlign.start)),
+                          CommonWidget.getTextFieldWithgrayboderandclickable(
+                              "Enter Services Capacity", timeSlotController,(){showCapacity();}, "dropdown"),
                           Container(
-                              margin: EdgeInsets.only(left: 10, right: 10),
-                              child: CommonWidget.getTextWidget300(
-                                  "*Provide the duration in minute to complete one services(ex:-30).",
-                                  12,
-                                  textAlign: TextAlign.start)),
-                          CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Services Capacity", timeSlotController,
-                              keyboardType: TextInputType.number),
-                          Container(
-                              margin: EdgeInsets.only(left: 10, right: 10),
+                              margin: const EdgeInsets.only(left: 10, right: 10),
                               child: CommonWidget.getTextWidget300(
                                   "*Enter number of services complete in one hour.",
                                   12,
                                   textAlign: TextAlign.start)),
                           CommonWidget.getTextFieldWithgrayboder(
-                              "Enter Mobile Number(Optional)", mobileController,
-                              keyboardType: TextInputType.number),
-                          CommonWidget.getTextFieldWithgrayboder(
                               "Write about services..", aboutController,
                               maxline: 6, height: 120),
-                          CommonWidget.getTextWidgetSubTitle("Add Cover Image",
+                          CommonWidget.getTextWidgetSubTitle("Add Service Image",
                               textsize: 16),
                           GestureDetector(
                             onTap: () async {
@@ -146,22 +215,20 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                 var data = list;
                                 if (data != null) {
                                   setState(() {
-                                    if (data != null) {
-                                      for (int i = 0; i < data.length; i++) {
-                                        setState(() {
-                                          if (selectedFiles.length < 1)
-                                            selectedFiles.add(data[i]);
-                                        });
-                                        if (selectedFiles.length == 1 &&
-                                            i < data.length - 1) {
-                                          CommonWidget.errorShowSnackBarFor(
-                                              context,
-                                              "You can't add more then 1 Cover image.");
-                                          break;
-                                        }
+                                    for (int i = 0; i < data.length; i++) {
+                                      setState(() {
+                                        if (selectedFiles.length < 1)
+                                          selectedFiles.add(data[i]);
+                                      });
+                                      if (selectedFiles.length == 1 &&
+                                          i < data.length - 1) {
+                                        CommonWidget.errorShowSnackBarFor(
+                                            context,
+                                            "You can't add more then 1 Service image.");
+                                        break;
                                       }
                                     }
-                                  });
+                                                                    });
                                 }
                                 print(selectedFiles.length);
                               });
@@ -169,8 +236,8 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                             child: Container(
                               color: ColorClass.base_color,
                               width: 170,
-                              margin: EdgeInsets.only(top: 10),
-                              padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
+                              margin: const EdgeInsets.only(top: 10),
+                              padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
                               child: Row(
                                 children: [
                                   Image.asset(
@@ -178,7 +245,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                     height: 30,
                                   ),
                                   Container(
-                                      margin: EdgeInsets.only(left: 5),
+                                      margin: const EdgeInsets.only(left: 5),
                                       child: CommonWidget.getTextWidgetPopbold(
                                           "Upload Image",
                                           color: Colors.white))
@@ -186,11 +253,11 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                               ),
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
-                          if (selectedFiles.length > 0)
-                            Container(
+                          if (selectedFiles.isNotEmpty)
+                            SizedBox(
                               height: 100,
                               child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
@@ -199,12 +266,12 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   padding: EdgeInsets.zero,
                                   itemBuilder: (context, index) {
                                     return Container(
-                                      margin: EdgeInsets.only(top: 10, left: 10),
+                                      margin: const EdgeInsets.only(top: 10, left: 10),
                                       child: Stack(
                                         children: [
                                           Container(
                                               width: 80,
-                                              margin: EdgeInsets.only(
+                                              margin: const EdgeInsets.only(
                                                   top: 10, left: 10),
                                               child: CommonWidget
                                                   .determineImageAsset(
@@ -229,101 +296,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                     );
                                   }),
                             ),
-                          CommonWidget.getTextWidgetSubTitle("Add Details Image",
-                              textsize: 16),
-                          GestureDetector(
-                            onTap: () async {
-                              //var data = await BaseActivity.pickmultipleFile();
-                              BaseActivity.showFilePicker(context,
-                                  (List<File>? list) {
-                                var data = list;
-                                if (data != null) {
-                                  setState(() {
-                                    if (data != null) {
-                                      for (int i = 0; i < data.length; i++) {
-                                        setState(() {
-                                          if (selectedDetailsFiles.length < 5)
-                                            selectedDetailsFiles.add(data[i]);
-                                        });
-                                        if (selectedDetailsFiles.length == 5 &&
-                                            i < data.length - 1) {
-                                          CommonWidget.errorShowSnackBarFor(
-                                              context,
-                                              "You can't add more then 5 Details image.");
-                                          break;
-                                        }
-                                      }
-                                    }
-                                  });
-                                }
-                                print(selectedDetailsFiles.length);
-                              });
-                            },
-                            child: Container(
-                              color: ColorClass.base_color,
-                              width: 170,
-                              margin: EdgeInsets.only(top: 10),
-                              padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    CommonWidget.getImagePath("upload.png"),
-                                    height: 30,
-                                  ),
-                                  Container(
-                                      margin: EdgeInsets.only(left: 5),
-                                      child: CommonWidget.getTextWidgetPopbold(
-                                          "Upload Image",
-                                          color: Colors.white))
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          if (selectedDetailsFiles.length > 0)
-                            Container(
-                              height: 100,
-                              child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: selectedDetailsFiles.length,
-                                  shrinkWrap: true,
-                                  padding: EdgeInsets.zero,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      margin: EdgeInsets.only(top: 10, left: 10),
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                              width: 80,
-                                              margin: EdgeInsets.only(
-                                                  top: 10, left: 10),
-                                              child: CommonWidget
-                                                  .determineImageAsset(
-                                                      selectedDetailsFiles[index]
-                                                          .path)),
-                                          Align(
-                                              alignment: Alignment.topRight,
-                                              child: GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      selectedDetailsFiles
-                                                          .removeAt(index);
-                                                    });
-                                                  },
-                                                  child: Image.asset(
-                                                    CommonWidget.getImagePath(
-                                                        "delete.png"),
-                                                    height: 25,
-                                                    width: 25,
-                                                  )))
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                            ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
                           GestureDetector(
@@ -338,17 +311,13 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   message: "Please select category.",
                                   context: context))
                                 return;
-                              else if (BaseActivity.checkEmptyField(
-                                  editingController: priceController,
-                                  message: "Please enter service cost.",
-                                  context: context))
-                                return;
+                              // Price is now optional, no validation needed
                               else if (BaseActivity.checkEmptyField(
                                   editingController: durationController,
                                   message: "Please enter service duration.",
-                                  context: context))
-                                return;
-                              else if (BaseActivity.checkEmptyField(
+                                  context: context)) {
+                                  return;
+                                } else if (BaseActivity.checkEmptyField(
                                   editingController: timeSlotController,
                                   message: "Please enter service capacity.",
                                   context: context))
@@ -363,26 +332,22 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   message: "Please enter about your service.",
                                   context: context))
                                 return;
-                              else if (selectedFiles.length < 1) {
-                                CommonWidget.errorShowSnackBarFor(
-                                    context, "Please select cover image");
-                                return;
-                              } else if (selectedDetailsFiles.length < 3) {
-                                CommonWidget.errorShowSnackBarFor(context,
-                                    "Please select atleast 3 detail image");
-                                return;
+                              // else if (selectedFiles.length < 1) {
+                              //   CommonWidget.errorShowSnackBarFor(
+                              //       context, "Please select cover image");
+                              //   return;
+                              // } else if (selectedDetailsFiles.length < 3) {
+                              //   CommonWidget.errorShowSnackBarFor(context,
+                              //       "Please select atleast 3 detail image");
+                              //   return;
+                              // }
+                              if(selectedFiles.isNotEmpty) {
+                                await postImage(context);
                               }
-                              List<String> imageList = [];
-                              await postImage(context);
-                              for (var i = 0;
-                                  i < selectedDetailsFiles.length;
-                                  i++) {
-                                imageList.add(await postMultiImage(
-                                    context, [selectedDetailsFiles[i]]));
-                              }
-                              postServices(imageList);
+                              postServices();
                             },
-                            child: CommonWidget.getButtonWidget("Add Services",
+                            child: CommonWidget.getButtonWidget(
+                                widget.serviceToEdit != null ? "Update Service" : "Add Services",
                                 ColorClass.base_color, ColorClass.base_color),
                           )
                         ]),
@@ -393,7 +358,44 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
           )),
     );
   }
-
+  showTimeRequierd() {
+    List<CheckDialogBox> typeList = [];
+    List<String> time = ["0.5hr - 1hr","1hr - 2hr", "2hr - 3hr", "3hr - 4hr", "4hr - 5hr", "More then 5hr."];
+    for (var i in time) {
+      CheckDialogBox data =
+      CheckDialogBox(i, i);
+      typeList.add(data);
+    }
+    showDialog(
+        context: context,
+        builder: (context) {
+          return SearchDialogWithSingleSelect(typeList, "Select Service Durations",
+                  (String id, String name) {
+                setState(() {
+                  durationController.text = name;
+                });
+              });
+        });
+  }
+  showCapacity() {
+    List<CheckDialogBox> typeList = [];
+    List<String> time = ["1", "2", "3", "4", "5","6", "10", "10-15", "15-20", "More then 25"];
+    for (var i in time) {
+      CheckDialogBox data =
+      CheckDialogBox(i, i);
+      typeList.add(data);
+    }
+    showDialog(
+        context: context,
+        builder: (context) {
+          return SearchDialogWithSingleSelect(typeList, "Select Capacity",
+                  (String id, String name) {
+                setState(() {
+                  timeSlotController.text = name;
+                });
+              });
+        });
+  }
   getCategory(BuildContext context) async {
     var response = await servicesDataManager!.getcategory(context);
     var data = CategoryModelData.fromJson(jsonDecode(response.body));
@@ -413,43 +415,48 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
     var response = await servicesDataManager!.postImage(image, context);
     var data = ImageModuleData.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
-      coverImage = data.data?.url ?? "";
+      serviceImage = data.data?.url ?? "";
       //CommonWidget.successShowSnackBarFor(context, data.message??"");
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }
 
-  Future<String> postMultiImage(BuildContext context, List<File> image) async {
-    var response = await servicesDataManager!.postImage(image, context);
-    var data = ImageModuleData.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      return data.data?.url ?? "";
-      //CommonWidget.successShowSnackBarFor(context, data.message??"");
+  void postServices() async {
+    var response;
+    if (widget.serviceToEdit != null) {
+      // Update existing service
+          response = await servicesDataManager?.updateService(
+              context,
+              widget.serviceToEdit!.sId!,
+              titleController.text,
+              aboutController.text,
+              timeSlotController.text,
+              priceController.text.isEmpty ? "0" : priceController.text,
+              durationController.text,
+              categoryController.text,
+              categoryId,
+              serviceImage,
+              mobileController.text);
     } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
-      return "";
+      // Create new service
+      response = await servicesDataManager?.postServies(
+          context,
+          titleController.text,
+          aboutController.text,
+          timeSlotController.text,
+          priceController.text.isEmpty ? "0" : priceController.text,
+          durationController.text,
+          categoryController.text,
+          categoryId,
+          serviceImage,
+          mobileController.text);
     }
-  }
-
-  void postServices(List<String> imageList) async {
-    var response = await servicesDataManager?.postServies(
-        context,
-        titleController.text,
-        aboutController.text,
-        timeSlotController.text,
-        priceController.text,
-        durationController.text,
-        categoryController.text,
-        categoryId,
-        imageList,
-        coverImage,
-        mobileController.text);
+    
     var data = AddServicesBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
       Navigator.pop(context,true);
-      //CommonWidget.navigateToKillScreen(context, ServicesListActivity());
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }

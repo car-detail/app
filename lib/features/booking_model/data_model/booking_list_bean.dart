@@ -10,14 +10,14 @@ class BookingListBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -35,18 +35,18 @@ class Data {
     if (json['records'] != null) {
       records = <Records>[];
       json['records'].forEach((v) {
-        records!.add(new Records.fromJson(v));
+        records!.add(Records.fromJson(v));
       });
     }
     totalCount = json['totalCount'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.records != null) {
-      data['records'] = this.records!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (records != null) {
+      data['records'] = records!.map((v) => v.toJson()).toList();
     }
-    data['totalCount'] = this.totalCount;
+    data['totalCount'] = totalCount;
     return data;
   }
 }
@@ -98,20 +98,20 @@ class Records {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['price'] = this.price;
-    data['orderStatus'] = this.orderStatus;
-    data['timeSlot'] = this.timeSlot;
-    data['date'] = this.date;
-    data['createdByFirstName'] = this.createdByFirstName;
-    data['createdByLastName'] = this.createdByLastName;
-    data['createdByImage'] = this.createdByImage;
-    data['createdByMobile'] = this.createdByMobile;
-    data['createdByEmail'] = this.createdByEmail;
-    data['cancelled_by'] = this.cancelledBy;
-    data['commentByUser'] = this.commentByUser;
-    data['commentByVendor'] = this.commentByVendor;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['price'] = price;
+    data['orderStatus'] = orderStatus;
+    data['timeSlot'] = timeSlot;
+    data['date'] = date;
+    data['createdByFirstName'] = createdByFirstName;
+    data['createdByLastName'] = createdByLastName;
+    data['createdByImage'] = createdByImage;
+    data['createdByMobile'] = createdByMobile;
+    data['createdByEmail'] = createdByEmail;
+    data['cancelled_by'] = cancelledBy;
+    data['commentByUser'] = commentByUser;
+    data['commentByVendor'] = commentByVendor;
     return data;
   }
 }

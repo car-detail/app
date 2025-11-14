@@ -1,37 +1,36 @@
-import 'package:bot_toast/bot_toast.dart';
-import 'package:car_app/features/SplashScreenActivity.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:bot_toast/bot_toast.dart';
+import 'features/SplashScreenActivity.dart';
+import 'features/dashboard_module/ui/dashboard_activity.dart';
+import 'features/onboarding/ui/vendor_onboarding_activity.dart';
+import 'features/resister_vendor_model/ui/simple_registor_vendor_activity.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light), // Change color as needed
-    );
     return MaterialApp(
-      builder: BotToastInit(),
-      title: 'Cahrz Admin',
+      title: 'Cahrz Vendor App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        // fontFamily: 'PopReg',
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreenActivity(),
+      home: const SafeArea(
+        child: SplashScreenActivity(),
+      ),
+      routes: {
+        '/dashboard': (context) => const SafeArea(child: DashboardActivity()),
+        '/onboarding': (context) => const SafeArea(child: VendorOnboardingActivity()),
+        '/register': (context) => const SafeArea(child: SimpleRegistorVendorActivity()),
+      },
+      // builder: BotToast.init(),
+      // navigatorObservers: [BotToastNavigatorObserver()],
     );
   }
 }

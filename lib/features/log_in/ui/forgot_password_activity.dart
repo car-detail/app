@@ -39,22 +39,22 @@ class _ForgotPasswordActivityState extends State<ForgotPasswordActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffECF2FB),
+      backgroundColor: const Color(0xffECF2FB),
       body: Column(
         children: [
           CommonWidget.gettopbarwithmenuicon(context, "Forgot Password",
               isHome: false),
           Expanded(
             child: Container(
-              margin: EdgeInsets.only(bottom: 15, left: 20, right: 20),
+              margin: const EdgeInsets.only(bottom: 15, left: 20, right: 20),
               width: double.infinity,
               child: Image.asset('assets/images/forgot-img.png', height: 200,width: 200,),
             ),
           ),
           Expanded(
               child: Container(
-                padding: EdgeInsets.fromLTRB(15, 30, 15, 15),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.fromLTRB(15, 30, 15, 15),
+                decoration: const BoxDecoration(
                     borderRadius:
                     BorderRadius.only(topLeft: Radius.circular(60)),
                     color: Colors.white),
@@ -63,21 +63,21 @@ class _ForgotPasswordActivityState extends State<ForgotPasswordActivity> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: CommonWidget.getTextWidgetPopReg(
                         "Enter your schoolcode and user name",
                         textsize: 12,
                         textAlign: TextAlign.center),
                   ),
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: CommonWidget.getTextWidgetPopReg(
                         "As we are sending OTP to your registered mobile no.",
                         textsize: 12,
                         textAlign: TextAlign.center),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   CommonWidget.getMendatroyTextRich(
@@ -88,15 +88,15 @@ class _ForgotPasswordActivityState extends State<ForgotPasswordActivity> {
                   CommonWidget.getMendatroyTextRich("User Name"),
                   CommonWidget.getTextFieldWithgrayboder(
                       "Enter User Name", userController),
-                  SizedBox(height: 15,),
+                  const SizedBox(height: 15,),
                   GestureDetector(
                     onTap: (){
                       if (BaseActivity.checkEmptyField(
                           editingController: schoolController,
                           message: "Please enter school code.",
-                          context: context))
+                          context: context)) {
                         return;
-                      else if (BaseActivity.checkEmptyField(
+                      } else if (BaseActivity.checkEmptyField(
                           editingController: userController,
                           message: "Please enter username.",
                           context: context))

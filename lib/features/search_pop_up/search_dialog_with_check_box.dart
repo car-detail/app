@@ -52,7 +52,7 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
       content: StatefulBuilder(
         builder:
             (BuildContext context, void Function(void Function()) setState) {
-          return Container(
+          return SizedBox(
             height: MediaQuery.of(context).size.height * 0.5,
             width: MediaQuery.of(context).size.width * 0.9,
             child: Stack(
@@ -64,8 +64,8 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                       Navigator.pop(context);
                     },
                     child: Container(
-                      padding: EdgeInsets.only(top: 10, right: 10),
-                      child: Image(
+                      padding: const EdgeInsets.only(top: 10, right: 10),
+                      child: const Image(
                         image: AssetImage("assets/images/delete.png"),
                         height: 25,
                         width: 25,
@@ -75,12 +75,12 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                 ),
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 25),
+                        margin: const EdgeInsets.symmetric(horizontal: 25),
                         width: double.infinity,
                         child: CommonWidget.getTextWidgetPopbold(widget.title,color: ColorClass.base_color)
                       ),
@@ -92,7 +92,7 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                       GestureDetector(
                         onTap: () {},
                         child: Container(
-                          margin:EdgeInsets.only(left: 10,right: 10),
+                          margin:const EdgeInsets.only(left: 10,right: 10),
                           child: Column(
                             children: [
                               Row(
@@ -101,8 +101,8 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                                 children: [
                                   Expanded(
                                     child: Container(
-                                      margin: EdgeInsets.all(5),
-                                      child: Text(
+                                      margin: const EdgeInsets.all(5),
+                                      child: const Text(
                                         "Select All",
                                         textAlign: TextAlign.left,
                                         style: TextStyle(
@@ -153,7 +153,7 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                       ),
                       Expanded(
                         child: Container(
-                          margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                          margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                           child: ListView.builder(
                             itemCount: newData.length,
                             padding: EdgeInsets.zero,
@@ -172,11 +172,11 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                                         children: [
                                           Expanded(
                                             child: Container(
-                                              margin: EdgeInsets.all(5),
+                                              margin: const EdgeInsets.all(5),
                                               child: Text(
-                                                "${data.title}",
+                                                data.title,
                                                 textAlign: TextAlign.left,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   color: Colors
                                                       .black, // Adjust this to match your getTextWidgetPopReg
                                                 ),
@@ -226,8 +226,8 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                         child: Container(
                           width: 100,
                           height: 32,
-                          margin: EdgeInsets.only(top: 10),
-                          padding: EdgeInsets.fromLTRB(15, 5, 15, 5),
+                          margin: const EdgeInsets.only(top: 10),
+                          padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -237,7 +237,7 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               "OK",
                               style: TextStyle(
@@ -280,12 +280,12 @@ class _SearchDialogWithCheckBoxState extends State<SearchDialogWithCheckBox> {
   void filterSearchResults(String query) {
     if (query.isNotEmpty) {
       List<CheckDialogBox> dummyListData = [];
-      widget.checkListData.forEach((item) {
+      for (var item in widget.checkListData) {
         if (item.id.toLowerCase().contains(query.toLowerCase()) ||
             item.title.toString().toLowerCase().contains(query.toLowerCase())) {
           dummyListData.add(item);
         }
-      });
+      }
       setState(() {
         newData.clear();
         newData.addAll(dummyListData);

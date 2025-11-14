@@ -18,6 +18,10 @@ class HomeDataManager {
     return apiFuntions.getdatauser(context, "${Constant.getAllService}pageNumber=1&count=20&sortBy=createdAt");
   }
 
+  getVendorServices(BuildContext context) {
+    return apiFuntions.getdatauser(context, "${Constant.getServicesList}${sharedPreferences.getString(Constant.vendorId) ?? ""}");
+  }
+
   getBookingListFilter(BuildContext context, String filterType) {
     return apiFuntions.getdatauser(context,
         "${Constant.getBookingList}${sharedPreferences.getString(Constant.vendorId) ?? ""}?pageNumber=1&bookingStatusFilter=$filterType&count=12");
@@ -25,6 +29,10 @@ class HomeDataManager {
   getOfferList(BuildContext context) {
     return apiFuntions.getdatauser(context,
         "${Constant.getOffer}${sharedPreferences.getString(Constant.vendorId) ?? ""}");
+  }
+  getNotification(BuildContext context) {
+    return apiFuntions.getdatauser(context,
+        "${Constant.getNotifications}${sharedPreferences.getString(Constant.id) ?? ""}");
   }
   makeOffLine(BuildContext context) {
     return apiFuntions.putdatauser(context,
@@ -49,5 +57,8 @@ class HomeDataManager {
         <String, dynamic>{
           "commentByVendor": reason
         });
+  }
+  getForceUpdate(BuildContext context) {
+    return apiFuntions.getdatauser(context, Constant.forceUpdate,cycle: false);
   }
 }

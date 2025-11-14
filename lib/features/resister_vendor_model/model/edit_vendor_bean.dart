@@ -13,16 +13,16 @@ class EditVendorBean {
     if (json['data'] != null) {
       data = <EditVendorData>[];
       json['data'].forEach((v) {
-        data!.add(new EditVendorData.fromJson(v));
+        data!.add(EditVendorData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    data['statusCode'] = this.statusCode;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['message'] = message;
+    data['statusCode'] = statusCode;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -33,6 +33,7 @@ class EditVendorBean {
 class EditVendorData {
   String? sId;
   String? displayName;
+  String? about;
   String? officialEmail;
   String? mobile;
   String? displayPicture;
@@ -40,6 +41,7 @@ class EditVendorData {
   String? openTime;
   String? closeTime;
   String? timeZone;
+  List<String> daysAvailable = [];
   String? createdBy;
   bool? isActive;
   bool? isDeleted;
@@ -52,6 +54,7 @@ class EditVendorData {
   EditVendorData(
       {this.sId,
         this.displayName,
+        this.about,
         this.officialEmail,
         this.mobile,
         this.displayPicture,
@@ -59,6 +62,7 @@ class EditVendorData {
         this.openTime,
         this.closeTime,
         this.timeZone,
+        daysAvailable,
         this.createdBy,
         this.isActive,
         this.isDeleted,
@@ -71,15 +75,17 @@ class EditVendorData {
   EditVendorData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     displayName = json['displayName'];
+    about = json['about'];
     officialEmail = json['officialEmail'];
     mobile = json['mobile'];
     displayPicture = json['displayPicture'];
     location = json['location'] != null
-        ? new Location.fromJson(json['location'])
+        ? Location.fromJson(json['location'])
         : null;
     openTime = json['openTime'];
     closeTime = json['closeTime'];
     timeZone = json['timeZone'];
+    daysAvailable = json['daysAvailable'].cast<String>();
     createdBy = json['createdBy'];
     isActive = json['isActive'];
     isDeleted = json['isDeleted'];
@@ -91,26 +97,28 @@ class EditVendorData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['displayName'] = this.displayName;
-    data['officialEmail'] = this.officialEmail;
-    data['mobile'] = this.mobile;
-    data['displayPicture'] = this.displayPicture;
-    if (this.location != null) {
-      data['location'] = this.location!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['displayName'] = displayName;
+    data['about'] = about;
+    data['officialEmail'] = officialEmail;
+    data['mobile'] = mobile;
+    data['displayPicture'] = displayPicture;
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
-    data['openTime'] = this.openTime;
-    data['closeTime'] = this.closeTime;
-    data['timeZone'] = this.timeZone;
-    data['createdBy'] = this.createdBy;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    data['isShopOpen'] = this.isShopOpen;
-    data['isVerified'] = this.isVerified;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['openTime'] = openTime;
+    data['closeTime'] = closeTime;
+    data['timeZone'] = timeZone;
+    data['daysAvailable'] = daysAvailable;
+    data['createdBy'] = createdBy;
+    data['isActive'] = isActive;
+    data['isDeleted'] = isDeleted;
+    data['isShopOpen'] = isShopOpen;
+    data['isVerified'] = isVerified;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -124,35 +132,35 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     coordinates = json['coordinates'] != null
-        ? new Coordinates.fromJson(json['coordinates'])
+        ? Coordinates.fromJson(json['coordinates'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    if (this.coordinates != null) {
-      data['coordinates'] = this.coordinates!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    if (coordinates != null) {
+      data['coordinates'] = coordinates!.toJson();
     }
     return data;
   }
 }
 
 class Coordinates {
-  num? lat;
-  num? long;
+  double? long;
+  double? lat;
 
-  Coordinates({this.lat, this.long});
+  Coordinates({this.long, this.lat});
 
   Coordinates.fromJson(Map<String, dynamic> json) {
-    lat = json['lat'];
     long = json['long'];
+    lat = json['lat'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['lat'] = this.lat;
-    data['long'] = this.long;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['long'] = long;
+    data['lat'] = lat;
     return data;
   }
 }
