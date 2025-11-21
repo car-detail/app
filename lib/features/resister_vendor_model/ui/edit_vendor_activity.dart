@@ -224,43 +224,43 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                                     "Enter Email Address", emailController, keyboardType: TextInputType.emailAddress),
                                 CommonWidget.getTextFieldWithgrayboder(
                                     "Enter Mobile Number", mobileController, keyboardType: TextInputType.number),
-                                SizedBox(
-                                  height: 40,
-                                  child: AddressAutocompleteTextField(
-                                      decoration: InputDecoration(
-                                          focusedBorder: OutlineInputBorder(
-                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                              borderSide: BorderSide(
-                                                  color: ColorClass.base_color,
-                                                  width: 1,
-                                                  style: BorderStyle.solid)),
-                                          enabledBorder: OutlineInputBorder(
-                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                              borderSide: BorderSide(
-                                                  color: ColorClass.middel_gray_base,
-                                                  width: 1,
-                                                  style: BorderStyle.solid)),
-                                          contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                          filled: true,
-                                          fillColor: ColorClass.base_light_color,
-                                          hintText: "Enter Address",
-                                          hintStyle: TextStyle(
-                                              color: Colors.grey[800],
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w300),
-                                          border: OutlineInputBorder(
-                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                              borderSide: BorderSide(color: ColorClass.light_browne))),
-                                      mapsApiKey: 'AIzaSyBFtrosISezP-8z2NwTWKhD_5pNHoi0wRw',
-                                      controller: addressController,
-                                      onSuggestionClick: (place){
-                                        addressController.text  = "";
-                                        addressController.text = place.name??"";
-                                        long = place.lng??0.0;
-                                        late = place.lat??0.0;
-                                      },
-                                      language: 'en-US'
-                                  ),
+                                AddressAutocompleteTextField(
+                                    decoration: InputDecoration(
+                                        prefixIcon: Icon(Icons.location_on, color: ColorClass.base_color),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                            borderSide: BorderSide(
+                                                color: ColorClass.base_color,
+                                                width: 1,
+                                                style: BorderStyle.solid)),
+                                        enabledBorder: OutlineInputBorder(
+                                            borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                            borderSide: BorderSide(
+                                                color: ColorClass.middel_gray_base,
+                                                width: 1,
+                                                style: BorderStyle.solid)),
+                                        contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                        filled: true,
+                                        fillColor: ColorClass.base_light_color,
+                                        hintText: "Start typing your address...",
+                                        hintStyle: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w300),
+                                        border: OutlineInputBorder(
+                                            borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                            borderSide: BorderSide(color: ColorClass.light_browne))),
+                                    mapsApiKey: 'AIzaSyBFtrosISezP-8z2NwTWKhD_5pNHoi0wRw',
+                                    controller: addressController,
+                                    onSuggestionClick: (place){
+                                      setState(() {
+                                        final address = place.formattedAddress ?? place.name ?? '';
+                                        addressController.text = address;
+                                        long = place.lng ?? 0.0;
+                                        late = place.lat ?? 0.0;
+                                      });
+                                    },
+                                    language: 'en-US'
                                 ),
                                 Row(
                                   children: [

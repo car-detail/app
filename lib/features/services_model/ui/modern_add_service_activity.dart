@@ -604,7 +604,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
                 errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
               )
             : selectedFiles.isNotEmpty && index < selectedFiles.length
-                ? Image.file(selectedFiles[index], fit: BoxFit.cover)
+                ? CommonWidget.imageFromFile(selectedFiles[index], fit: BoxFit.cover)
                 : _buildImagePlaceholder(),
       ),
     );

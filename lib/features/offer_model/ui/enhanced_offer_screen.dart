@@ -706,7 +706,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               child: selectedFiles.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
+                      child: CommonWidget.imageFromFile(
                         selectedFiles[0],
                         width: double.infinity,
                         height: double.infinity,
@@ -866,7 +866,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                       if (selectedFiles.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
+                          child: CommonWidget.imageFromFile(
                             selectedFiles[0],
                             width: 60,
                             height: 60,

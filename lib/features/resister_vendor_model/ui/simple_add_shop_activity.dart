@@ -11,6 +11,7 @@ import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SimpleAddShopActivity extends StatefulWidget {
@@ -32,11 +33,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   // Location data
   double _currentLat = 0.0;
   double _currentLng = 0.0;
-
-  // Address search
-  List<Map<String, dynamic>> _addressSuggestions = [];
-  bool _isSearching = false;
-  bool _showSuggestions = false;
+  String? _selectedPlaceId; // Store Google Places place_id
 
   // Data managers
   AddShopDataManager? addShopDataManager;
@@ -197,10 +194,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
 
       return GestureDetector(
         onTap: () {
-          // Hide suggestions when tapping outside
-          setState(() {
-            _showSuggestions = false;
-          });
+          // Tap outside handler - no longer needed with Google Places autocomplete
         },
         child: Scaffold(
           backgroundColor: Colors.grey[50],
@@ -710,80 +704,39 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         Row(
           children: [
             Expanded(
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _shopAddressController,
-                    onChanged: _onAddressChanged,
-                    decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(Icons.location_on, color: ColorClass.base_color),
-                      hintText: "Start typing your address...",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            BorderSide(color: ColorClass.base_color, width: 2),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      suffixIcon: _isSearching
-                          ? const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            )
-                          : null,
-                    ),
+              child: AddressAutocompleteTextField(
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.location_on, color: ColorClass.base_color),
+                  hintText: "Start typing your address...",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  // Address suggestions dropdown
-                  if (_showSuggestions && _addressSuggestions.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: _addressSuggestions.take(5).map((suggestion) {
-                          return ListTile(
-                            dense: true,
-                            leading: const Icon(Icons.location_on,
-                                size: 20, color: Colors.blue),
-                            title: Text(
-                              suggestion['name'] ?? '',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            subtitle: Text(
-                              suggestion['formatted_address'] ?? '',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[600]),
-                            ),
-                            onTap: () => _selectAddress(suggestion),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: ColorClass.base_color, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                mapsApiKey: 'AIzaSyBFtrosISezP-8z2NwTWKhD_5pNHoi0wRw',
+                controller: _shopAddressController,
+                onSuggestionClick: (place) {
+                  setState(() {
+                    final address = place.formattedAddress ?? place.name ?? '';
+                    _shopAddressController.text = address;
+                    _currentLat = place.lat ?? 0.0;
+                    _currentLng = place.lng ?? 0.0;
+                    // Use formattedAddress as identifier - backend can search by location.name
+                    // Note: To get actual place_id, we'd need to make an additional Google Places API call
+                    _selectedPlaceId = address.isNotEmpty ? address : null;
+                  });
+                },
+                language: 'en-US',
               ),
             ),
             const SizedBox(width: 8),
@@ -824,134 +777,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     );
   }
 
-  void _onAddressChanged(String query) {
-    if (query.length >= 3) {
-      _searchAddresses(query);
-    } else {
-      setState(() {
-        _showSuggestions = false;
-        _addressSuggestions.clear();
-      });
-    }
-  }
-
-  void _searchAddresses(String query) async {
-    setState(() {
-      _isSearching = true;
-      _showSuggestions = true;
-    });
-
-    try {
-      final suggestions = await _getAddressSuggestions(query);
-      setState(() {
-        _addressSuggestions = suggestions;
-        _isSearching = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSearching = false;
-      });
-    }
-  }
-
-  void _selectAddress(Map<String, dynamic> suggestion) {
-    _shopAddressController.text = suggestion['formatted_address'] ?? '';
-    _currentLat = suggestion['geometry']['location']['lat'];
-    _currentLng = suggestion['geometry']['location']['lng'];
-
-    setState(() {
-      _showSuggestions = false;
-      _addressSuggestions.clear();
-    });
-  }
-
-  Future<List<Map<String, dynamic>>> _getAddressSuggestions(
-      String query) async {
-    try {
-      // Use geocoding package to search for locations
-      List<Location> locations = await locationFromAddress(query);
-      List<Map<String, dynamic>> suggestions = [];
-
-      for (Location location in locations.take(5)) {
-        // Limit to 5 results
-        try {
-          List<Placemark> placemarks = await placemarkFromCoordinates(
-            location.latitude,
-            location.longitude,
-          );
-
-          if (placemarks.isNotEmpty) {
-            Placemark place = placemarks.first;
-            String formattedAddress = _formatReadableAddress(place);
-
-            suggestions.add({
-              'name': place.name ?? place.street ?? place.locality ?? query,
-              'formatted_address': formattedAddress,
-              'geometry': {
-                'location': {
-                  'lat': location.latitude,
-                  'lng': location.longitude,
-                }
-              }
-            });
-          }
-        } catch (e) {
-          // If reverse geocoding fails, still add the location
-          suggestions.add({
-            'name': query,
-            'formatted_address':
-                'Location: ${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}',
-            'geometry': {
-              'location': {
-                'lat': location.latitude,
-                'lng': location.longitude,
-              }
-            }
-          });
-        }
-      }
-
-      return suggestions;
-    } catch (e) {
-      // Fallback to mock suggestions if geocoding fails
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      return [
-        {
-          'name': '$query Street',
-          'formatted_address': '123 $query Street, City, State, Country',
-          'geometry': {
-            'location': {
-              'lat': 40.7128 + (query.hashCode % 100) / 1000,
-              'lng': -74.0060 + (query.hashCode % 100) / 1000,
-            }
-          }
-        },
-        {
-          'name': '$query Avenue',
-          'formatted_address': '456 $query Avenue, City, State, Country',
-          'geometry': {
-            'location': {
-              'lat': 40.7128 + (query.hashCode % 200) / 1000,
-              'lng': -74.0060 + (query.hashCode % 200) / 1000,
-            }
-          }
-        },
-      ];
-    }
-  }
-
-  String _formatAddress(Placemark place) {
-    List<String> addressParts = [];
-
-    if (place.street?.isNotEmpty == true) addressParts.add(place.street!);
-    if (place.locality?.isNotEmpty == true) addressParts.add(place.locality!);
-    if (place.administrativeArea?.isNotEmpty == true)
-      addressParts.add(place.administrativeArea!);
-    if (place.country?.isNotEmpty == true) addressParts.add(place.country!);
-
-    return addressParts.join(', ');
-  }
+  // Removed unused address search methods - now using Google Places autocomplete
 
   String _formatReadableAddress(Placemark place) {
     List<String> addressParts = [];
@@ -1546,30 +1372,37 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         closeTime = parts[1];
       }
 
-      // Prepare address for API - ensure it's readable
-      String apiAddress = _shopAddressController.text;
-
-      // If the address contains coordinates, try to get a better address
-      if (apiAddress.contains("Lat:") ||
-          apiAddress.contains("Current Location") ||
-          apiAddress.contains("GPS Coordinates")) {
-        try {
-          // Try to get a better address from coordinates
-          String betterAddress =
-              await _getAddressFromCoordinates(_currentLat, _currentLng);
-          if (!betterAddress.contains("Lat:") &&
-              !betterAddress.contains("Current Location") &&
-              !betterAddress.contains("GPS Coordinates")) {
-            apiAddress = betterAddress;
-          } else {
-            // If we still can't get a good address, create a simple one
+      // Prepare address for API - prioritize place_id for backend lookup
+      String apiAddress;
+      if (_selectedPlaceId != null && _selectedPlaceId!.isNotEmpty) {
+        // Use place_id so backend can look up vendor by place_id
+        apiAddress = _selectedPlaceId!;
+      } else {
+        // Fallback to formatted address
+        apiAddress = _shopAddressController.text;
+        
+        // If the address contains coordinates, try to get a better address
+        if (apiAddress.contains("Lat:") ||
+            apiAddress.contains("Current Location") ||
+            apiAddress.contains("GPS Coordinates")) {
+          try {
+            // Try to get a better address from coordinates
+            String betterAddress =
+                await _getAddressFromCoordinates(_currentLat, _currentLng);
+            if (!betterAddress.contains("Lat:") &&
+                !betterAddress.contains("Current Location") &&
+                !betterAddress.contains("GPS Coordinates")) {
+              apiAddress = betterAddress;
+            } else {
+              // If we still can't get a good address, create a simple one
+              apiAddress =
+                  'Business Location, GPS Coordinates (${_currentLat.toStringAsFixed(4)}, ${_currentLng.toStringAsFixed(4)})';
+            }
+          } catch (e) {
+            // Fallback to a simple coordinate format
             apiAddress =
                 'Business Location, GPS Coordinates (${_currentLat.toStringAsFixed(4)}, ${_currentLng.toStringAsFixed(4)})';
           }
-        } catch (e) {
-          // Fallback to a simple coordinate format
-          apiAddress =
-              'Business Location, GPS Coordinates (${_currentLat.toStringAsFixed(4)}, ${_currentLng.toStringAsFixed(4)})';
         }
       }
 

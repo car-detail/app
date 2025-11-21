@@ -1,6 +1,7 @@
 class Constant {
-  // static var baseurl = "http://localhost:7007/"; //dev
-  static var baseurl = "http://13.234.217.235:3001/"; //dev
+  static var baseurl = "http://localhost:7007/"; //dev
+  // static var baseurl = "https://l3ww2hjs-7007.inc1.devtunnels.ms/";
+  // static var baseurl = "http://13.234.217.235:3001/"; //dev
   //static var baseurl = "https://cp6zsf8t-7007.inc1.devtunnels.ms/"; //dev
   // static var baseurl = "https://cf5f40e34c76.ngrok-free.app/"; //ngrok tunnel
   static var versionNumber = "v1";

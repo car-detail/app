@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -321,38 +322,203 @@ class ApiFuntions {
     "Authorization": "Bearer $token",
     "ngrok-skip-browser-warning": "true"
     });
-      // Add files to the request
-      for (var file in files) {
-        var fileName = file.path.split('/').last;
+      // File size limits (in bytes)
+      const int maxImageSize = 5 * 1024 * 1024; // 5 MB for images
+      const int maxDocumentSize = 10 * 1024 * 1024; // 10 MB for documents
+      const int maxFileSize = 100 * 1024 * 1024; // 100 MB absolute max
 
-        MediaType? contentType;
-        if (fileName.endsWith('.pdf') || fileName.endsWith('.PDF')) {
-          contentType = MediaType('application', 'pdf');
-        } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-          contentType = MediaType('application', 'msword');
-        } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-          contentType = MediaType('application', 'vnd.ms-excel');
-        } else if (fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-          contentType = MediaType('application', 'vnd.ms-powerpoint');
-        } else if (fileName.endsWith('.jpg') ||
-            fileName.endsWith('.jpeg') ||
-            fileName.endsWith('.png') ||
-            fileName.endsWith('.JPG') ||
-            fileName.endsWith('.JPEG') ||
-            fileName.endsWith('.PNG')) {
-          contentType = MediaType('image', 'jpeg');
+      // Allowed file extensions (all lowercase since we convert to lowercase)
+      final allowedImageExtensions = ['.jpg', '.jpeg', '.png'];
+      final allowedDocumentExtensions = ['.pdf', '.doc', '.docx', '.xlsx', '.xls', '.ppt', '.pptx'];
+
+      // Add files to the request with validation
+      for (var file in files) {
+        Uint8List? fileBytes;
+        String fileName;
+        String fileExtension = '';
+        int fileSize = 0;
+        
+        // On web, read file as bytes since file.path might be invalid
+        if (kIsWeb) {
+          try {
+            fileBytes = await file.readAsBytes();
+            fileSize = fileBytes.length;
+            
+            // Try to extract file name from path, but use fallback if path is invalid
+            try {
+              var pathParts = file.path.split('/');
+              if (pathParts.isNotEmpty && pathParts.last.isNotEmpty && pathParts.last != file.path) {
+                fileName = pathParts.last;
+              } else {
+                pathParts = file.path.split('\\');
+                if (pathParts.isNotEmpty && pathParts.last.isNotEmpty && pathParts.last != file.path) {
+                  fileName = pathParts.last;
+                } else {
+                  // Fallback: use a default name based on content type detection
+                  fileName = 'uploaded_file';
+                }
+              }
+            } catch (e) {
+              print('⚠️ Could not extract file name from path, using fallback: $e');
+              fileName = 'uploaded_file';
+            }
+            
+            // Try to detect extension from file name
+            final lastDotIndex = fileName.lastIndexOf('.');
+            if (lastDotIndex > 0 && lastDotIndex < fileName.length - 1) {
+              fileExtension = fileName.substring(lastDotIndex).toLowerCase();
+            }
+            
+            // If no extension found, try to detect from file bytes (magic numbers)
+            if (fileExtension.isEmpty && fileBytes.isNotEmpty) {
+              // Check for image signatures
+              if (fileBytes.length >= 2) {
+                if (fileBytes[0] == 0xFF && fileBytes[1] == 0xD8) {
+                  fileExtension = '.jpg';
+                  fileName = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') ? fileName : '$fileName.jpg';
+                } else if (fileBytes.length >= 8 && 
+                           fileBytes[0] == 0x89 && fileBytes[1] == 0x50 && fileBytes[2] == 0x4E && fileBytes[3] == 0x47) {
+                  fileExtension = '.png';
+                  fileName = fileName.endsWith('.png') ? fileName : '$fileName.png';
+                }
+              }
+            }
+            
+            print('📁 Web File: $fileName, Extension: $fileExtension, Size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+          } catch (e) {
+            Navigator.pop(context);
+            CommonWidget.errorShowSnackBarFor(context, 'Error reading file on web: ${e.toString()}');
+            throw Exception('Error reading file on web: $e');
+          }
+        } else {
+          // Mobile: use file path
+          // Handle both forward and backward slashes for cross-platform compatibility
+          fileName = file.path.split('/').last;
+          if (fileName.isEmpty || fileName == file.path) {
+            fileName = file.path.split('\\').last;
+          }
+          
+          // Extract file extension safely
+          final lastDotIndex = fileName.lastIndexOf('.');
+          if (lastDotIndex > 0 && lastDotIndex < fileName.length - 1) {
+            fileExtension = fileName.substring(lastDotIndex).toLowerCase();
+          } else {
+            Navigator.pop(context);
+            CommonWidget.errorShowSnackBarFor(context, 'File has no extension: $fileName');
+            throw Exception('File has no extension: $fileName');
+          }
+          
+          print('📁 Mobile File: $fileName, Extension: $fileExtension, Full Path: ${file.path}');
+          
+          // Check if file exists and get size
+          try {
+            if (!await file.exists()) {
+              Navigator.pop(context);
+              CommonWidget.errorShowSnackBarFor(context, 'File not found: $fileName');
+              throw Exception('File not found: $fileName');
+            }
+          } catch (e) {
+            Navigator.pop(context);
+            CommonWidget.errorShowSnackBarFor(context, 'Error checking file: $e');
+            throw Exception('Error checking file: $e');
+          }
+
+          try {
+            fileSize = await file.length();
+          } catch (e) {
+            Navigator.pop(context);
+            CommonWidget.errorShowSnackBarFor(context, 'Error reading file size: $e');
+            throw Exception('Error reading file size: $e');
+          }
+        }
+        
+        print('📊 File size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+        
+        // Validate file size
+        if (fileSize > maxFileSize) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(context, 'File size exceeds maximum limit (100 MB)');
+          throw Exception('File size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
+        // Validate file format
+        bool isImage = allowedImageExtensions.contains(fileExtension);
+        bool isDocument = allowedDocumentExtensions.contains(fileExtension);
+        
+        print('🔍 Is Image: $isImage, Is Document: $isDocument');
+        print('🔍 Allowed Image Extensions: $allowedImageExtensions');
+        print('🔍 Allowed Document Extensions: $allowedDocumentExtensions');
+        
+        if (!isImage && !isDocument) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileExtension. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)');
+          throw Exception('Unsupported file format: $fileExtension');
+        }
+
+        // Validate size based on file type
+        if (isImage && fileSize > maxImageSize) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (5 MB). Please compress the image.');
+          throw Exception('Image size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+        }
+
+        if (isDocument && fileSize > maxDocumentSize) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(context, 'Document size exceeds maximum limit (10 MB)');
+          throw Exception('Document size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+        }
+
+        MediaType? contentType;
+        if (fileExtension == '.pdf') {
+          contentType = MediaType('application', 'pdf');
+        } else if (fileExtension == '.doc' || fileExtension == '.docx') {
+          contentType = MediaType('application', 'msword');
+        } else if (fileExtension == '.xlsx' || fileExtension == '.xls') {
+          contentType = MediaType('application', 'vnd.ms-excel');
+        } else if (fileExtension == '.ppt' || fileExtension == '.pptx') {
+          contentType = MediaType('application', 'vnd.ms-powerpoint');
+        } else if (isImage) {
+          // Set content type for images
+          if (fileExtension == '.png') {
+            contentType = MediaType('image', 'png');
+          } else if (fileExtension == '.jpg' || fileExtension == '.jpeg') {
+            contentType = MediaType('image', 'jpeg');
+          }
+        }
+
+        print('📄 Content Type: ${contentType?.mimeType ?? "NULL"}');
+
         if (contentType != null) {
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              filekey,
-              file.path,
-              filename: fileName,
-              contentType: contentType,
-            ),
-          );
+          try {
+            if (kIsWeb && fileBytes != null) {
+              // On web, use bytes directly
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  filekey,
+                  fileBytes,
+                  filename: fileName,
+                  contentType: contentType,
+                ),
+              );
+            } else {
+              // On mobile, use file path
+              request.files.add(
+                await http.MultipartFile.fromPath(
+                  filekey,
+                  file.path,
+                  filename: fileName,
+                  contentType: contentType,
+                ),
+              );
+            }
+          } catch (e) {
+            Navigator.pop(context);
+            CommonWidget.errorShowSnackBarFor(context, 'Error reading file: ${e.toString()}');
+            throw Exception('Error reading file: $e');
+          }
         } else {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileName');
           throw Exception('Unsupported file format: $fileName');
         }
       }
@@ -407,7 +573,23 @@ class ApiFuntions {
     } catch (e) {
       Navigator.pop(context);
       print('Error sending files to server: $e');
-      throw Exception('Failed to upload files');
+      String errorMessage = 'Failed to upload files';
+      
+      // Provide user-friendly error messages
+      if (e.toString().contains('File not found')) {
+        errorMessage = 'File not found. Please select a valid file.';
+      } else if (e.toString().contains('File size exceeds')) {
+        errorMessage = e.toString().replaceAll('Exception: ', '');
+      } else if (e.toString().contains('Unsupported file format')) {
+        errorMessage = 'Unsupported file format. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)';
+      } else if (e.toString().contains('Error reading file')) {
+        errorMessage = 'Error reading file. The file may be corrupted or inaccessible.';
+      } else {
+        errorMessage = 'Failed to upload files. Please check your internet connection and try again.';
+      }
+      
+      CommonWidget.errorShowSnackBarFor(context, errorMessage);
+      throw Exception(errorMessage);
     }
   }
   Future<http.Response> patchdatauser(
