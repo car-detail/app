@@ -71,7 +71,7 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context);
+                          CommonWidget.safePop(context);
                         },
                         child: Image.asset(
                           CommonWidget.getImagePath("backspace.png"),

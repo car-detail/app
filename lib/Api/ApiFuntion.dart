@@ -13,7 +13,7 @@ import '../Common/CommonBean.dart';
 import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import '../error_model.dart';
-import '../features/log_in/ui/LoginActivity.dart';
+import '../features/log_in/ui/modern_login_activity.dart';
 
 class ApiFuntions {
   Future<http.Response> getdatauser(BuildContext context, String endpoint,
@@ -21,56 +21,52 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
-    print(context);
-    print(token);
-    print("${Constant.baseurl}$endpoint");
+    debugPrint('Context: $context');
+    debugPrint('Token: ${token.isNotEmpty ? "***" : "empty"}');
+    debugPrint("API URL: ${Constant.baseurl}$endpoint");
     try {
       List<InternetAddress> result = [];
       if(!kIsWeb) {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        if (cycle == true) showLoaderDialog(context);
         final response = await http
             .get(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
           "Authorization": "Bearer $token",
           "ngrok-skip-browser-warning": "true"
         });
-        print(response.statusCode);
-        print(response.body);
+        debugPrint('Status Code: ${response.statusCode}');
+        debugPrint(response.body);
         if (response.statusCode == 200) {
-          if (cycle == true) Navigator.pop(context);
           // Check if response is JSON before parsing
           try {
             Map<String, dynamic> message = (jsonDecode(response.body));
             return response;
           } catch (e) {
-            print("Error parsing JSON: $e");
-            print("Response body: ${response.body}");
+            debugPrint("Error parsing JSON: $e");
+            debugPrint("Response body: ${response.body}");
             // Return the response even if it's not JSON (like HTML error pages)
             return response;
           }
         }else if(response.statusCode == 401){
-          if (cycle == true) Navigator.pop(context);
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
           /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          print(response.body);
+          debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
           return response;
         }
         else {
-          if (cycle == true) Navigator.pop(context);
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           var data = ErrorModel.fromJson(jsonDecode(response.body));
           if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
           }
-          print(response.body);
+          debugPrint(response.body);
           return response;
           //Common.showToast(mes);
         }
@@ -79,17 +75,19 @@ class ApiFuntions {
           'status_message': "Please Check Network Connection"
         };
         var mes = message['status_message'];
-        print(mes);
+        debugPrint(mes);
         showSnackBar(context, "Please Check Network Connection");
         return mes;
       }
     } on SocketException catch (_) {
-      Navigator.pop(context);
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
       Map<String, dynamic> message = {
         'status_message': "Please Check Network Connection"
       };
       var mes = message['status_message'];
-      print(mes);
+      debugPrint(mes);
       showSnackBar(context, "Please Check Network Connection");
       return mes;
     }
@@ -99,47 +97,43 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
-    print(context);
-    print(token);
-    print("${Constant.baseurl}$endpoint");
+    debugPrint('Context: $context');
+    debugPrint('Token: ${token.isNotEmpty ? "***" : "empty"}');
+    debugPrint("API URL: ${Constant.baseurl}$endpoint");
     try {
       List<InternetAddress> result = [];
       if(!kIsWeb) {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        if (cycle == true) showLoaderDialog(context);
         final response = await http
             .delete(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
           "Authorization": "Bearer $token"
         });
-        print(response.statusCode);
-        print(response.body);
+        debugPrint('Status Code: ${response.statusCode}');
+        debugPrint(response.body);
         if (response.statusCode == 200) {
-          if (cycle == true) Navigator.pop(context);
           Map<String, dynamic> message = (jsonDecode(response.body));
           return response;
         }else if(response.statusCode == 401){
-          if (cycle == true) Navigator.pop(context);
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
           /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          print(response.body);
+          debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
           return response;
         }
         else {
-          if (cycle == true) Navigator.pop(context);
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           var data = ErrorModel.fromJson(jsonDecode(response.body));
           if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
           }
-          print(response.body);
+          debugPrint(response.body);
           return response;
           //Common.showToast(mes);
         }
@@ -148,17 +142,19 @@ class ApiFuntions {
           'status_message': "Please Check Network Connection"
         };
         var mes = message['status_message'];
-        print(mes);
+        debugPrint(mes);
         showSnackBar(context, "Please Check Network Connection");
         return mes;
       }
     } on SocketException catch (_) {
-      Navigator.pop(context);
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
       Map<String, dynamic> message = {
         'status_message': "Please Check Network Connection"
       };
       var mes = message['status_message'];
-      print(mes);
+      debugPrint(mes);
       showSnackBar(context, "Please Check Network Connection");
       return mes;
     }
@@ -170,8 +166,8 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
-    print(context);
-    print("=========datainjsonEncode${jsonEncode(data)} ");
+    debugPrint('Context: $context');
+    debugPrint("=========datainjsonEncode${jsonEncode(data)} ");
     try {
 
       List<InternetAddress> result = [];
@@ -179,7 +175,6 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        showLoaderDialog(context);
         final response = await http.post(
             Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
@@ -188,32 +183,38 @@ class ApiFuntions {
               "Authorization": "Bearer $token",
               "ngrok-skip-browser-warning": "true"
             });
-        print("${Constant.baseurl}$endpoint");
-        print(response.statusCode);
-        print(response.body);
+        debugPrint("${Constant.baseurl}$endpoint");
+        debugPrint('Status Code: ${response.statusCode}');
+        debugPrint(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           return response;
         }else if(response.statusCode == 401){
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
           /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          print(response.body);
+          debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
           return response;
         }
 
         else {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           var data = ErrorModel.fromJson(jsonDecode(response.body));
           if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
           }
-          print(response.body);
+          debugPrint(response.body);
           return response;
         }
       } else {
@@ -221,7 +222,7 @@ class ApiFuntions {
           'status_message': "Please Check Network Connection"
         };
         var mes = message['status_message'];
-        print(mes);
+        debugPrint(mes);
         showSnackBar(context, "Please Check Network Connection");
         return mes;
       }
@@ -230,7 +231,7 @@ class ApiFuntions {
         'status_message': "Please Check Network Connection"
       };
       var mes = message['status_message'];
-      print(mes);
+      debugPrint(mes);
       showSnackBar(context, "Please Check Network Connection");
       return mes;
     }
@@ -241,8 +242,8 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
-    print(context);
-    print("=========datainjsonEncode${jsonEncode(data)} ");
+    debugPrint('Context: $context');
+    debugPrint("=========datainjsonEncode${jsonEncode(data)} ");
     try {
 
       List<InternetAddress> result = [];
@@ -250,7 +251,6 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        showLoaderDialog(context);
         final response = await http.put(
             Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
@@ -259,30 +259,36 @@ class ApiFuntions {
               "Authorization": "Bearer $token",
               "ngrok-skip-browser-warning": "true"
             });
-        print("${Constant.baseurl}$endpoint");
-        print(response.statusCode);
-        print(response.body);
+        debugPrint("${Constant.baseurl}$endpoint");
+        debugPrint('Status Code: ${response.statusCode}');
+        debugPrint(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           return response;
         }else if(response.statusCode == 401){
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
           /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          print(response.body);
+          debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
           return response;
         }else {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           var data = ErrorModel.fromJson(jsonDecode(response.body));
           if(data.message!.isNotEmpty) {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);
           }
-          print(response.body);
+          debugPrint(response.body);
           return response;
           //Common.showToast(mes);
         }
@@ -291,7 +297,7 @@ class ApiFuntions {
           'status_message': "Please Check Network Connection"
         };
         var mes = message['status_message'];
-        print(mes);
+        debugPrint(mes);
         showSnackBar(context, "Please Check Network Connection");
         return mes;
       }
@@ -300,7 +306,7 @@ class ApiFuntions {
         'status_message': "Please Check Network Connection"
       };
       var mes = message['status_message'];
-      print(mes);
+      debugPrint(mes);
       showSnackBar(context, "Please Check Network Connection");
       return mes;
     }
@@ -312,7 +318,6 @@ class ApiFuntions {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     FocusManager.instance.primaryFocus?.unfocus();
-    showLoaderDialog(context);
     try {
       var request = http.MultipartRequest(
         'POST',
@@ -359,7 +364,7 @@ class ApiFuntions {
                 }
               }
             } catch (e) {
-              print('⚠️ Could not extract file name from path, using fallback: $e');
+              debugPrint('⚠️ Could not extract file name from path, using fallback: $e');
               fileName = 'uploaded_file';
             }
             
@@ -384,9 +389,11 @@ class ApiFuntions {
               }
             }
             
-            print('📁 Web File: $fileName, Extension: $fileExtension, Size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+            debugPrint('📁 Web File: $fileName, Extension: $fileExtension, Size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
           } catch (e) {
-            Navigator.pop(context);
+            if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
             CommonWidget.errorShowSnackBarFor(context, 'Error reading file on web: ${e.toString()}');
             throw Exception('Error reading file on web: $e');
           }
@@ -403,22 +410,28 @@ class ApiFuntions {
           if (lastDotIndex > 0 && lastDotIndex < fileName.length - 1) {
             fileExtension = fileName.substring(lastDotIndex).toLowerCase();
           } else {
-            Navigator.pop(context);
+            if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
             CommonWidget.errorShowSnackBarFor(context, 'File has no extension: $fileName');
             throw Exception('File has no extension: $fileName');
           }
           
-          print('📁 Mobile File: $fileName, Extension: $fileExtension, Full Path: ${file.path}');
+          debugPrint('📁 Mobile File: $fileName, Extension: $fileExtension, Full Path: ${file.path}');
           
           // Check if file exists and get size
           try {
             if (!await file.exists()) {
-              Navigator.pop(context);
+              if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
               CommonWidget.errorShowSnackBarFor(context, 'File not found: $fileName');
               throw Exception('File not found: $fileName');
             }
           } catch (e) {
-            Navigator.pop(context);
+            if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
             CommonWidget.errorShowSnackBarFor(context, 'Error checking file: $e');
             throw Exception('Error checking file: $e');
           }
@@ -426,17 +439,21 @@ class ApiFuntions {
           try {
             fileSize = await file.length();
           } catch (e) {
-            Navigator.pop(context);
+            if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
             CommonWidget.errorShowSnackBarFor(context, 'Error reading file size: $e');
             throw Exception('Error reading file size: $e');
           }
         }
         
-        print('📊 File size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+        debugPrint('📊 File size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         
         // Validate file size
         if (fileSize > maxFileSize) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           CommonWidget.errorShowSnackBarFor(context, 'File size exceeds maximum limit (100 MB)');
           throw Exception('File size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
@@ -445,25 +462,31 @@ class ApiFuntions {
         bool isImage = allowedImageExtensions.contains(fileExtension);
         bool isDocument = allowedDocumentExtensions.contains(fileExtension);
         
-        print('🔍 Is Image: $isImage, Is Document: $isDocument');
-        print('🔍 Allowed Image Extensions: $allowedImageExtensions');
-        print('🔍 Allowed Document Extensions: $allowedDocumentExtensions');
+        debugPrint('🔍 Is Image: $isImage, Is Document: $isDocument');
+        debugPrint('🔍 Allowed Image Extensions: $allowedImageExtensions');
+        debugPrint('🔍 Allowed Document Extensions: $allowedDocumentExtensions');
         
         if (!isImage && !isDocument) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileExtension. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)');
           throw Exception('Unsupported file format: $fileExtension');
         }
 
         // Validate size based on file type
         if (isImage && fileSize > maxImageSize) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (5 MB). Please compress the image.');
           throw Exception('Image size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
         if (isDocument && fileSize > maxDocumentSize) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           CommonWidget.errorShowSnackBarFor(context, 'Document size exceeds maximum limit (10 MB)');
           throw Exception('Document size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
@@ -486,7 +509,7 @@ class ApiFuntions {
           }
         }
 
-        print('📄 Content Type: ${contentType?.mimeType ?? "NULL"}');
+        debugPrint('📄 Content Type: ${contentType?.mimeType ?? "NULL"}');
 
         if (contentType != null) {
           try {
@@ -512,12 +535,16 @@ class ApiFuntions {
               );
             }
           } catch (e) {
-            Navigator.pop(context);
+            if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
             CommonWidget.errorShowSnackBarFor(context, 'Error reading file: ${e.toString()}');
             throw Exception('Error reading file: $e');
           }
         } else {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileName');
           throw Exception('Unsupported file format: $fileName');
         }
@@ -525,54 +552,62 @@ class ApiFuntions {
       data.forEach((key, value) {
         request.fields[key] = value.toString();
       });
-      print('Request Body:');
-      print('URL: $url');
-      print('Headers: ${request.headers}');
-      print('Files:');
+      debugPrint('Request Body:');
+      debugPrint('URL: $url');
+      debugPrint('Headers: ${request.headers}');
+      debugPrint('Files:');
       for (var file in request.files) {
-        print('  - ${file.filename}');
+        debugPrint('  - ${file.filename}');
       }
-      print('Fields:');
+      debugPrint('Fields:');
       request.fields.forEach((key, value) {
-        print('  $key: $value');
+        debugPrint('  $key: $value');
       });
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-      print('responseBody ${streamedResponse.request}');
-      print('responseBody ${response.body}');
-      print('responseBody $response');
+      debugPrint('Response Request: ${streamedResponse.request}');
+      debugPrint('Response Body: ${response.body}');
+      debugPrint('Response: $response');
 
       // Handle the response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Navigator.pop(context);
-        print('Success: ${response.body}');
+        if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
+        debugPrint('Success: ${response.body}');
         return response; // Return the response body upon success
       }else if(response.statusCode == 401){
-        Navigator.pop(context);
+        if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
         /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
         //var data = ErrorModel.fromJson(jsonDecode(response.body));
         /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-        print(response.body);
+        debugPrint(response.body);
         sharedPreferences.clear();
-        CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+        CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
         return response;
       }
 
       else {
-        Navigator.pop(context);
+        if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
         var data = ErrorModel.fromJson(jsonDecode(response.body));
         if(data.message!.isNotEmpty) {
           CommonWidget.errorShowSnackBarFor(context, data.message![0]);
         }
-        print(response.body);
+        debugPrint(response.body);
         return response;
       }
     } catch (e) {
-      Navigator.pop(context);
-      print('Error sending files to server: $e');
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
+      debugPrint('Error sending files to server: $e');
       String errorMessage = 'Failed to upload files';
       
       // Provide user-friendly error messages
@@ -598,15 +633,14 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken) ?? "";
-    print(context);
-    print("=========datainjsonEncode${jsonEncode(data)} ");
+    debugPrint('Context: $context');
+    debugPrint("=========datainjsonEncode${jsonEncode(data)} ");
     try {
       List<InternetAddress> result = [];
       if (!kIsWeb) {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        showLoaderDialog(context);
         final response = await http.patch(
             Uri.parse('${Constant.baseurl}$endpoint'),
             body: jsonEncode(data),
@@ -614,36 +648,42 @@ class ApiFuntions {
               "Content-Type": "application/json",
               "Authorization": "Bearer $token"
             });
-        print("${Constant.baseurl}$endpoint");
-        print(response.statusCode);
-        print(response.body);
+        debugPrint("${Constant.baseurl}$endpoint");
+        debugPrint('Status Code: ${response.statusCode}');
+        debugPrint(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           return response;
           /*Map<String, dynamic> message = (jsonDecode(response.body));
           if (message['status'] == true) {
-            print(response);
+            debugPrint(response);
             return response;
           } else {
             var error = message['message'];
-            print(response.body);
-            print(error);
+            debugPrint(response.body);
+            debugPrint(error);
             showSnackBar(context,error);
             return error;
           }*/
         } else if(response.statusCode == 401){
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
           /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          print(response.body);
+          debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToScreen(context, LoginActivity("Login"));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
           return response;
         } else {
-          Navigator.pop(context);
+          if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
           Map<String, dynamic> message = (jsonDecode(response.body));
 
           if (message['message'].length > 0) {
@@ -651,8 +691,8 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, "$mes Error Code");
           }
           var mes = message['message'];
-          print(response.body);
-          print(mes);
+          debugPrint(response.body);
+          debugPrint(mes);
           showSnackBar(context, mes);
           return response;
           //Common.showToast(mes);
@@ -662,7 +702,7 @@ class ApiFuntions {
           'status_message': "Please Check Network Connection"
         };
         var mes = message['status_message'];
-        print(mes);
+        debugPrint(mes);
         showSnackBar(context, "Please Check Network Connection");
         return mes;
       }
@@ -671,31 +711,10 @@ class ApiFuntions {
         'status_message': "Please Check Network Connection"
       };
       var mes = message['status_message'];
-      print(mes);
+      debugPrint(mes);
       showSnackBar(context, "Please Check Network Connection");
       return mes;
     }
-  }
-
-  static showLoaderDialog(BuildContext context) {
-    AlertDialog alert = AlertDialog(
-      content: Row(
-        children: [
-          CircularProgressIndicator(
-            color: ColorClass.base_color,
-          ),
-          Container(
-              margin: const EdgeInsets.only(left: 7), child: const Text("Loading...")),
-        ],
-      ),
-    );
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
   }
 
   void showSnackBar(BuildContext context, String message) {

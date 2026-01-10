@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Base configuration: Disable cleartext traffic by default -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Allow cleartext only for specific domains if needed (NOT RECOMMENDED for production) -->
+    <!-- Uncomment and modify only if absolutely necessary -->
+    <!--
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">13.234.217.235</domain>
+    </domain-config>
+    -->
+</network-security-config>
+
+

@@ -45,6 +45,7 @@ class Data {
   String? deviceId;
   String? updatedAt;
   int? iV;
+  Location? location;
 
   Data(
       {this.sId,
@@ -65,7 +66,8 @@ class Data {
         this.fcmToken,
         this.deviceId,
         this.updatedAt,
-        this.iV});
+        this.iV,
+        this.location});
 
   Data.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -83,10 +85,11 @@ class Data {
     isNewUser = json['isNewUser'];
     roleName = json['roleName'];
     status = json['status'];
-    fcmToken = json['fcmToken'].cast<String>();
+    fcmToken = json['fcmToken'] != null ? json['fcmToken'].cast<String>() : null;
     deviceId = json['deviceId'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
+    location = json['location'] != null ? Location.fromJson(json['location']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -110,6 +113,49 @@ class Data {
     data['deviceId'] = deviceId;
     data['updatedAt'] = updatedAt;
     data['__v'] = iV;
+    if (location != null) {
+      data['location'] = location!.toJson();
+    }
+    return data;
+  }
+}
+
+class Location {
+  String? name;
+  Coordinates? coordinates;
+
+  Location({this.name, this.coordinates});
+
+  Location.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    coordinates = json['coordinates'] != null ? Coordinates.fromJson(json['coordinates']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    if (coordinates != null) {
+      data['coordinates'] = coordinates!.toJson();
+    }
+    return data;
+  }
+}
+
+class Coordinates {
+  dynamic lat;
+  dynamic long;
+
+  Coordinates({this.lat, this.long});
+
+  Coordinates.fromJson(Map<String, dynamic> json) {
+    lat = json['lat'];
+    long = json['long'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['long'] = long;
     return data;
   }
 }

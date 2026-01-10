@@ -5,5 +5,5 @@ class Constants{
 
   static String navid = "navid";
   static String roleType = "roleType";
-  static String rupee = "₹";
+  static String rupee = "\$";
 }

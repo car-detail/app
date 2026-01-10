@@ -255,7 +255,7 @@ class ServiceCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 CommonWidget.getTextWidgetPopbold(
-                  '₹${service.price.toStringAsFixed(0)}',
+                  '\$${service.price.toStringAsFixed(0)}',
                   textsize: 16,
                   color: ColorClass.base_color,
                 ),

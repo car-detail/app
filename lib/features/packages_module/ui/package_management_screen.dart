@@ -258,7 +258,7 @@ class PackageCard extends StatelessWidget {
                 const Spacer(),
                 if (package.discount > 0) ...[
                   Text(
-                    '₹${package.price.toStringAsFixed(0)}',
+                    '\$${package.price.toStringAsFixed(0)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[500]!,
@@ -268,7 +268,7 @@ class PackageCard extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 CommonWidget.getTextWidgetPopbold(
-                  '₹${discountedPrice.toStringAsFixed(0)}',
+                  '\$${discountedPrice.toStringAsFixed(0)}',
                   textsize: 16,
                   color: ColorClass.base_color,
                 ),

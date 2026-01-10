@@ -26,7 +26,7 @@ class _RegistorVendorActivitySimpleState extends State<RegistorVendorActivitySim
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => CommonWidget.safePop(context),
                   ),
                   const Spacer(),
                 ],

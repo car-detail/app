@@ -123,7 +123,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => CommonWidget.safePop(context),
                         icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
                         iconSize: 20,
                       ),
@@ -827,16 +827,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
 
   Future<void> _deleteOffer(String offerId) async {
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
       var response = await offerDataManager!.deleteOffer(context, offerId);
-      Navigator.pop(context); // Close loader
 
       var data = jsonDecode(response.body);
       if (data['status'] == "success") {
@@ -846,23 +837,13 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
         CommonWidget.errorShowSnackBarFor(context, data['message'] ?? "Failed to delete offer");
       }
     } catch (e) {
-      Navigator.pop(context); // Close loader
       CommonWidget.errorShowSnackBarFor(context, "Error deleting offer: $e");
     }
   }
 
   Future<void> _toggleOfferStatus(String offerId) async {
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
       var response = await offerDataManager!.postOfferUpdate(context, offerId);
-      Navigator.pop(context); // Close loader
 
       var data = jsonDecode(response.body);
       if (data['status'] == "success") {
@@ -872,7 +853,6 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
         CommonWidget.errorShowSnackBarFor(context, data['message'] ?? "Failed to update offer");
       }
     } catch (e) {
-      Navigator.pop(context); // Close loader
       CommonWidget.errorShowSnackBarFor(context, "Error updating offer: $e");
     }
   }

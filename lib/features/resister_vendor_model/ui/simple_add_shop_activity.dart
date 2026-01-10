@@ -6,7 +6,7 @@ import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
 import 'package:car_app/features/home_module/model/category_model_data.dart';
 import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
-import 'package:car_app/features/log_in/ui/LoginActivity.dart';
+import 'package:car_app/features/log_in/ui/modern_login_activity.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -24,7 +24,7 @@ class SimpleAddShopActivity extends StatefulWidget {
 class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 3;
+  final int _totalSteps = 2; // Reduced from 3 to 2 steps
 
   // Form controllers
   final TextEditingController _shopNameController = TextEditingController();
@@ -34,13 +34,14 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   double _currentLat = 0.0;
   double _currentLng = 0.0;
   String? _selectedPlaceId; // Store Google Places place_id
+  bool _isGettingLocation = false;
 
   // Data managers
   AddShopDataManager? addShopDataManager;
   LoginDataManager? loginDataManager;
   SharedPreferences? sharedPreferences;
 
-  // Selected values
+  // Selected values with smart defaults
   String _selectedBusinessType = "";
   String _selectedBusinessTypeId = "";
   String _selectedServiceDuration = "30-60 minutes";
@@ -54,6 +55,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     "Friday",
     "Saturday"
   ];
+  bool _useSmartDefaults = true; // Default to using smart defaults
 
   // Dynamic categories from database
   List<CategoryData> _categories = [];
@@ -116,8 +118,24 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   }
 
   void _populateUserDetails() {
-    // User details will be fetched from profile when saving
-    // No need to populate email and phone in the form
+    // Auto-populate shop name from user's name
+    final firstName = sharedPreferences?.getString(Constant.firstName) ?? "";
+    final lastName = sharedPreferences?.getString(Constant.lastName) ?? "";
+    if (firstName.isNotEmpty) {
+      _shopNameController.text = "$firstName's ${_selectedBusinessType.isNotEmpty ? _selectedBusinessType : 'Business'}";
+    }
+    
+    // Auto-get current location
+    _getCurrentLocation();
+  }
+
+  void _updateShopNameWithCategory() {
+    // Update shop name if it was auto-populated with category
+    final firstName = sharedPreferences?.getString(Constant.firstName) ?? "";
+    if (firstName.isNotEmpty && _shopNameController.text.contains("'s")) {
+      // Only update if it looks like our auto-generated format
+      _shopNameController.text = "$firstName's ${_selectedBusinessType.isNotEmpty ? _selectedBusinessType : 'Business'}";
+    }
   }
 
   Future<void> _fetchCategories() async {
@@ -155,6 +173,8 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
             _selectedBusinessTypeId = _categories.first.sId ?? "";
             print(
                 "🔍 Auto-selected: $_selectedBusinessType (ID: $_selectedBusinessTypeId)");
+            // Update shop name if it was auto-populated
+            _updateShopNameWithCategory();
           }
         });
       } else {
@@ -176,6 +196,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         if (_categories.isNotEmpty) {
           _selectedBusinessType = _categories.first.categoryTitle ?? "";
           _selectedBusinessTypeId = _categories.first.sId ?? "";
+          _updateShopNameWithCategory();
         }
       });
     } finally {
@@ -232,8 +253,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                   },
                   children: [
                     _buildBusinessTypeStep(),
-                    _buildBasicInfoStep(),
-                    _buildOperatingDetailsStep(),
+                    _buildBasicInfoStep(), // Combined with optional operating details
                   ],
                 ),
               ),
@@ -251,7 +271,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => CommonWidget.safePop(context),
             icon: const Icon(Icons.arrow_back, color: Colors.black),
           ),
           title: const Text(
@@ -341,7 +361,9 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           ),
           const SizedBox(height: 12),
           Text(
-            "Step ${_currentStep + 1} of $_totalSteps",
+            _currentStep == 0 
+                ? "Step 1 of 2: Choose your business type"
+                : "Step 2 of 2: Tell us about your business",
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 14,
@@ -359,6 +381,31 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.amber[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.amber[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.lightbulb_outline, color: Colors.amber[700], size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Don't worry! You can add more services and change this later from your dashboard.",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.amber[900],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           const Text(
             "What type of business do you run?",
             style: TextStyle(
@@ -369,20 +416,40 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Select the type that best describes your business",
+            "Tap to select the type that best describes your business",
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 24),
           if (_isLoadingCategories)
-            const Center(
-              child: CircularProgressIndicator(),
+            const Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("Loading business types..."),
+                  ],
+                ),
+              ),
             )
           else if (_categories.isEmpty)
-            const Center(
-              child: Text("No categories available"),
+            const Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text("No categories available"),
+                    SizedBox(height: 8),
+                    Text("Please check your internet connection", style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
             )
           else
             Expanded(
@@ -407,23 +474,32 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Basic Information",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            // Welcome banner
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: ColorClass.base_color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: ColorClass.base_color.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: ColorClass.base_color, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Almost done! Just fill in your business details and you're ready to go.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[800],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              "Tell us about your business",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
             _buildInputField(
               controller: _shopNameController,
               label: "Business Name",
@@ -433,9 +509,160 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
             ),
             const SizedBox(height: 20),
             _buildAddressField(),
+            const SizedBox(height: 24),
+            
+            // Smart Defaults Option
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome, color: Colors.blue[700], size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Smart Defaults (Recommended)",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue[900],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "We'll set operating hours, service duration, and capacity automatically. You can change these later from your dashboard.",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blue[800],
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: _useSmartDefaults,
+                        onChanged: (value) {
+                          setState(() {
+                            _useSmartDefaults = value;
+                          });
+                        },
+                        activeColor: Colors.blue[700],
+                      ),
+                    ],
+                  ),
+                  if (_useSmartDefaults) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildDefaultPreviewRow("Hours", "9 AM - 6 PM (Monday-Saturday)"),
+                          const SizedBox(height: 8),
+                          _buildDefaultPreviewRow("Service Duration", "30-60 minutes"),
+                          const SizedBox(height: 8),
+                          _buildDefaultPreviewRow("Capacity", "5-8 cars per hour"),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            
+            // Optional: Advanced Settings (only shown if smart defaults is off)
+            if (!_useSmartDefaults) ...[
+              const SizedBox(height: 24),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 16),
+                title: Row(
+                  children: [
+                    Icon(Icons.settings, color: Colors.grey[700], size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Advanced Settings (Optional)",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+                children: [
+                  _buildDropdownField(
+                    label: "Service Duration",
+                    value: _selectedServiceDuration,
+                    options: _serviceDurations,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedServiceDuration = value!;
+                      });
+                    },
+                    icon: Icons.schedule,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDropdownField(
+                    label: "Capacity",
+                    value: _selectedCapacity,
+                    options: _capacityOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCapacity = value!;
+                      });
+                    },
+                    icon: Icons.directions_car,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildOperatingHoursField(),
+                  const SizedBox(height: 16),
+                  _buildWorkingDaysField(),
+                ],
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildDefaultPreviewRow(String label, String value) {
+    return Row(
+      children: [
+        Icon(Icons.check_circle, color: Colors.green[600], size: 16),
+        const SizedBox(width: 8),
+        Text(
+          "$label: ",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[800],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -507,8 +734,9 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       child: InkWell(
         onTap: () {
           setState(() {
-            _selectedBusinessType = category.categoryTitle ?? "";
+                _selectedBusinessType = category.categoryTitle ?? "";
             _selectedBusinessTypeId = category.sId ?? "";
+            _updateShopNameWithCategory();
           });
         },
         borderRadius: BorderRadius.circular(12),
@@ -743,8 +971,14 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
             Container(
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: _getCurrentLocation,
-                icon: const Icon(Icons.my_location, size: 18),
+                onPressed: _isGettingLocation ? null : () => _getCurrentLocation(showLoading: true),
+                icon: _isGettingLocation 
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.my_location, size: 18),
                 label: const Text("Current"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorClass.base_color,
@@ -918,24 +1152,35 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<void> _getCurrentLocation({bool showLoading = false}) async {
+    if (_isGettingLocation) return; // Prevent multiple simultaneous calls
+    
+    setState(() {
+      _isGettingLocation = true;
+    });
+    
     try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      if (showLoading) {
+        // Only show loading dialog if explicitly requested (user clicked button)
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
 
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (Navigator.canPop(context))
-          Navigator.pop(context); // Close loading dialog
-        CommonWidget.errorShowSnackBarFor(
-            context, 'Location services are disabled. Please enable them.');
+        if (showLoading && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        if (context.mounted && showLoading) {
+          CommonWidget.errorShowSnackBarFor(
+              context, 'Location services are disabled. Please enable them.');
+        }
         return;
       }
 
@@ -944,45 +1189,60 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (Navigator.canPop(context))
-            Navigator.pop(context); // Close loading dialog
-          CommonWidget.errorShowSnackBarFor(
-              context, 'Location permissions are denied');
+          if (showLoading && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
+          // Don't show error if auto-fetching, just return silently
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        if (Navigator.canPop(context))
-          Navigator.pop(context); // Close loading dialog
-        CommonWidget.errorShowSnackBarFor(
-            context, 'Location permissions are permanently denied');
+        if (showLoading && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
         return;
       }
 
       // Get current position
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        desiredAccuracy: LocationAccuracy.medium, // Changed to medium for faster response
+        timeLimit: const Duration(seconds: 5), // Reduced timeout
       );
 
-      _currentLat = position.latitude;
-      _currentLng = position.longitude;
+      setState(() {
+        _currentLat = position.latitude;
+        _currentLng = position.longitude;
+      });
 
       // Get address from coordinates with multiple attempts
       String address = await _getAddressFromCoordinates(
           position.latitude, position.longitude);
-      _shopAddressController.text = address;
+      if (mounted) {
+        setState(() {
+          _shopAddressController.text = address;
+        });
+      }
 
-      if (Navigator.canPop(context))
-        Navigator.pop(context); // Close loading dialog
-      CommonWidget.successShowSnackBarFor(
-          context, 'Location updated successfully!');
+      if (showLoading && context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
+      if (context.mounted && showLoading) {
+        CommonWidget.successShowSnackBarFor(
+            context, 'Location updated successfully!');
+      }
     } catch (e) {
-      if (Navigator.canPop(context))
-        Navigator.pop(context); // Close loading dialog
-      CommonWidget.errorShowSnackBarFor(
-          context, 'Error getting location: ${e.toString()}');
+      if (showLoading && context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context);
+      }
+      // Don't show error if auto-fetching failed, user can manually enter address
+      print("Location fetch error (non-critical): $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
     }
   }
 
@@ -1274,7 +1534,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                 ),
               ),
               child: Text(
-                _currentStep == _totalSteps - 1 ? "Save Shop Details" : "Next",
+                _currentStep == _totalSteps - 1 ? "Complete Setup ✨" : "Next",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -1313,29 +1573,23 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       case 0:
         if (_selectedBusinessType.isEmpty || _selectedBusinessTypeId.isEmpty) {
           CommonWidget.errorShowSnackBarFor(
-              context, "Please select a business category");
-          return false;
-        }
-        return true; // Business type selection
-      case 1:
-        if (_shopNameController.text.isEmpty ||
-            _shopAddressController.text.isEmpty) {
-          CommonWidget.errorShowSnackBarFor(
-              context, "Please fill in business name and address");
-          return false;
-        }
-        if (_currentLat == 0.0 && _currentLng == 0.0) {
-          CommonWidget.errorShowSnackBarFor(
-              context, "Please select a valid address with coordinates");
+              context, "Please select a business category to continue");
           return false;
         }
         return true;
-      case 2:
-        if (_selectedDays.isEmpty) {
+      case 1:
+        if (_shopNameController.text.trim().isEmpty) {
           CommonWidget.errorShowSnackBarFor(
-              context, "Please select at least one working day");
+              context, "Please enter your business name");
           return false;
         }
+        if (_shopAddressController.text.trim().isEmpty) {
+          CommonWidget.errorShowSnackBarFor(
+              context, "Please enter your business address. You can use the 'Current' button or type it in.");
+          return false;
+        }
+        // Location coordinates are optional - user can enter address manually
+        // If they have coordinates, validate them, but don't require them
         return true;
       default:
         return true;
@@ -1358,18 +1612,29 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       final userEmail = sharedPreferences?.getString(Constant.email) ?? "";
       final userMobile = sharedPreferences?.getString(Constant.mobile) ?? "";
 
-      // Parse operating hours
+      // Parse operating hours - use smart defaults if enabled
       String openTime, closeTime;
-      if (_selectedOperatingHours == "Custom hours" ||
-          _selectedOperatingHours.contains(":")) {
-        // Use custom times
-        openTime = _customOpenTime;
-        closeTime = _customCloseTime;
+      List<String> workingDays;
+      
+      if (_useSmartDefaults) {
+        // Use smart defaults
+        openTime = "9:00 AM";
+        closeTime = "6:00 PM";
+        workingDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       } else {
-        // Parse predefined hours
-        final parts = _selectedOperatingHours.split(" - ");
-        openTime = parts[0];
-        closeTime = parts[1];
+        // Use user-selected values
+        if (_selectedOperatingHours == "Custom hours" ||
+            _selectedOperatingHours.contains(":")) {
+          openTime = _customOpenTime;
+          closeTime = _customCloseTime;
+        } else {
+          final parts = _selectedOperatingHours.split(" - ");
+          openTime = parts[0];
+          closeTime = parts[1];
+        }
+        workingDays = _selectedDays.isEmpty 
+            ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] // Fallback
+            : _selectedDays;
       }
 
       // Prepare address for API - prioritize place_id for backend lookup
@@ -1425,11 +1690,11 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         // title
         "Business description",
         // about
-        _selectedCapacity,
-        // time slot
+        _useSmartDefaults ? "5-8 cars per hour" : _selectedCapacity,
+        // time slot (capacity)
         "0",
         // price
-        _selectedServiceDuration,
+        _useSmartDefaults ? "30-60 minutes" : _selectedServiceDuration,
         // duration
         _selectedBusinessType,
         // category name
@@ -1439,7 +1704,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         // detail images
         "",
         // cover image
-        _selectedDays,
+        workingDays,
         // working days
         _currentLng,
         // longitude
@@ -1450,7 +1715,9 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         context,
       );
 
-      Navigator.pop(context); // Close loading dialog
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context); // Close loading dialog
+      }
 
       // Parse the response
       print("🔍 API Response Status: ${response.statusCode}");
@@ -1526,20 +1793,18 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                 "Your session has expired. Please login again to continue."),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => CommonWidget.safePop(context),
                 child: const Text("Cancel"),
               ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  Navigator.pop(context); // Close add shop screen
-                  // Navigate to login screen
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => LoginActivity("Login")),
-                    (route) => false, // Remove all previous routes
-                  );
+                  CommonWidget.safePop(context); // Close dialog
+                  if (context.mounted) {
+                    CommonWidget.navigateToKillAllScreen(
+                      context,
+                      const ModernLoginActivity(isSignUp: false),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorClass.base_color,
@@ -1569,7 +1834,9 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         }
       }
     } catch (e) {
-      Navigator.pop(context); // Close loading dialog
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context); // Close loading dialog
+      }
       print("❌ Error in _saveShopDetails: $e");
       CommonWidget.errorShowSnackBarFor(context, "Error: ${e.toString()}");
     }
@@ -1631,7 +1898,7 @@ class _CustomTimeDialogState extends State<_CustomTimeDialog> {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => CommonWidget.safePop(context),
                   icon: const Icon(Icons.close),
                 ),
               ],
@@ -1765,7 +2032,7 @@ class _CustomTimeDialogState extends State<_CustomTimeDialog> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => CommonWidget.safePop(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -1780,7 +2047,7 @@ class _CustomTimeDialogState extends State<_CustomTimeDialog> {
                   child: ElevatedButton(
                     onPressed: () {
                       widget.onTimeSelected(_openTime, _closeTime);
-                      Navigator.pop(context);
+                      CommonWidget.safePop(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorClass.base_color,

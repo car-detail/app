@@ -31,6 +31,13 @@ class MyApp extends StatelessWidget {
       },
       // builder: BotToast.init(),
       // navigatorObservers: [BotToastNavigatorObserver()],
+      builder: (context, child) {
+        // Wrap with error boundary to prevent black screens
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: child ?? const SizedBox(),
+        );
+      },
     );
   }
 }

@@ -79,7 +79,7 @@ class _OfferScreenState extends State<OfferScreen> {
                     margin: const EdgeInsets.only(top: 45, left: 15),
                     child: InkWell(
                       onTap: () {
-                        Navigator.pop(context, true);
+                        CommonWidget.safePop(context, result: true);
                       },
                       child: Image.asset(
                         CommonWidget.getImagePath("backspace.png"),
@@ -371,7 +371,7 @@ class _OfferScreenState extends State<OfferScreen> {
     var data = CommonBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      Navigator.pop(context, true);
+      CommonWidget.safePop(context, result: true);
       //CommonWidget.navigateToKillScreen(context, ServicesListActivity());
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");

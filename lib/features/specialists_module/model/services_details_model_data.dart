@@ -51,6 +51,7 @@ class ServicesDetailsData {
   num? averageRating;
   int? totalReviews;
   List<Offers>  offers = [];
+  List<Map<String, dynamic>> packages = []; // Vendor packages
   String? id;
 
   ServicesDetailsData(
@@ -79,6 +80,7 @@ class ServicesDetailsData {
         this.averageRating,
         this.totalReviews,
         offers,
+        packages,
         this.id});
 
   ServicesDetailsData.fromJson(Map<String, dynamic> json) {
@@ -121,6 +123,9 @@ class ServicesDetailsData {
         offers.add(Offers.fromJson(v));
       });
     }
+    if (json['packages'] != null) {
+      packages = List<Map<String, dynamic>>.from(json['packages']);
+    }
     id = json['id'];
   }
 
@@ -158,6 +163,9 @@ class ServicesDetailsData {
     data['total_reviews'] = totalReviews;
     if (offers != null) {
       data['offers'] = offers.map((v) => v.toJson()).toList();
+    }
+    if (packages != null) {
+      data['packages'] = packages;
     }
     data['id'] = id;
     return data;

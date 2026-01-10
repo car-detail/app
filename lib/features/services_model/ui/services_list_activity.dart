@@ -200,322 +200,305 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
 
   Widget _buildServiceCard(ServicesListData data, int index) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey[200]!,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 25,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
       ),
-      child: Column(
-        children: [
-          // Enhanced Service Image with Gradient Overlay
-          Container(
-            height: 220,
-            child: Stack(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row: Title, Category, Status
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Main Image
+                // Service Image (Compact)
                 Container(
-                  height: 220,
-                  width: double.infinity,
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[100],
+                  ),
                   child: data.coverImage != null && data.coverImage!.isNotEmpty
                       ? ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(24),
-                            topRight: Radius.circular(24),
-                          ),
+                          borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             data.coverImage!,
-                            width: double.infinity,
-                            height: 220,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return _buildImagePlaceholder();
+                              return Icon(
+                                Icons.local_car_wash,
+                                color: ColorClass.base_color,
+                                size: 30,
+                              );
                             },
                           ),
                         )
-                      : _buildImagePlaceholder(),
-                ),
-                // Gradient Overlay
-                Container(
-                  height: 220,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
-                    ),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.3),
-                      ],
-                      stops: const [0.0, 1.0],
-                    ),
-                  ),
-                ),
-                // Status Badge
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Text(
-                          "Active",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Price Badge
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: data.price != null && data.price! > 0 
-                          ? ColorClass.base_color 
-                          : Colors.grey[600],
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (data.price != null && data.price! > 0 
-                              ? ColorClass.base_color 
-                              : Colors.grey[600]!).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      data.price != null && data.price! > 0 
-                          ? "₹${data.price}" 
-                          : "N/A",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                // Category Badge
-                if (data.categoryName != null && data.categoryName!.isNotEmpty)
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        data.categoryName!,
-                        style: TextStyle(
+                      : Icon(
+                          Icons.local_car_wash,
                           color: ColorClass.base_color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          size: 30,
                         ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // Enhanced Service Details
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Service Title
-                Text(
-                  data.serviceTitle ?? "",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    height: 1.2,
-                  ),
                 ),
-                const SizedBox(height: 12),
-                
-                // Service Description
-                if (data.about != null && data.about!.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.grey[200]!,
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      data.about!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                        height: 1.5,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                const SizedBox(height: 20),
-                
-                // Enhanced Service Stats
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _buildEnhancedStatChip(
-                      Icons.schedule_outlined,
-                      data.serviceDuration ?? "0 hours",
-                      "Duration",
-                      Colors.blue,
-                    ),
-                    _buildEnhancedStatChip(
-                      Icons.people_outline,
-                      "${data.timeSlotCapacity ?? "0"}",
-                      "Capacity",
-                      Colors.green,
-                    ),
-                    if (data.averageRating != null && data.averageRating! > 0)
-                      _buildEnhancedStatChip(
-                        Icons.star_outline,
-                        "${data.averageRating!.toStringAsFixed(1)}",
-                        "Rating (${data.totalReviews ?? 0})",
-                        Colors.orange,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                
-                // Location Section
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.blue[100]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
+                const SizedBox(width: 12),
+                // Title and Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 20,
-                        color: Colors.blue[600],
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Service Location",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue[600],
-                                fontWeight: FontWeight.w600,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              data.serviceTitle ?? "Untitled Service",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              data.location?.name ?? "Location not available",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.blue[800],
-                                fontWeight: FontWeight.w500,
-                              ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Status Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  "Active",
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 4),
+                      // Category
+                      if (data.categoryName != null && data.categoryName!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: ColorClass.base_color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            data.categoryName!,
+                            style: TextStyle(
+                              color: ColorClass.base_color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
-                // Enhanced Action Buttons
-               Container(
-  margin: const EdgeInsets.only(top: 16), // top margin for Row
-  child:  Row(
-                  children: [
-                    Expanded(
-                      child: _buildEnhancedActionButton(
-                        Icons.edit_outlined,
-                        "Edit Service",
-                        ColorClass.base_color,
-                        () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ModernAddServiceActivity(serviceToEdit: data),
-                            ),
-                          ).then((onValue) {
-                            if (onValue == true && venderId != "") getCategory(context);
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 40),
-                    Expanded(
-                      child: _buildEnhancedActionButton(
-                        Icons.visibility_outlined,
-                        "View Details",
-                        Colors.blue[600]!,
-                        () {
-                          CommonWidget.navigateToScreen(context,
-                              SpecialistsActivity(data.sId.toString()));
-                        },
-                      ),
-                    ),
-                  ],
-                ),),
               ],
             ),
+            const SizedBox(height: 12),
+            
+            // Description (if available)
+            if (data.about != null && data.about!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  data.about!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            
+            // Key Info Row: Price, Duration, Capacity
+            Row(
+              children: [
+                // Price
+                Expanded(
+                  child: _buildInfoItem(
+                    Icons.attach_money,
+                    data.price != null && data.price! > 0 
+                        ? "\$${data.price}" 
+                        : "Free",
+                    Colors.green,
+                  ),
+                ),
+                // Duration
+                Expanded(
+                  child: _buildInfoItem(
+                    Icons.schedule,
+                    data.serviceDuration ?? "N/A",
+                    Colors.blue,
+                  ),
+                ),
+                // Capacity
+                Expanded(
+                  child: _buildInfoItem(
+                    Icons.people,
+                    "${data.timeSlotCapacity ?? "0"}/hr",
+                    Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Location (Compact)
+            if (data.location?.name != null && (data.location!.name?.isNotEmpty ?? false))
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 14,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      data.location!.name ?? "",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 12),
+            
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMinimalActionButton(
+                    Icons.edit_outlined,
+                    "Edit",
+                    ColorClass.base_color,
+                    () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ModernAddServiceActivity(serviceToEdit: data),
+                        ),
+                      ).then((onValue) {
+                        if (onValue == true && venderId != "") getCategory(context);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildMinimalActionButton(
+                    Icons.visibility_outlined,
+                    "View",
+                    Colors.blue[600]!,
+                    () {
+                      CommonWidget.navigateToScreen(
+                        context,
+                        SpecialistsActivity(data.sId.toString()),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildInfoItem(IconData icon, String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[800],
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
-        ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildMinimalActionButton(IconData icon, String text, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -575,63 +558,16 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
 
   Widget _buildImagePlaceholder() {
     return Container(
-      height: 220,
-      width: double.infinity,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            ColorClass.base_color.withOpacity(0.15),
-            ColorClass.base_color.withOpacity(0.08),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey[100],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: ColorClass.base_color.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.local_car_wash,
-              size: 48,
-              color: ColorClass.base_color,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Service Image",
-            style: TextStyle(
-              color: ColorClass.base_color,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "Add an image to showcase your service",
-            style: TextStyle(
-              color: ColorClass.base_color.withOpacity(0.7),
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
+      child: Icon(
+        Icons.local_car_wash,
+        color: ColorClass.base_color,
+        size: 30,
       ),
     );
   }

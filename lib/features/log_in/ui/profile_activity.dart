@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/BaseActivity.dart';
@@ -28,9 +30,12 @@ class _ProfileActivityState extends State<ProfileActivity> {
   var lastNameController = TextEditingController();
   var emailController = TextEditingController();
   var profileController = TextEditingController();
+  var locationController = TextEditingController();
   List<File> selectedFiles = [];
   String imageURl = "";
   String profileurl = "";
+  double currentLat = 0.0;
+  double currentLng = 0.0;
 
   ApiFuntions apiFunction = ApiFuntions();
   LoginDataManager? loginDataManager;
@@ -78,6 +83,18 @@ class _ProfileActivityState extends State<ProfileActivity> {
         emailController.text = data.data?[0].email ?? "";
         profileurl = data.data?[0].image ?? "";
         imageURl = data.data?[0].image ?? "";
+        
+        // Load location from user data or SharedPreferences
+        if (data.data?[0].location?.name != null && (data.data![0].location!.name?.isNotEmpty ?? false)) {
+          locationController.text = data.data![0].location!.name ?? "";
+          currentLat = data.data![0].location!.coordinates?.lat?.toDouble() ?? 0.0;
+          currentLng = data.data![0].location!.coordinates?.long?.toDouble() ?? 0.0;
+        } else {
+          // Load from SharedPreferences (captured on login)
+          locationController.text = sharedPreferences!.getString(Constant.location) ?? "";
+          currentLat = double.tryParse(sharedPreferences!.getString(Constant.lat) ?? "0.0") ?? 0.0;
+          currentLng = double.tryParse(sharedPreferences!.getString(Constant.long) ?? "0.0") ?? 0.0;
+        }
       });
       print("Profile image url  $profileurl");
       //CommonWidget.navigateToScreen(context, OTPScreenActivity());
@@ -87,13 +104,23 @@ class _ProfileActivityState extends State<ProfileActivity> {
   }
 
   postUserDetails(BuildContext context) async {
+    // Get location from controller or use current location
+    String locationName = locationController.text.isNotEmpty 
+        ? locationController.text 
+        : sharedPreferences!.getString(Constant.location) ?? "";
+    double lat = currentLat != 0.0 ? currentLat : (double.tryParse(sharedPreferences!.getString(Constant.lat) ?? "0.0") ?? 0.0);
+    double lng = currentLng != 0.0 ? currentLng : (double.tryParse(sharedPreferences!.getString(Constant.long) ?? "0.0") ?? 0.0);
+    
     var response = await loginDataManager!.postUserDetails(
         firstNameController.text,
         lastNameController.text,
         emailController.text,
         imageURl,
         sharedPreferences!.getString(Constant.id) ?? "",
-        context);
+        context,
+        locationName: locationName.isNotEmpty ? locationName : null,
+        lat: lat != 0.0 ? lat : null,
+        lng: lng != 0.0 ? lng : null);
     var data = UserDetailsModelBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       sharedPreferences!
@@ -110,11 +137,91 @@ class _ProfileActivityState extends State<ProfileActivity> {
           .setString(Constant.roleName, data.data!.roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data!.sId.toString() ?? "");
+      
+      // Update location in SharedPreferences if location was updated
+      if (locationName.isNotEmpty) {
+        sharedPreferences!.setString(Constant.location, locationName);
+        sharedPreferences!.setString(Constant.lat, lat.toString());
+        sharedPreferences!.setString(Constant.long, lng.toString());
+      }
+      
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
       Navigator.pop(context, true);
       //CommonWidget.navigateToKillAllScreen(context, DashboardActivity());
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    }
+  }
+  
+  Future<void> _getCurrentLocation() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Navigator.pop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location services are disabled. Please enable them.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(
+              context, 'Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        Navigator.pop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location permissions are permanently denied');
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      setState(() {
+        currentLat = position.latitude;
+        currentLng = position.longitude;
+      });
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude, position.longitude);
+      
+      String address = placemarks[0].locality ?? 
+                      placemarks[0].subAdministrativeArea ?? 
+                      placemarks[0].administrativeArea ?? 
+                      "Current Location";
+      
+      setState(() {
+        locationController.text = address;
+      });
+      
+      sharedPreferences!.setString(Constant.location, address);
+      sharedPreferences!.setString(Constant.lat, position.latitude.toString());
+      sharedPreferences!.setString(Constant.long, position.longitude.toString());
+
+      Navigator.pop(context);
+      CommonWidget.successShowSnackBarFor(
+          context, 'Location updated successfully!');
+    } catch (e) {
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      CommonWidget.errorShowSnackBarFor(
+          context, 'Error getting location: ${e.toString()}');
     }
   }
 
@@ -252,6 +359,28 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                       "Enter Last Name", lastNameController),
                                   CommonWidget.getTextFieldWithgrayboder(
                                       "Enter Email Address", emailController),
+                                  const SizedBox(height: 12),
+                                  // Location Section
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: CommonWidget.getTextFieldWithgrayboder(
+                                            "Location", locationController),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: ColorClass.base_color,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.my_location, color: Colors.white),
+                                          onPressed: _getCurrentLocation,
+                                          tooltip: "Get Current Location",
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   const SizedBox(
                                     height: 20,
                                   ),

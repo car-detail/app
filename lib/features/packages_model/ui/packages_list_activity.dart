@@ -95,16 +95,7 @@ class _PackagesListActivityState extends State<PackagesListActivity> {
 
     if (confirmed == true) {
       try {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-
         var response = await dataManager!.deletePackage(context, package.sId!);
-        Navigator.pop(context); // Close loader
 
         print("📦 Delete Package Response Status: ${response.statusCode}");
         print("📦 Delete Package Response Body: ${response.body}");
@@ -133,7 +124,6 @@ class _PackagesListActivityState extends State<PackagesListActivity> {
           CommonWidget.errorShowSnackBarFor(context, "Error parsing response: $e");
         }
       } catch (e, stackTrace) {
-        Navigator.pop(context); // Close loader
         print("❌ Delete Package Error: $e");
         print("❌ Stack Trace: $stackTrace");
         CommonWidget.errorShowSnackBarFor(context, "Error deleting package: $e");

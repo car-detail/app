@@ -9,6 +9,8 @@ import 'package:car_app/features/log_in/model/vendor_details_bean.dart';
 import 'package:car_app/features/resister_vendor_model/ui/simple_add_shop_activity.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/BaseActivity.dart';
@@ -31,8 +33,11 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
   var lastNameController = TextEditingController();
   var emailController = TextEditingController();
   var profileController = TextEditingController();
+  var locationController = TextEditingController();
   List<File> selectedFiles = [];
   String imageURl  = "";
+  double currentLat = 0.0;
+  double currentLng = 0.0;
 
   ApiFuntions apiFuntions = ApiFuntions();
   LoginDataManager? loginDataManager;
@@ -51,16 +56,33 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     loginDataManager = LoginDataManager(sharedPreferences!);
+    
+    // Load location from SharedPreferences (captured on login)
+    setState(() {
+      locationController.text = sharedPreferences!.getString(Constant.location) ?? "";
+      currentLat = double.tryParse(sharedPreferences!.getString(Constant.lat) ?? "0.0") ?? 0.0;
+      currentLng = double.tryParse(sharedPreferences!.getString(Constant.long) ?? "0.0") ?? 0.0;
+    });
   }
 
   postUserDetails(BuildContext context) async {
+    // Get location from controller or use current location
+    String locationName = locationController.text.isNotEmpty 
+        ? locationController.text 
+        : sharedPreferences!.getString(Constant.location) ?? "";
+    double lat = currentLat != 0.0 ? currentLat : (double.tryParse(sharedPreferences!.getString(Constant.lat) ?? "0.0") ?? 0.0);
+    double lng = currentLng != 0.0 ? currentLng : (double.tryParse(sharedPreferences!.getString(Constant.long) ?? "0.0") ?? 0.0);
+    
     var response = await loginDataManager!.postUserDetails(
         firstNameController.text,
         lastNameController.text,
         emailController.text,
         imageURl,
         sharedPreferences!.getString(Constant.id)??"",
-        context);
+        context,
+        locationName: locationName.isNotEmpty ? locationName : null,
+        lat: lat != 0.0 ? lat : null,
+        lng: lng != 0.0 ? lng : null);
     var data = UserDetailsModelBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       sharedPreferences!
@@ -77,6 +99,14 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
           .setString(Constant.roleName, data.data!.roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data!.sId.toString() ?? "");
+      
+      // Update location in SharedPreferences if location was updated
+      if (locationName.isNotEmpty) {
+        sharedPreferences!.setString(Constant.location, locationName);
+        sharedPreferences!.setString(Constant.lat, lat.toString());
+        sharedPreferences!.setString(Constant.long, lng.toString());
+      }
+      
       CommonWidget.successShowSnackBarFor(context, data.message??"");
       if(widget.type == "otp") {
         // After profile completion, check if user has vendor details
@@ -86,6 +116,78 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
       }
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    }
+  }
+  
+  Future<void> _getCurrentLocation() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Navigator.pop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location services are disabled. Please enable them.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          Navigator.pop(context);
+          CommonWidget.errorShowSnackBarFor(
+              context, 'Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        Navigator.pop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location permissions are permanently denied');
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      setState(() {
+        currentLat = position.latitude;
+        currentLng = position.longitude;
+      });
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude, position.longitude);
+      
+      String address = placemarks[0].locality ?? 
+                      placemarks[0].subAdministrativeArea ?? 
+                      placemarks[0].administrativeArea ?? 
+                      "Current Location";
+      
+      setState(() {
+        locationController.text = address;
+      });
+      
+      sharedPreferences!.setString(Constant.location, address);
+      sharedPreferences!.setString(Constant.lat, position.latitude.toString());
+      sharedPreferences!.setString(Constant.long, position.longitude.toString());
+
+      Navigator.pop(context);
+      CommonWidget.successShowSnackBarFor(
+          context, 'Location updated successfully!');
+    } catch (e) {
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      CommonWidget.errorShowSnackBarFor(
+          context, 'Error getting location: ${e.toString()}');
     }
   }
 
@@ -240,6 +342,28 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
                                     "Enter Last Name", lastNameController),
                                 CommonWidget.getTextFieldWithgrayboder(
                                     "Enter Email Address", emailController),
+                                const SizedBox(height: 12),
+                                // Location Section
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CommonWidget.getTextFieldWithgrayboder(
+                                          "Location", locationController),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: ColorClass.base_color,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.my_location, color: Colors.white),
+                                        onPressed: _getCurrentLocation,
+                                        tooltip: "Get Current Location",
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(
                                   height: 20,
                                 ),

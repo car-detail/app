@@ -103,7 +103,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      Navigator.pop(context);
+                      CommonWidget.safePop(context);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -446,12 +446,12 @@ class _PackageListActivityState extends State<PackageListActivity> {
         content: Text("Are you sure you want to delete '${package.packageName}'?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => CommonWidget.safePop(context),
             child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              CommonWidget.safePop(context);
               deletePackage(package.sId!);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),

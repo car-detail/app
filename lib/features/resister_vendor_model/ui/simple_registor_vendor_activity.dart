@@ -1,6 +1,6 @@
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/features/onboarding/ui/vendor_onboarding_activity.dart';
+import 'package:car_app/features/resister_vendor_model/ui/ultra_simple_vendor_registration.dart';
 import 'package:flutter/material.dart';
 
 class SimpleRegistorVendorActivity extends StatefulWidget {
@@ -114,9 +114,10 @@ class _SimpleRegistorVendorActivityState extends State<SimpleRegistorVendorActiv
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
+                    // Navigate to ultra-simple registration
                     CommonWidget.navigateToScreen(
                       context,
-                      const VendorOnboardingActivity(),
+                      const UltraSimpleVendorRegistration(),
                     );
                   },
                   style: ElevatedButton.styleFrom(

@@ -13,6 +13,7 @@ import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import 'home_module/data_manager/home_data_manager.dart';
 import 'log_in/ui/LoginActivity.dart';
+import 'log_in/ui/modern_login_activity.dart';
 
 class SplashScreenActivity extends StatefulWidget {
   const SplashScreenActivity({super.key});
@@ -120,8 +121,7 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        //builder: (BuildContext context) => DashboardActivity(data:data),
-                        builder: (BuildContext context) => LoginActivity("Get Started"),
+                        builder: (BuildContext context) => ModernLoginActivity(isSignUp: false),
                       ),
                           (route) => false,
                     );
@@ -129,11 +129,34 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                   child: Container(
                     margin: const EdgeInsets.only(left: 30, right: 30),
                     child: CommonWidget.getGradinetButton(
-                        "Get Started",
+                        "Sign In",
+                        startcolor: 0xff1CA669,
+                        endcolor: 0xff1CA669,
+                        height: 50
+                    ),
+                  )),
+              if(userid == "" || userid == null|| venderId != "" || venderId != null)
+              const SizedBox(height: 16,),
+              if(userid == "" || userid == null|| venderId != "" || venderId != null)
+              GestureDetector(
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => ModernLoginActivity(isSignUp: true),
+                      ),
+                          (route) => false,
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 30, right: 30),
+                    child: CommonWidget.getGradinetButton(
+                        "Sign Up",
                         startcolor: 0xffE8F7F1,
                         endcolor: 0xffE8F7F1,
                         textColor: 0xff1CA669,
-                        height: 40
+                        height: 50
                     ),
                   )),
               if(userid == "" || userid == null|| venderId != "" || venderId != null)

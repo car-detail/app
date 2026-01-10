@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:car_app/Common/BaseActivity.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
@@ -312,7 +313,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             const SizedBox(height: 30),
             _buildInputField(
               controller: _priceController,
-              label: "Price (₹)",
+              label: "Price (\$)",
               icon: Icons.attach_money,
               hint: "0 (Optional)",
               keyboardType: TextInputType.number,
@@ -544,7 +545,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         ),
         const SizedBox(height: 16),
         GestureDetector(
-          onTap: () => _showImagePicker(maxImages, onFilesSelected),
+          onTap: () => _pickAndUploadImage(maxImages, onFilesSelected),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
@@ -569,16 +570,16 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           ),
         ),
         const SizedBox(height: 16),
-        if (existingImage != null && existingImage.isNotEmpty || selectedFiles.isNotEmpty)
+        if (serviceImage.isNotEmpty || selectedFiles.isNotEmpty)
           SizedBox(
             height: 120,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _getImageCount(existingImage, selectedFiles),
+              itemCount: _getImageCountForDisplay(),
               itemBuilder: (context, index) {
                 return Container(
                   margin: const EdgeInsets.only(right: 12),
-                  child: _buildImagePreview(index, existingImage, selectedFiles),
+                  child: _buildImagePreview(index, serviceImage, selectedFiles),
                 );
               },
             ),
@@ -588,25 +589,69 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   }
 
   Widget _buildImagePreview(int index, String? existingImage, List<File> selectedFiles) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: existingImage != null && existingImage.isNotEmpty && index == 0
-            ? Image.network(
-                existingImage,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
-              )
-            : selectedFiles.isNotEmpty && index < selectedFiles.length
-                ? CommonWidget.imageFromFile(selectedFiles[index], fit: BoxFit.cover)
-                : _buildImagePlaceholder(),
-      ),
+    // If we have an uploaded image URL, show that first
+    bool hasUploadedImage = existingImage != null && existingImage.isNotEmpty;
+    bool isUploadedImage = hasUploadedImage && index == 0;
+    bool isSelectedFile = !isUploadedImage && selectedFiles.isNotEmpty && 
+                         (hasUploadedImage ? index - 1 < selectedFiles.length : index < selectedFiles.length);
+    
+    return Stack(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: isUploadedImage
+                ? Image.network(
+                    existingImage!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+                  )
+                : isSelectedFile
+                    ? CommonWidget.imageFromFile(
+                        selectedFiles[hasUploadedImage ? index - 1 : index], 
+                        fit: BoxFit.cover
+                      )
+                    : _buildImagePlaceholder(),
+          ),
+        ),
+        // Remove button
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isUploadedImage) {
+                  serviceImage = "";
+                } else if (isSelectedFile) {
+                  int fileIndex = hasUploadedImage ? index - 1 : index;
+                  if (fileIndex >= 0 && fileIndex < selectedFiles.length) {
+                    selectedFiles.removeAt(fileIndex);
+                  }
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -627,31 +672,74 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     count += selectedFiles.length;
     return count;
   }
+  
+  // Get image count for display
+  int _getImageCountForDisplay() {
+    int count = 0;
+    if (serviceImage.isNotEmpty) count++;
+    count += selectedFiles.length;
+    return count;
+  }
 
-  void _showImagePicker(int maxImages, Function(List<File>) onFilesSelected) {
-    // This would integrate with your existing image picker
-    // For now, we'll use a simple dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Upload Images"),
-        content: Text("This will open the image picker to select up to $maxImages images."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement actual image picker
-              CommonWidget.successShowSnackBarFor(context, "Image picker will be implemented here");
-            },
-            child: const Text("Select Images"),
-          ),
-        ],
-      ),
+  void _pickAndUploadImage(int maxImages, Function(List<File>) onFilesSelected) async {
+    // Show image picker dialog
+    BaseActivity.showFilePicker(
+      context,
+      (List<File>? files) async {
+        if (files != null && files.isNotEmpty) {
+          // Limit to maxImages
+          List<File> selectedFilesList = files.take(maxImages).toList();
+          
+          setState(() {
+            selectedFiles.clear();
+            selectedFiles.addAll(selectedFilesList);
+          });
+          
+          // Upload image immediately
+          await _uploadSelectedImage();
+        }
+      },
+      isFile: false,
+      isPhoto: true,
+      isOnlyPhoto: true,
+      allowMultipleImage: maxImages > 1,
     );
+  }
+
+  Future<void> _uploadSelectedImage() async {
+    if (selectedFiles.isEmpty) {
+      CommonWidget.errorShowSnackBarFor(context, "Please select an image first");
+      return;
+    }
+    
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      
+      // Upload the first image (cover image)
+      String uploadedUrl = await _postImage(context, [selectedFiles[0]]);
+      
+      Navigator.pop(context); // Close loading dialog
+      
+      if (uploadedUrl.isNotEmpty) {
+        setState(() {
+          serviceImage = uploadedUrl;
+          // Clear selected files after successful upload since we now have the URL
+          selectedFiles.clear();
+        });
+        CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, "Failed to upload image");
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      CommonWidget.errorShowSnackBarFor(context, "Error uploading image: ${e.toString()}");
+    }
   }
 
   Widget _buildNavigationButtons() {
@@ -762,9 +850,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     );
 
     try {
-      // Upload service image if any
-      if (selectedFiles.isNotEmpty) {
-        serviceImage = await _postImage(context, selectedFiles);
+      // Upload service image if any new files selected (not already uploaded)
+      if (selectedFiles.isNotEmpty && serviceImage.isEmpty) {
+        serviceImage = await _postImage(context, [selectedFiles[0]]);
       }
 
       var response;

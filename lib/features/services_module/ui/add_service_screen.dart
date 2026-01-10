@@ -206,7 +206,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonWidget.getTextWidgetPopSemi(
-          'Price (₹) *',
+          'Price (\$) *',
           size: 14,
           color: Colors.black,
         ),

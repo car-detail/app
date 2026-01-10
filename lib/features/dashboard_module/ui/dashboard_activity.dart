@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ShimmerLoader.dart';
+import 'package:car_app/Common/FirstTimeTutorial.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/features/dashboard_module/model/vendor_details_main_bean.dart';
 import 'package:car_app/features/home_module/ui/home_activity.dart';
 import 'package:car_app/features/services_model/ui/services_list_activity.dart';
@@ -36,9 +38,11 @@ class _DashboardActivityState extends State<DashboardActivity> {
       HomeActivity((value) {
         print(
             "offlineofflineofflineofflineofflineofflineofflineofflineofflineoffline");
-        setState(() {
-          isValid = value;
-        });
+        if (mounted) {
+          setState(() {
+            isValid = value;
+          });
+        }
       }),
       _buildBookingsPage(),
       const ProfileVendorListActivity(),
@@ -58,10 +62,17 @@ class _DashboardActivityState extends State<DashboardActivity> {
     if (vendorId != null && vendorId.isNotEmpty) {
       print("✅ VendorId found, loading vendor details");
       getdetails(context);
+      
+      // Show tutorial for first-time users
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await FirstTimeTutorial.showDashboardTutorial(context);
+      });
     } else {
       print("❌ No vendorId found - vendor needs to complete registration");
       // Show a message to complete registration
-      CommonWidget.errorShowSnackBarFor(context, "Please complete your vendor registration first");
+      if (context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Please complete your vendor registration first");
+      }
     }
   }
 
@@ -76,12 +87,18 @@ class _DashboardActivityState extends State<DashboardActivity> {
     var response = await dataManager!.makeOffLine(context);
     var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
-      setState(() {
-        isValid = data.data!.isShopOpen!;
-      });
-      CommonWidget.successShowSnackBarFor(context, data.message ?? "");
+      if (mounted) {
+        setState(() {
+          isValid = data.data!.isShopOpen!;
+        });
+      }
+      if (context.mounted) {
+        CommonWidget.successShowSnackBarFor(context, data.message ?? "");
+      }
     } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      if (context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      }
     }
   }
   getdetails(BuildContext context) async {
@@ -97,17 +114,23 @@ class _DashboardActivityState extends State<DashboardActivity> {
       
       var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
       if (data.status == "success") {
-        setState(() {
-          isValid = data.data!.isShopOpen!;
-        });
+        if (mounted) {
+          setState(() {
+            isValid = data.data!.isShopOpen!;
+          });
+        }
         print("✅ Vendor details loaded successfully");
       } else {
         print("❌ API returned error: ${data.message}");
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load vendor details");
+        if (context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load vendor details");
+        }
       }
     } catch (e) {
       print("❌ Error in getdetails: $e");
-      CommonWidget.errorShowSnackBarFor(context, "Error loading vendor details: ${e.toString()}");
+      if (context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading vendor details: ${e.toString()}");
+      }
     }
   }
 
@@ -119,7 +142,11 @@ class _DashboardActivityState extends State<DashboardActivity> {
     return Scaffold(
       body: SafeArea(
         child: isValid
-            ? _pageNo[selectedpage]
+            ? IndexedStack(
+                key: const ValueKey('main_stack'),
+                index: selectedpage,
+                children: _pageNo,
+              )
             : Container(
                 child: Column(
                   children: [
@@ -256,19 +283,14 @@ class _DashboardActivityState extends State<DashboardActivity> {
 
   Widget _buildModernBottomNav() {
     return Container(
-      height: 70,
+      key: const ValueKey('bottom_nav'),
+      height: 75,
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, -3),
-          ),
-        ],
+        boxShadow: ModernDesignSystem.shadowLarge,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(ModernDesignSystem.radiusXL),
+          topRight: Radius.circular(ModernDesignSystem.radiusXL),
         ),
       ),
       child: Row(
@@ -303,50 +325,77 @@ class _DashboardActivityState extends State<DashboardActivity> {
     required int index,
     required bool isSelected,
   }) {
+    // Help text for each tab
+    final helpTexts = {
+      0: "Tap here to see your business overview and manage services",
+      1: "Tap here to view and manage all customer bookings",
+      2: "Tap here to edit your profile and business settings",
+    };
+
     return GestureDetector(
-      onTap: () => setState(() => selectedpage = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? ColorClass.base_color.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
+      onTap: () {
+        if (mounted && selectedpage != index) {
+          setState(() => selectedpage = index);
+        }
+      },
+      onLongPress: () {
+        if (!mounted) return;
+        // Show help on long press
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(icon, color: ColorClass.base_color),
+                const SizedBox(width: 8),
+                Text(label),
+              ],
+            ),
+            content: Text(helpTexts[index] ?? "This is the $label section"),
+            actions: [
+              TextButton(
+                onPressed: () => CommonWidget.safePop(context),
+                child: Text(
+                  "Got it!",
+                  style: TextStyle(color: ColorClass.base_color),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        key: ValueKey('nav_item_$index'),
+        padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingS),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              padding: const EdgeInsets.all(6),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected ? ColorClass.base_color : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: ColorClass.base_color.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ] : null,
+                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
               ),
               child: Icon(
                 icon,
                 color: isSelected ? Colors.white : ColorClass.dark_gray_base,
-                size: 20,
+                size: 22,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
+            const SizedBox(height: ModernDesignSystem.spacingXS),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
               style: TextStyle(
                 color: isSelected ? ColorClass.base_color : ColorClass.dark_gray_base,
-                fontSize: 10,
+                fontSize: isSelected ? 11 : 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                letterSpacing: 0.2,
+                letterSpacing: 0.3,
               ),
+              child: Text(label),
             ),
           ],
         ),

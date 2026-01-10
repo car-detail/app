@@ -68,13 +68,26 @@ class LoginDataManager {
         "deviceId": imei
     });
   }
-  Future<http.Response> postUserDetails(String firstName,String lastName,String email,String profileImage, String id, BuildContext context) {
-        return apiFuntions.putdatauser(context, "${Constant.updateUserDetails}$id", <String, dynamic>{
+  Future<http.Response> postUserDetails(String firstName,String lastName,String email,String profileImage, String id, BuildContext context, {String? locationName, double? lat, double? lng}) {
+        Map<String, dynamic> payload = {
           "firstName": firstName,
           "lastName": lastName,
           "email": email,
           "image": profileImage
-        });
+        };
+        
+        // Add location if provided
+        if (locationName != null && lat != null && lng != null) {
+          payload["location"] = {
+            "name": locationName,
+            "coordinates": {
+              "lat": lat,
+              "long": lng
+            }
+          };
+        }
+        
+        return apiFuntions.putdatauser(context, "${Constant.updateUserDetails}$id", payload);
   }
   Future<http.Response> postImage(List<File> file, BuildContext context) {
         return apiFuntions.sendMultipartRequest(context, Constant.uploadFile,file, <String , dynamic>{}, );

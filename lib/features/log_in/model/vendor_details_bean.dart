@@ -40,6 +40,7 @@ class VendorDetailData {
   bool? isNewUser;
   String? roleName;
   List<VendorDetails>? vendorDetails;
+  Location? location;
 
   VendorDetailData(
       {this.sId,
@@ -50,7 +51,8 @@ class VendorDetailData {
         this.mobile,
         this.isNewUser,
         this.roleName,
-        this.vendorDetails});
+        this.vendorDetails,
+        this.location});
 
   VendorDetailData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -67,6 +69,9 @@ class VendorDetailData {
         vendorDetails!.add(VendorDetails.fromJson(v));
       });
     }
+    location = json['location'] != null
+        ? Location.fromJson(json['location'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -82,6 +87,9 @@ class VendorDetailData {
     if (vendorDetails != null) {
       data['vendorDetails'] =
           vendorDetails!.map((v) => v.toJson()).toList();
+    }
+    if (location != null) {
+      data['location'] = location!.toJson();
     }
     return data;
   }

@@ -265,7 +265,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
                 const SizedBox(height: 8),
                 _buildDetailRow(Icons.calendar_today, "Date", DateFormat('dd-MM-yyyy').format(DateTime.parse(data.date ?? ""))),
                 const SizedBox(height: 8),
-                _buildDetailRow(Icons.attach_money, "Price", "₹${data.price ?? "0"}"),
+                _buildDetailRow(Icons.attach_money, "Price", "\$${data.price ?? "0"}"),
                 
                 // Action buttons for pending bookings
                 if (data.orderStatus == "Pending") ...[

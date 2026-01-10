@@ -213,7 +213,7 @@ class _AddPackageScreenState extends State<AddPackageScreen> {
               final isSelected = _selectedServiceIds.contains(service.id);
               return CheckboxListTile(
                 title: Text(service.serviceTitle),
-                subtitle: Text('₹${service.price.toStringAsFixed(0)} - ${service.duration}'),
+                subtitle: Text('\$${service.price.toStringAsFixed(0)} - ${service.duration}'),
                 value: isSelected,
                 onChanged: (value) {
                   setState(() {
@@ -246,7 +246,7 @@ class _AddPackageScreenState extends State<AddPackageScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonWidget.getTextWidgetPopSemi(
-          'Package Price (₹) *',
+          'Package Price (\$) *',
           size: 14,
           color: Colors.black,
         ),

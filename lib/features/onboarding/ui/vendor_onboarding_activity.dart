@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
 import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
@@ -140,37 +141,11 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
   }
 
   Widget _buildProgressIndicator() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
-            children: List.generate(_totalSteps, (index) {
-              return Expanded(
-                child: Container(
-                  height: 4,
-                  margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
-                  decoration: BoxDecoration(
-                    color: index <= _currentStep
-                        ? ColorClass.base_color
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "Step ${_currentStep + 1} of $_totalSteps",
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+    final stepLabels = ["Welcome", "Your Info", "Business", "Services"];
+    return UXHelperWidget.buildStepIndicator(
+      currentStep: _currentStep,
+      totalSteps: _totalSteps,
+      stepLabels: stepLabels,
     );
   }
 
@@ -204,7 +179,7 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
           ),
           const SizedBox(height: 16),
           Text(
-            "Let's get your business set up in just a few simple steps. We'll help you create your profile, add your shop details, and set up your services.",
+            "Let's get your business online in just 4 simple steps! Don't worry - we'll guide you through everything.",
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
@@ -212,26 +187,40 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 30),
+          UXHelperWidget.buildInfoBanner(
+            message: "💡 Tip: Look for the (?) help icons if you need assistance at any step!",
+            icon: Icons.lightbulb_outline,
+            backgroundColor: Colors.amber[50],
+            iconColor: Colors.amber[700],
+          ),
+          const SizedBox(height: 30),
           _buildFeatureCard(
             Icons.person,
-            "Personal Profile",
-            "Set up your basic information",
+            "Step 1: Personal Profile",
+            "Tell us your name and contact details",
             Colors.blue,
           ),
           const SizedBox(height: 16),
           _buildFeatureCard(
             Icons.store,
-            "Shop Details",
-            "Add your business location and contact",
+            "Step 2: Shop Details",
+            "Add your business name and location",
             Colors.green,
           ),
           const SizedBox(height: 16),
           _buildFeatureCard(
             Icons.design_services,
-            "Services & Packages",
-            "Create your service offerings",
+            "Step 3: Services",
+            "Select what services you offer",
             Colors.orange,
+          ),
+          const SizedBox(height: 16),
+          _buildFeatureCard(
+            Icons.check_circle,
+            "Step 4: You're Done!",
+            "Start accepting bookings right away",
+            Colors.purple,
           ),
         ],
       ),
@@ -255,41 +244,60 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Tell us about yourself",
+              "Tell us about yourself - This helps customers contact you",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 30),
-            _buildInputField(
+            const SizedBox(height: 20),
+            UXHelperWidget.buildInfoBanner(
+              message: "Don't worry! This information is safe and only used for your business profile.",
+              icon: Icons.lock_outline,
+              backgroundColor: Colors.green[50],
+              iconColor: Colors.green[700],
+            ),
+            const SizedBox(height: 20),
+            UXHelperWidget.buildHelpfulInputField(
               controller: _firstNameController,
               label: "First Name",
               icon: Icons.person,
+              helpText: "Enter your first name as you want customers to see it",
+              example: "John",
               isRequired: true,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _lastNameController,
               label: "Last Name",
               icon: Icons.person,
+              helpText: "Enter your last name or family name",
+              example: "Smith",
               isRequired: true,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _emailController,
               label: "Email Address",
               icon: Icons.email,
+              helpText: "Enter your email address. We'll send important updates here.",
+              example: "john.smith@example.com",
               keyboardType: TextInputType.emailAddress,
               isRequired: true,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _mobileController,
               label: "Mobile Number",
               icon: Icons.phone,
+              helpText: "Enter your mobile number with country code. Customers can call you on this number.",
+              example: "+1234567890",
               keyboardType: TextInputType.phone,
               isRequired: true,
+              context: context,
             ),
           ],
         ),
@@ -314,52 +322,96 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Set up your business profile",
+              "Set up your business profile - This is what customers will see",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             // Business Type Selection
-            const Text(
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
               "What type of business do you run?",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    UXHelperWidget.showHelpDialog(
+                      context,
+                      title: "Business Type",
+                      message: "Select the type that best matches your business. Don't worry, you can add more services later!",
+                    );
+                  },
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: ColorClass.base_color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 14,
+                      color: ColorClass.base_color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            UXHelperWidget.buildInfoBanner(
+              message: "Tap on the card that matches your business. You can change this later.",
             ),
             const SizedBox(height: 16),
             ..._businessTypes.map((type) => _buildBusinessTypeCard(type)),
             const SizedBox(height: 30),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _shopNameController,
               label: "Shop/Business Name",
               icon: Icons.store,
+              helpText: "Enter the name of your shop or business as customers know it",
+              example: "John's Car Wash & Detailing",
               isRequired: true,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _shopAddressController,
               label: "Business Address",
               icon: Icons.location_on,
+              helpText: "Enter your complete business address. This helps customers find you.",
+              example: "123 Main Street, City, State, ZIP Code",
               maxLines: 3,
               isRequired: true,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _shopMobileController,
-              label: "Business Phone",
+              label: "Business Phone (Optional)",
               icon: Icons.phone,
+              helpText: "Enter your business phone number if different from your personal number",
+              example: "+1234567890",
               keyboardType: TextInputType.phone,
+              context: context,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
               controller: _shopEmailController,
-              label: "Business Email",
+              label: "Business Email (Optional)",
               icon: Icons.email,
+              helpText: "Enter your business email if you have one",
+              example: "info@yourbusiness.com",
               keyboardType: TextInputType.emailAddress,
+              context: context,
             ),
           ],
         ),
@@ -389,20 +441,64 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Select the services you want to offer",
+              "Select the services you want to offer to customers",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
+            UXHelperWidget.buildInfoBanner(
+              message: "Don't worry! You can add more services and packages later from your dashboard.",
+              icon: Icons.info_outline,
+              backgroundColor: Colors.blue[50],
+              iconColor: Colors.blue[700],
+            ),
+            const SizedBox(height: 20),
             // Services Selection
-            const Text(
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
               "Services",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    UXHelperWidget.showHelpDialog(
+                      context,
+                      title: "What are Services?",
+                      message: "Services are individual things you offer, like 'Car Wash' or 'Oil Change'. Tap on the buttons below to select which services you want to offer. You must select at least one!",
+                    );
+                  },
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: ColorClass.base_color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 14,
+                      color: ColorClass.base_color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Tap to select (at least 1 required)",
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 16),
@@ -422,14 +518,78 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
                 });
               }).toList(),
             ),
+            if (_selectedServices.isEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Please select at least one service",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.red[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 30),
             // Packages Selection
-            const Text(
-              "Packages",
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Packages (Optional)",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    UXHelperWidget.showHelpDialog(
+                      context,
+                      title: "What are Packages?",
+                      message: "Packages are combinations of multiple services sold together at a special price. For example, 'Complete Car Care Package' might include wash, wax, and interior cleaning. This is optional - you can skip this for now!",
+                    );
+                  },
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: ColorClass.base_color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 14,
+                      color: ColorClass.base_color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Tap to select (optional - you can add later)",
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 16),
@@ -829,19 +989,36 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             _lastNameController.text.isEmpty ||
             _emailController.text.isEmpty ||
             _mobileController.text.isEmpty) {
-          CommonWidget.errorShowSnackBarFor(context, "Please fill in all required fields");
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Please fill in all the required fields above. Look for the red * mark - those fields are required!",
+          );
+          return false;
+        }
+        // Basic email validation
+        if (!_emailController.text.contains('@') || !_emailController.text.contains('.')) {
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Please enter a valid email address. Example: yourname@email.com",
+          );
           return false;
         }
         return true;
       case 2:
         if (_shopNameController.text.isEmpty || _shopAddressController.text.isEmpty) {
-          CommonWidget.errorShowSnackBarFor(context, "Please fill in shop name and address");
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Please enter your shop name and address. These are required so customers can find you!",
+          );
           return false;
         }
         return true;
       case 3:
         if (_selectedServices.isEmpty) {
-          CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Please select at least one service. Tap on the service buttons above to select them!",
+          );
           return false;
         }
         return true;
@@ -874,16 +1051,30 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
       // Create packages
       await _createPackages();
 
-      Navigator.pop(context); // Close loading dialog
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context); // Close loading dialog
+      }
       
-      CommonWidget.successShowSnackBarFor(context, "Onboarding completed successfully!");
+      if (context.mounted) {
+        UXHelperWidget.showSuccessMessage(
+          context,
+          "🎉 Great! Your business profile is ready! You can now start accepting bookings.",
+        );
+      }
       
       // Navigate to main dashboard
-      CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+      if (context.mounted) {
+        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+      }
       
     } catch (e) {
-      Navigator.pop(context); // Close loading dialog
-      CommonWidget.errorShowSnackBarFor(context, "Error: ${e.toString()}");
+      if (context.mounted && Navigator.canPop(context)) {
+        CommonWidget.safePop(context); // Close loading dialog
+      }
+      UXHelperWidget.showFriendlyError(
+        context,
+        "Oops! Something went wrong. Please check your internet connection and try again. If the problem continues, contact support.",
+      );
     }
   }
 

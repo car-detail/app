@@ -5,6 +5,7 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/features/categories_module/ui/categories_list_activity.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_list_screen.dart';
@@ -15,6 +16,8 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 import '../../../Common/CommonPopUp.dart';
 import '../../../Common/ContainerDecoration.dart';
@@ -32,8 +35,11 @@ import '../../booking_model/ui/booking_list_activity.dart';
 import '../../offer_model/ui/enhanced_offer_screen.dart';
 import '../../packages_model/ui/add_package_activity.dart';
 import '../../packages_model/ui/package_list_activity.dart';
+import '../../packages_model/ui/ultra_simple_add_package.dart';
 import '../../resister_vendor_model/ui/simple_registor_vendor_activity.dart';
 import '../../notification_model/ui/notification_activity.dart';
+import '../../services_model/ui/ultra_simple_add_service.dart';
+import 'location_picker_screen.dart';
 
 class HomeActivity extends StatefulWidget {
   Function(bool value) offline;
@@ -116,6 +122,78 @@ class _HomeActivityState extends State<HomeActivity> {
       // Don't show error snackbar here as it might be expected for new vendors
     }
   }
+  
+  Future<void> _getCurrentLocation() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        CommonWidget.safePop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location services are disabled. Please enable them.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          CommonWidget.safePop(context);
+          CommonWidget.errorShowSnackBarFor(
+              context, 'Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        CommonWidget.safePop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Location permissions are permanently denied');
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude, position.longitude);
+      
+      String address = placemarks[0].locality ?? 
+                      placemarks[0].subAdministrativeArea ?? 
+                      placemarks[0].administrativeArea ?? 
+                      "Current Location";
+      
+      sharedPreferences!.setString(Constant.location, address);
+      sharedPreferences!.setString(Constant.lat, position.latitude.toString());
+      sharedPreferences!.setString(Constant.long, position.longitude.toString());
+
+      if (context.mounted) {
+        CommonWidget.safePop(context);
+        CommonWidget.successShowSnackBarFor(
+            context, 'Location updated successfully!');
+      }
+      
+      // Refresh the page to show updated location
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CommonWidget.safePop(context);
+      }
+      CommonWidget.errorShowSnackBarFor(
+          context, 'Error getting location: ${e.toString()}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +214,24 @@ class _HomeActivityState extends State<HomeActivity> {
               children: [
                 Row(
               children: [
-                Container(
+                GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LocationPickerScreen(
+                          currentLocation: sharedPreferences?.getString(Constant.location),
+                        ),
+                      ),
+                    );
+                    
+                    if (result != null && mounted) {
+                      setState(() {
+                        // Location updated, refresh the screen
+                      });
+                    }
+                  },
+                  child: Container(
                       margin: const EdgeInsets.only(left: 15),
                       child: const Icon(
                         Icons.location_on_outlined,
@@ -144,10 +239,29 @@ class _HomeActivityState extends State<HomeActivity> {
                         size: 24,
                       ),
                 ),
+                ),
                 Expanded(
-                      child: CommonWidget.getTextWidget500(
-                        sharedPreferences?.getString(Constant.location) ?? "Location not set",
-                          color: Colors.white,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LocationPickerScreen(
+                                currentLocation: sharedPreferences?.getString(Constant.location),
+                              ),
+                            ),
+                          );
+                          
+                          if (result != null && mounted) {
+                            setState(() {
+                              // Location updated, refresh the screen
+                            });
+                          }
+                        },
+                        child: CommonWidget.getTextWidget500(
+                          sharedPreferences?.getString(Constant.location) ?? "Location not set",
+                            color: Colors.white,
+                        ),
                       ),
                     ),
                 GestureDetector(
@@ -237,7 +351,7 @@ class _HomeActivityState extends State<HomeActivity> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                               const Text(
-                                "Store Status",
+                                "Shop Status",
                                   style: TextStyle(
                                     fontFamily: "PopSemi",
                                     fontWeight: FontWeight.w600,
@@ -248,8 +362,8 @@ class _HomeActivityState extends State<HomeActivity> {
                               const SizedBox(height: 4),
                                 Text(
                                 isShopOpen 
-                                  ? "Your store is currently online and accepting bookings"
-                                  : "Your store is currently offline and not accepting bookings",
+                                  ? "Your shop is currently online and accepting bookings"
+                                  : "Your shop is currently offline and not accepting bookings",
                                   style: TextStyle(
                                   fontFamily: "PopReg",
                                   fontSize: 12,
@@ -274,9 +388,9 @@ class _HomeActivityState extends State<HomeActivity> {
                                 "No",
                                 "Yes",
                                 "", // No image to avoid asset loading error
-                                    () => Navigator.pop(context),
+                                    () => CommonWidget.safePop(context),
                                     () async {
-                                  Navigator.pop(context);
+                                  CommonWidget.safePop(context);
                                   makeOffLine(context);
                                 },
                                 190,
@@ -355,46 +469,46 @@ class _HomeActivityState extends State<HomeActivity> {
                           "Business Overview",
                           style: TextStyle(
                             fontFamily: "PopSemi",
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            color: Color(0xFF6B7280),
+                            letterSpacing: 0.2,
                           ),
                         ),
-                        const SizedBox(height: 15),
-                        Row(
-                            children: [
-                            Expanded(
-                              child: _buildMetricCard(
-                                "Bookings",
-                                "${records.length}",
-                                Icons.book_online,
-                                Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: _buildMetricCard(
-                                "Services",
-                                "${servicesData.length}",
-                                Icons.design_services,
-                                Colors.orange,
+                                "Bookings",
+                                "${records.length}",
+                                Icons.calendar_today_outlined,
+                                const Color(0xFF3B82F6), // Blue
+                                0,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildMetricCard(
+                                "Services",
+                                "${servicesData.length}",
+                                Icons.build_outlined,
+                                const Color(0xFFF59E0B), // Orange
+                                1,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: _buildMetricCard(
                                 "Rating",
                                 "4.8",
-                                Icons.star,
-                                Colors.amber,
+                                Icons.star_outline,
+                                const Color(0xFFFBBF24), // Amber
+                                2,
                               ),
                             ),
                           ],
-                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -411,19 +525,20 @@ class _HomeActivityState extends State<HomeActivity> {
                           "Quick Actions",
                           style: TextStyle(
                             fontFamily: "PopSemi",
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            color: Color(0xFF6B7280),
+                            letterSpacing: 0.2,
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 16),
                               Row(
                                 children: [
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Services",
-                                Icons.design_services,
-                                Colors.green,
+                                Icons.design_services_outlined,
+                                const Color(0xFF10B981), // Green
                                 () {
                                   CommonWidget.navigateToScreen(
                                     context, 
@@ -432,12 +547,12 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 10),
                                   Expanded(
                               child: _buildQuickActionCard(
                                 "Packages",
-                                Icons.inventory_2,
-                                Colors.purple,
+                                Icons.inventory_2_outlined,
+                                const Color(0xFF8B5CF6), // Purple
                                 () {
                                   CommonWidget.navigateToScreen(
                                     context, 
@@ -448,14 +563,14 @@ class _HomeActivityState extends State<HomeActivity> {
                                         ),
                                       ],
                                     ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Offers",
-                                Icons.local_offer,
-                                Colors.orange,
+                                Icons.local_offer_outlined,
+                                const Color(0xFFF59E0B), // Orange
                                 () {
                                   CommonWidget.navigateToScreen(
                                     context, 
@@ -464,12 +579,12 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Manage Bookings",
-                                Icons.calendar_today,
-                                Colors.blue,
+                                Icons.calendar_today_outlined,
+                                const Color(0xFF3B82F6), // Blue
                                 () {
                                   CommonWidget.navigateToScreen(
                                     context, 
@@ -480,14 +595,14 @@ class _HomeActivityState extends State<HomeActivity> {
                             ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 10),
                                 Row(
                                   children: [
                                     Expanded(
                               child: _buildQuickActionCard(
                                 "View Analytics",
-                                Icons.analytics,
-                                Colors.indigo,
+                                Icons.analytics_outlined,
+                                const Color(0xFF6366F1), // Indigo
                                 () {
                                   // TODO: Navigate to analytics screen
                                   CommonWidget.successShowSnackBarFor(
@@ -497,12 +612,12 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                                     Expanded(
                               child: _buildQuickActionCard(
                                 "Quick Add",
-                                Icons.add_circle,
-                                Colors.teal,
+                                Icons.add_circle_outline,
+                                const Color(0xFF14B8A6), // Teal
                                 () {
                                   _showQuickAddOptions(context);
                                 },
@@ -669,54 +784,47 @@ class _HomeActivityState extends State<HomeActivity> {
   }
 
   // Helper method to build metric cards
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(String title, String value, IconData icon, Color iconColor, int index) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: const Color(0xFFE5E7EB),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              Icon(Icons.trending_up, color: Colors.green, size: 16),
-            ],
+          Icon(
+            icon,
+            color: iconColor,
+            size: 20,
           ),
           const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
-              fontFamily: "PopBold",
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.black,
+              fontFamily: "PopSemi",
+              fontSize: 24,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF111827),
+              height: 1.2,
+              letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontFamily: "PopReg",
+            style: const TextStyle(
+              fontFamily: "PopSemi",
               fontSize: 12,
-              color: Colors.grey[600],
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF6B7280),
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -726,43 +834,46 @@ class _HomeActivityState extends State<HomeActivity> {
 
   // Helper method to build quick action cards
   Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: Offset(0, 2),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE5E7EB),
+              width: 1,
             ),
-          ],
-        ),
-        child: Column(
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+              Icon(
+                icon,
+                color: color,
+                size: 22,
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontFamily: "PopSemi",
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: Colors.black,
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: "PopSemi",
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF6B7280),
+                  letterSpacing: 0.1,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -771,19 +882,12 @@ class _HomeActivityState extends State<HomeActivity> {
   // Helper method to build booking cards
   Widget _buildBookingCard(Records booking) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-                ),
+      margin: const EdgeInsets.only(bottom: ModernDesignSystem.spacingM),
+      padding: const EdgeInsets.all(ModernDesignSystem.spacingL),
+      decoration: ModernDesignSystem.modernCard(
+        borderRadius: ModernDesignSystem.radiusM,
+        shadows: ModernDesignSystem.shadowMedium,
+      ),
                 child: Column(
         children: [
           Row(
@@ -836,10 +940,10 @@ class _HomeActivityState extends State<HomeActivity> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingXS),
                 decoration: BoxDecoration(
                   color: _getStatusColor(booking.orderStatus ?? "").withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
                 ),
                 child: Text(
                   booking.orderStatus ?? "",
@@ -914,20 +1018,14 @@ class _HomeActivityState extends State<HomeActivity> {
   // Helper method to build offer cards
   Widget _buildOfferCard(OfferListModelData offer) {
     return Container(
-        margin: const EdgeInsets.only(right: 12),
+        margin: const EdgeInsets.only(right: ModernDesignSystem.spacingM),
         width: 280,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
+        decoration: ModernDesignSystem.modernCard(
+          borderRadius: ModernDesignSystem.radiusM,
+          shadows: ModernDesignSystem.shadowMedium,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
           child: Stack(
             children: [
               Image.network(
@@ -1016,18 +1114,11 @@ class _HomeActivityState extends State<HomeActivity> {
   // Helper method to build pending booking card
   Widget _buildPendingBookingCard(Records booking) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+      margin: const EdgeInsets.only(bottom: ModernDesignSystem.spacingM),
+      padding: const EdgeInsets.all(ModernDesignSystem.spacingL),
+      decoration: ModernDesignSystem.modernCard(
+        borderRadius: ModernDesignSystem.radiusM,
+        shadows: ModernDesignSystem.shadowMedium,
       ),
       child: Column(
         children: [
@@ -1087,10 +1178,10 @@ class _HomeActivityState extends State<HomeActivity> {
               ),
               // Status badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingXS),
                 decoration: BoxDecoration(
                   color: _getStatusColor(booking.orderStatus ?? "pending"),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
                 ),
                 child: Text(
                   booking.orderStatus ?? "Pending",
@@ -1117,7 +1208,7 @@ class _HomeActivityState extends State<HomeActivity> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.green,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusS),
                     ),
                     child: const Text(
                       "Complete",
@@ -1141,7 +1232,7 @@ class _HomeActivityState extends State<HomeActivity> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusS),
                     ),
                     child: const Text(
                       "Cancel",
@@ -1187,12 +1278,12 @@ class _HomeActivityState extends State<HomeActivity> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => CommonWidget.safePop(context),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                CommonWidget.safePop(context);
                 putStatusCancel(context, reasone.text, booking.sId.toString());
               },
               child: const Text("Confirm"),
@@ -1387,10 +1478,10 @@ class _HomeActivityState extends State<HomeActivity> {
                     Icons.design_services,
                     Colors.green,
                     () {
-                      Navigator.pop(context);
+                      CommonWidget.safePop(context);
                       CommonWidget.navigateToScreen(
                         context,
-                        const SimpleAddServicesActivity(),
+                        UltraSimpleAddService(),
                       );
                     },
                   ),
@@ -1402,10 +1493,12 @@ class _HomeActivityState extends State<HomeActivity> {
                     Icons.inventory_2,
                     Colors.purple,
                     () {
-                      Navigator.pop(context);
-                      CommonWidget.navigateToScreen(
+                      CommonWidget.safePop(context);
+                      Navigator.push(
                         context,
-                        const AddPackageActivity(),
+                        MaterialPageRoute(
+                          builder: (context) => const AddPackageActivity(),
+                        ),
                       );
                     },
                   ),
@@ -1421,7 +1514,7 @@ class _HomeActivityState extends State<HomeActivity> {
                     Icons.local_offer,
                     Colors.orange,
                     () {
-                      Navigator.pop(context);
+                      CommonWidget.safePop(context);
                       CommonWidget.navigateToScreen(
                         context,
                         const EnhancedOfferScreen(),
@@ -1436,7 +1529,7 @@ class _HomeActivityState extends State<HomeActivity> {
                     Icons.add_box,
                     Colors.teal,
                     () {
-                      Navigator.pop(context);
+                      CommonWidget.safePop(context);
                       _showAddExistingOptions(context);
                     },
                   ),
@@ -1491,7 +1584,7 @@ class _HomeActivityState extends State<HomeActivity> {
               Icons.design_services,
               Colors.green,
               () {
-                Navigator.pop(context);
+                CommonWidget.safePop(context);
                 CommonWidget.navigateToScreen(
                   context,
                   const ServicesListActivity(),
@@ -1505,7 +1598,7 @@ class _HomeActivityState extends State<HomeActivity> {
               Icons.inventory_2,
               Colors.purple,
               () {
-                Navigator.pop(context);
+                CommonWidget.safePop(context);
                 CommonWidget.navigateToScreen(
                   context,
                   const PackageListActivity(),
@@ -1519,7 +1612,7 @@ class _HomeActivityState extends State<HomeActivity> {
               Icons.local_offer,
               Colors.orange,
               () {
-                Navigator.pop(context);
+                CommonWidget.safePop(context);
                 CommonWidget.navigateToScreen(
                   context,
                   const EnhancedOfferListScreen(),

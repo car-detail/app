@@ -91,7 +91,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
       sharedPreferences!
           .setString(Constant.vendorId, data.data?.newBusinessData?.sId ?? "");
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      Navigator.pop(context, true);
+      CommonWidget.safePop(context, result: true);
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
@@ -124,7 +124,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
               margin: const EdgeInsets.only(top: 45, left: 15),
               child: InkWell(
                 onTap: (){
-                  Navigator.pop(context, true);
+                  CommonWidget.safePop(context, result: true);
                 },
                 child: Image.asset(
                   CommonWidget.getImagePath("backspace.png"),

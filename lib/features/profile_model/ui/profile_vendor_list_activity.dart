@@ -5,7 +5,7 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ContainerDecoration.dart';
-import 'package:car_app/features/log_in/ui/LoginActivity.dart';
+import 'package:car_app/features/log_in/ui/modern_login_activity.dart';
 import 'package:car_app/features/log_in/ui/edit_user_details_activity.dart';
 import 'package:car_app/features/resister_vendor_model/ui/edit_vendor_activity.dart';
 import 'package:flutter/material.dart';
@@ -681,7 +681,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => CommonWidget.safePop(context),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
@@ -690,10 +690,10 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
                 backgroundColor: ColorClass.base_color,
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                CommonWidget.safePop(context);
                 sharedPreferences!.clear();
                 CommonWidget.navigateToKillAllScreen(
-                    context, LoginActivity("Login"));
+                    context, const ModernLoginActivity(isSignUp: false));
               },
               child: const Text("Logout"),
             ),
@@ -719,9 +719,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => CommonWidget.safePop(context),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
@@ -731,7 +729,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                CommonWidget.safePop(context);
                 deleteAccount();
               },
               child: const Text("Delete"),
@@ -757,7 +755,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> {
     var data = CommonBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      CommonWidget.navigateToKillAllScreen(context, LoginActivity("Login"));
+      CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }

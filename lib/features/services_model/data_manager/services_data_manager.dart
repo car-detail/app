@@ -95,20 +95,27 @@ class ServicesDataManager {
       String categoryId,
       String serviceImage,
       String mobile) {
+    // Build payload with proper types
+    Map<String, dynamic> payload = {
+      "serviceTitle": title,
+      "about": about,
+      "timeSlotCapacity": timeSlot,
+      "price": price.isNotEmpty ? (double.tryParse(price) ?? 0.0) : 0.0,
+      "serviceDuration": duration,
+      "categoryName": catName,
+      "categoryId": categoryId,
+      "coverImage": serviceImage, // Use coverImage for backward compatibility
+      "mobile": mobile,
+    };
+    
+    print("🔧 Update Service Payload:");
+    print("🔧 serviceId: $serviceId");
+    print("🔧 payload: $payload");
+    
     return apiFuntions.putdatauser(
       context,
       "${Constant.updateService}$serviceId",
-      <String, dynamic>{
-        "serviceTitle": title,
-        "about": about,
-        "timeSlotCapacity": timeSlot,
-        "price": price,
-        "serviceDuration": duration,
-        "categoryName": catName,
-        "categoryId": categoryId,
-        "coverImage": serviceImage, // Use coverImage for backward compatibility
-        "mobile": mobile,
-      },
+      payload,
     );
   }
 }
