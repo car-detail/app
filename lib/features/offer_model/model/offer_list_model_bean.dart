@@ -87,7 +87,7 @@ class OfferListModelData {
     location = json['location'] != null
         ? Location.fromJson(json['location'])
         : null;
-    isCurrentlyActive = json['isCurrentlyActive'];
+    isCurrentlyActive = json['isCurrentlyActive'] ?? json['isActive'] ?? true;
     validFrom = json['validFrom'];
     validUntil = json['validUntil'];
     updatedAt = json['updatedAt'];
@@ -214,7 +214,7 @@ class Service {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['_id'] = sId;
     data['serviceTitle'] = serviceTitle;
     data['about'] = about;

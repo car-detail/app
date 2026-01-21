@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Common/Color.dart';
-import '../Common/CommonBean.dart';
 import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import '../error_model.dart';
@@ -21,6 +18,7 @@ class ApiFuntions {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
+    
     debugPrint('Context: $context');
     debugPrint('Token: ${token.isNotEmpty ? "***" : "empty"}');
     debugPrint("API URL: ${Constant.baseurl}$endpoint");
@@ -56,7 +54,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         }
         else {
@@ -123,7 +121,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         }
         else {
@@ -162,7 +160,7 @@ class ApiFuntions {
 
   Future<http.Response> postdatauser(
       BuildContext context, String endpoint, dynamic data,
-      {String token = ""}) async {
+      {String token = "", bool skipAutoNavigation = false}) async {
     FocusManager.instance.primaryFocus?.unfocus();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
@@ -175,26 +173,29 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final fullUrl = '${Constant.baseurl}$endpoint';
+        debugPrint("🔗 Full API URL: $fullUrl");
+        debugPrint("📦 Base URL: ${Constant.baseurl}");
+        debugPrint("📋 Endpoint: $endpoint");
         final response = await http.post(
-            Uri.parse('${Constant.baseurl}$endpoint'),
+            Uri.parse(fullUrl),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
               "Authorization": "Bearer $token",
               "ngrok-skip-browser-warning": "true"
             });
-        debugPrint("${Constant.baseurl}$endpoint");
-        debugPrint('Status Code: ${response.statusCode}');
-        debugPrint(response.body);
+        debugPrint('📊 Status Code: ${response.statusCode}');
+        debugPrint('📄 Response Body: ${response.body}');
         if (response.statusCode == 200 || response.statusCode == 201) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
           return response;
         }else if(response.statusCode == 401){
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
           /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
           //var data = ErrorModel.fromJson(jsonDecode(response.body));
@@ -202,17 +203,41 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         }
 
         else {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          var data = ErrorModel.fromJson(jsonDecode(response.body));
-          if(data.message!.isNotEmpty) {
-            CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
+          // Handle both custom error format and NestJS default error format (404, etc.)
+          try {
+            Map<String, dynamic> errorData = jsonDecode(response.body);
+            String errorMessage = "";
+            
+            // Handle NestJS default format: {"message":"...", "error":"...", "statusCode":404}
+            if (errorData['message'] != null) {
+              if (errorData['message'] is List) {
+                // Custom format with array
+                List<dynamic> messageList = errorData['message'] as List<dynamic>;
+                errorMessage = messageList.isNotEmpty ? messageList[0].toString() : "An error occurred";
+              } else {
+                // NestJS default format with string
+                errorMessage = errorData['message'].toString();
+              }
+            } else if (errorData['error'] != null) {
+              errorMessage = errorData['error'].toString();
+            } else {
+              errorMessage = "An error occurred (Status: ${response.statusCode})";
+            }
+            
+            if (errorMessage.isNotEmpty) {
+              CommonWidget.errorShowSnackBarFor(context, errorMessage);
+            }
+          } catch (e) {
+            // Fallback if JSON parsing fails
+            CommonWidget.errorShowSnackBarFor(context, "Error: ${response.statusCode}");
           }
           debugPrint(response.body);
           return response;
@@ -278,7 +303,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         }else {
           if (context.mounted && Navigator.canPop(context)) {
@@ -314,7 +339,7 @@ class ApiFuntions {
 
   Future<http.Response> sendMultipartRequest(BuildContext context, String url,
       List<File> files, Map<String, dynamic> data,
-      {String filekey = "file"}) async {
+      {String filekey = "file", bool skipAutoNavigation = false}) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     FocusManager.instance.primaryFocus?.unfocus();
@@ -391,10 +416,11 @@ class ApiFuntions {
             
             debugPrint('📁 Web File: $fileName, Extension: $fileExtension, Size: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
           } catch (e) {
-            if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-            CommonWidget.errorShowSnackBarFor(context, 'Error reading file on web: ${e.toString()}');
+            // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Error reading file on web: ${e.toString()}');
             throw Exception('Error reading file on web: $e');
           }
         } else {
@@ -410,10 +436,11 @@ class ApiFuntions {
           if (lastDotIndex > 0 && lastDotIndex < fileName.length - 1) {
             fileExtension = fileName.substring(lastDotIndex).toLowerCase();
           } else {
-            if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-            CommonWidget.errorShowSnackBarFor(context, 'File has no extension: $fileName');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'File has no extension: $fileName');
             throw Exception('File has no extension: $fileName');
           }
           
@@ -422,27 +449,30 @@ class ApiFuntions {
           // Check if file exists and get size
           try {
             if (!await file.exists()) {
-              if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-              CommonWidget.errorShowSnackBarFor(context, 'File not found: $fileName');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'File not found: $fileName');
               throw Exception('File not found: $fileName');
             }
           } catch (e) {
-            if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-            CommonWidget.errorShowSnackBarFor(context, 'Error checking file: $e');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Error checking file: $e');
             throw Exception('Error checking file: $e');
           }
 
           try {
             fileSize = await file.length();
           } catch (e) {
-            if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-            CommonWidget.errorShowSnackBarFor(context, 'Error reading file size: $e');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Error reading file size: $e');
             throw Exception('Error reading file size: $e');
           }
         }
@@ -451,10 +481,11 @@ class ApiFuntions {
         
         // Validate file size
         if (fileSize > maxFileSize) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          CommonWidget.errorShowSnackBarFor(context, 'File size exceeds maximum limit (100 MB)');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'File size exceeds maximum limit (100 MB)');
           throw Exception('File size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
@@ -467,27 +498,30 @@ class ApiFuntions {
         debugPrint('🔍 Allowed Document Extensions: $allowedDocumentExtensions');
         
         if (!isImage && !isDocument) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileExtension. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileExtension. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)');
           throw Exception('Unsupported file format: $fileExtension');
         }
 
         // Validate size based on file type
         if (isImage && fileSize > maxImageSize) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (5 MB). Please compress the image.');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (5 MB). Please compress the image.');
           throw Exception('Image size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
         if (isDocument && fileSize > maxDocumentSize) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          CommonWidget.errorShowSnackBarFor(context, 'Document size exceeds maximum limit (10 MB)');
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        CommonWidget.errorShowSnackBarFor(context, 'Document size exceeds maximum limit (10 MB)');
           throw Exception('Document size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
@@ -535,16 +569,18 @@ class ApiFuntions {
               );
             }
           } catch (e) {
-            if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+            // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+            if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+              CommonWidget.safePop(context);
+            }
             CommonWidget.errorShowSnackBarFor(context, 'Error reading file: ${e.toString()}');
             throw Exception('Error reading file: $e');
           }
         } else {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+          // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
           CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileName');
           throw Exception('Unsupported file format: $fileName');
         }
@@ -572,30 +608,36 @@ class ApiFuntions {
 
       // Handle the response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
         debugPrint('Success: ${response.body}');
         return response; // Return the response body upon success
       }else if(response.statusCode == 401){
-        if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
         /*CommonWidget.errorShowSnackBarFor(
               context, "${response.statusCode.toString()} Error Code");*/
         //var data = ErrorModel.fromJson(jsonDecode(response.body));
         /*if(data.message!.length>0)
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
         debugPrint(response.body);
-        sharedPreferences.clear();
-        CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+        // Only auto-navigate if skipAutoNavigation is false
+        if (!skipAutoNavigation) {
+          sharedPreferences.clear();
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+        }
         return response;
       }
 
       else {
-        if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
+        // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
         var data = ErrorModel.fromJson(jsonDecode(response.body));
         if(data.message!.isNotEmpty) {
           CommonWidget.errorShowSnackBarFor(context, data.message![0]);
@@ -604,7 +646,8 @@ class ApiFuntions {
         return response;
       }
     } catch (e) {
-      if (context.mounted && Navigator.canPop(context)) {
+      // Only pop dialog if skipAutoNavigation is false (caller handles it if true)
+      if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
       }
       debugPrint('Error sending files to server: $e');
@@ -678,7 +721,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity(isSignUp: false));
+          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         } else {
           if (context.mounted && Navigator.canPop(context)) {
@@ -686,14 +729,24 @@ class ApiFuntions {
       }
           Map<String, dynamic> message = (jsonDecode(response.body));
 
-          if (message['message'].length > 0) {
-            var mes = message['message'][0];
-            CommonWidget.errorShowSnackBarFor(context, "$mes Error Code");
+          // Handle message as both string and array (backend returns array)
+          String errorMessage = "";
+          if (message['message'] != null) {
+            if (message['message'] is List && (message['message'] as List).isNotEmpty) {
+              errorMessage = (message['message'] as List)[0].toString();
+            } else if (message['message'] is List && (message['message'] as List).isEmpty) {
+              errorMessage = "An error occurred";
+            } else {
+              errorMessage = message['message'].toString();
+            }
           }
-          var mes = message['message'];
+          
+          if (errorMessage.isNotEmpty) {
+            CommonWidget.errorShowSnackBarFor(context, "$errorMessage Error Code");
+          }
           debugPrint(response.body);
-          debugPrint(mes);
-          showSnackBar(context, mes);
+          debugPrint(errorMessage);
+          showSnackBar(context, errorMessage);
           return response;
           //Common.showToast(mes);
         }

@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +30,6 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
   TextEditingController packageNameController = TextEditingController();
   TextEditingController packageDescriptionController = TextEditingController();
   TextEditingController packagePriceController = TextEditingController();
-  TextEditingController packageDurationController = TextEditingController();
   TextEditingController smallVehiclePriceController = TextEditingController();
   TextEditingController largeVehiclePriceController = TextEditingController();
   
@@ -116,28 +117,54 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
   }
 
   void _populateFormData() {
+    // Debug: Print the package data received
+    
     // Populate form fields with existing package data
     packageNameController.text = widget.packageData.packageName ?? "";
     packageDescriptionController.text = widget.packageData.packageDescription ?? "";
     packagePriceController.text = widget.packageData.packagePrice ?? "";
-    packageDurationController.text = widget.packageData.packageDuration ?? "";
-    smallVehiclePriceController.text = widget.packageData.smallVehiclePrice ?? "";
-    largeVehiclePriceController.text = widget.packageData.largeVehiclePrice ?? "";
+    
+    // Handle pricing - prefer smallVehiclePrice/largeVehiclePrice, fallback to packagePrice
+    if (widget.packageData.smallVehiclePrice != null && widget.packageData.smallVehiclePrice!.isNotEmpty) {
+      smallVehiclePriceController.text = widget.packageData.smallVehiclePrice!;
+    } else if (widget.packageData.packagePrice != null && widget.packageData.packagePrice!.isNotEmpty) {
+      // If smallVehiclePrice is not set, use packagePrice as fallback
+      smallVehiclePriceController.text = widget.packageData.packagePrice!;
+    } else {
+      smallVehiclePriceController.text = "";
+    }
+    
+    if (widget.packageData.largeVehiclePrice != null && widget.packageData.largeVehiclePrice!.isNotEmpty) {
+      largeVehiclePriceController.text = widget.packageData.largeVehiclePrice!;
+    } else if (widget.packageData.packagePrice != null && widget.packageData.packagePrice!.isNotEmpty) {
+      // If largeVehiclePrice is not set, use packagePrice as fallback
+      largeVehiclePriceController.text = widget.packageData.packagePrice!;
+    } else {
+      largeVehiclePriceController.text = "";
+    }
+    
     selectedTier = widget.packageData.packageTier ?? "BASIC";
-    isBestSeller = widget.packageData.isBestSeller ?? false;
+    // Set isBestSeller from API data - ensure it's properly set
+    isBestSeller = widget.packageData.isBestSeller == true;
     
-    // Populate selected services
-    selectedServices = List<String>.from(widget.packageData.servicesIncluded ?? []);
+    // Populate selected services - handle both service IDs and service objects
+    if (widget.packageData.servicesIncluded != null) {
+      selectedServices = widget.packageData.servicesIncluded!.map((e) => e.toString()).toList();
+    } else {
+      selectedServices = [];
+    }
     
-    // Extract custom services from description if any
-    _extractCustomServicesFromDescription();
+    // Load custom services from package data (if available) or extract from description as fallback
+    if (widget.packageData.customServices != null && widget.packageData.customServices!.isNotEmpty) {
+      customServices = List<String>.from(widget.packageData.customServices!);
+    } else {
+      // Fallback: Extract custom services from description if any
+      _extractCustomServicesFromDescription();
+    }
     
-    print("🔍 Populated form data:");
-    print("🔍 Package Name: ${packageNameController.text}");
-    print("🔍 Description: ${packageDescriptionController.text}");
-    print("🔍 Price: ${packagePriceController.text}");
-    print("🔍 Selected Services: $selectedServices");
-    print("🔍 Custom Services: $customServices");
+    // Trigger setState to update UI with populated data
+    setState(() {});
+    
   }
 
   void _extractCustomServicesFromDescription() {
@@ -174,57 +201,114 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         customServices.add(serviceName.trim());
         customServiceController.clear();
       });
-      print("✅ Added custom service: ${serviceName.trim()}");
-      print("🔍 Custom services now: $customServices");
     }
   }
 
   Future<void> getAvailableServices() async {
-    print("🔄 Loading available services...");
     var response = await dataManager!.getAllServices(context);
-    print("📡 Services API Response Status: ${response.statusCode}");
-    print("📡 Services API Response Body: ${response.body}");
     
     try {
     var data = ServicesModelData.fromJson(jsonDecode(response.body));
-      print("📦 Services Data Status: ${data.status}");
-      print("📦 Services Count: ${data.data?.length ?? 0}");
       
     if (data.status == "success") {
       setState(() {
         availableServices.clear();
         availableServices.addAll(data.data!);
       });
-        print("✅ Services loaded successfully: ${availableServices.length} services");
         
         // Debug: Print details of each service
+        debugPrint('=== Available Services Debug ===');
+        debugPrint('Total services loaded: ${availableServices.length}');
         for (int i = 0; i < availableServices.length; i++) {
           final service = availableServices[i];
-          print("🔍 Service $i: ID=${service.sId}, Title=${service.serviceTitle}, About=${service.about}, Description=${service.description}, Price=${service.price}");
+          debugPrint('Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
         }
+        debugPrint('=== End Services Debug ===');
         
         // Debug: Print selected services
-        print("🔍 Selected Services: $selectedServices");
       } else {
-        print("❌ Services API returned error: ${data.message}");
+        debugPrint('Failed to load services: ${data.message}');
       }
-    } catch (e, stackTrace) {
-      print("❌ Error parsing services response: $e");
-      print("❌ Stack Trace: $stackTrace");
+    } catch (e) {
+      debugPrint('Error loading services: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Package"),
-        backgroundColor: ColorClass.base_color,
-        foregroundColor: Colors.white,
-        elevation: 0,
+    // Set status bar style when this screen builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: ColorClass.base_color,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
+      );
+    });
+    
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: ColorClass.base_color,
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
-      body: Column(
-        children: [
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Column(
+          children: [
+            // Green status bar background
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              color: ColorClass.base_color,
+              width: double.infinity,
+            ),
+            // AppBar-like header
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: ColorClass.base_color,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Back button on the left
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: CommonWidget.buildAppBarBackButton(
+          context,
+          backgroundColor: Colors.white.withOpacity(0.2),
+          iconColor: Colors.white,
+        ),
+                  ),
+                  // Centered title
+                  const Text(
+                    "Edit Package",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Pop600",
+      ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           // Progress Indicator
           Container(
             padding: const EdgeInsets.all(20),
@@ -243,6 +327,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
           Expanded(
             child: PageView(
               controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent bypassing validation
               onPageChanged: (index) {
                 setState(() {
                   currentStep = index;
@@ -294,6 +379,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -344,23 +430,12 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Package Details",
-              style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+            // Welcome Banner
+            UXHelperWidget.buildInfoBanner(
+              message: "Update your package details below. You can change anything anytime!",
+              icon: Icons.edit_outlined,
             ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            "Update your package information",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 30),
+            const SizedBox(height: 30),
           
           // Package Templates
           const Text(
@@ -473,162 +548,215 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
           const SizedBox(height: 15),
             
             // Package Name
-            const Text(
-              "Package Name *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
               controller: packageNameController,
-              decoration: InputDecoration(
-                hintText: "e.g., Premium Car Wash Package",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                prefixIcon: const Icon(Icons.inventory_2),
-              ),
+              label: "Package Name",
+              icon: Icons.inventory_2,
+              helpText: "Give your package a clear and attractive name, like 'Complete Car Care Package' or 'Express Wash & Wax'.",
+              example: "Premium Car Wash Package",
+              isRequired: true,
             ),
           const SizedBox(height: 15),
             
             // Package Description
-            const Text(
-              "Description *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
               controller: packageDescriptionController,
+              label: "Description",
+              icon: Icons.description,
+              helpText: "Describe what's included in this package. Be clear about what customers will get.",
+              example: "Complete car care package including wash, detailing, and polishing",
               maxLines: 3,
-              decoration: InputDecoration(
-                hintText: "Describe what's included in this package...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                prefixIcon: const Icon(Icons.description),
-              ),
+              isRequired: true,
             ),
           const SizedBox(height: 15),
           
           // Vehicle Size Pricing
-                      const Text(
-            "Vehicle Size Pricing *",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "Vehicle Size Pricing *",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  UXHelperWidget.showHelpDialog(
+                    context,
+                    title: "Vehicle Size Pricing",
+                    message: "Offer different prices for small vehicles (sedans, hatchbacks) and large vehicles (SUVs, trucks, vans). This helps you price fairly based on the effort required.",
+                    example: "Small Vehicle: \$25, Large Vehicle: \$35",
+                  );
+                },
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 14,
+                    color: ColorClass.base_color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: UXHelperWidget.buildHelpfulInputField(
+                  context: context,
                   controller: smallVehiclePriceController,
+                  label: "Small Vehicle",
+                  icon: Icons.directions_car,
+                  helpText: "Enter the price for smaller vehicles like sedans and hatchbacks.",
+                  hintText: "e.g., 25",
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: "Small Vehicle Price",
-                    labelText: "Small Vehicle (\$)",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    prefixIcon: const Icon(Icons.directions_car),
-                  ),
+                  isRequired: true,
                 ),
               ),
               const SizedBox(width: 15),
               Expanded(
-                child: TextField(
+                child: UXHelperWidget.buildHelpfulInputField(
+                  context: context,
                   controller: largeVehiclePriceController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                    hintText: "Large Vehicle Price",
-                    labelText: "Large Vehicle (\$)",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                    prefixIcon: const Icon(Icons.local_shipping),
-                  ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  label: "Large Vehicle",
+                  icon: Icons.local_shipping,
+                  helpText: "Enter the price for larger vehicles like SUVs, trucks, and vans.",
+                  hintText: "e.g., 35",
+                  keyboardType: TextInputType.number,
+                  isRequired: true,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 15),
           
           // Package Tier
-          const Text(
-            "Package Tier *",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "Package Tier *",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  UXHelperWidget.showHelpDialog(
+                    context,
+                    title: "Package Tier",
+                    message: "Choose the tier that best describes your package. OUTSIDE is basic exterior, BASIC includes interior, ULTRA is premium, and THE BEST is the ultimate package.",
+                    example: "BASIC - Standard wash with interior cleaning",
+                  );
+                },
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 14,
+                    color: ColorClass.base_color,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: selectedTier,
-            decoration: InputDecoration(
-              hintText: "Select package tier",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              prefixIcon: const Icon(Icons.category),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
             ),
-            items: ["OUTSIDE", "BASIC", "ULTRA", "THE BEST"].map((tier) {
-              return DropdownMenuItem(
-                value: tier,
-                child: Text(tier),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedTier = value ?? "BASIC";
-              });
-            },
+            child: DropdownButtonFormField<String>(
+              initialValue: selectedTier,
+              decoration: InputDecoration(
+                hintText: "Select package tier",
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                prefixIcon: Icon(Icons.category, color: ColorClass.base_color),
+              ),
+              items: ["OUTSIDE", "BASIC", "ULTRA", "THE BEST"].map((tier) {
+                return DropdownMenuItem(
+                  value: tier,
+                  child: Text(tier),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedTier = value ?? "BASIC";
+                });
+              },
+            ),
           ),
-          const SizedBox(height: 15),
-          
-          // Duration
-                      const Text(
-                        "Duration (hours) *",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: packageDurationController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: "2",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          prefixIcon: const Icon(Icons.schedule),
-                        ),
-                      ),
           const SizedBox(height: 15),
           
           // Services Included Section
-          const Text(
-            "What's Included in This Package?",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "What's Included in This Package?",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  UXHelperWidget.showHelpDialog(
+                    context,
+                    title: "Package Services",
+                    message: "List all the services that are included in this package. You can add custom services or select from your existing services.",
+                    example: "Interior wash, Compounding, Engine cleansing, Waxing",
+                  );
+                },
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 14,
+                    color: ColorClass.base_color,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Define what services customers will get (e.g., Interior wash, Compounding, Engine cleansing)",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+          UXHelperWidget.buildInfoBanner(
+            message: "Define what services customers will get. You can add custom services or select from your existing services below.",
+            icon: Icons.info_outline,
+            backgroundColor: Colors.blue[50],
+            iconColor: Colors.blue[700],
           ),
           const SizedBox(height: 15),
           
@@ -673,7 +801,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                 ),
               ],
             ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 
                 // Quick Add Buttons
                 const Text(
@@ -683,7 +811,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -756,7 +884,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                     isBestSeller = value;
                     });
                   },
-                  activeColor: ColorClass.base_color,
+                  activeThumbColor: ColorClass.base_color,
                 ),
             ],
                 ),
@@ -771,23 +899,11 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            const Text(
-            "Select Services",
-              style: TextStyle(
-              fontSize: 24,
-                fontWeight: FontWeight.bold,
-              color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-            "Choose which services are included in this package",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+          UXHelperWidget.buildInfoBanner(
+            message: "Select which services are included in this package. You can choose from your existing services or add custom ones.",
+            icon: Icons.checklist,
           ),
-          const SizedBox(height: 30),
+          // const SizedBox(height: 15),
           
           // Custom Services Section
           Container(
@@ -800,32 +916,63 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Add Custom Services",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        "Add Custom Services",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        UXHelperWidget.showHelpDialog(
+                          context,
+                          title: "Custom Services",
+                          message: "Add services that aren't in your service list. These are just descriptions of what's included in the package.",
+                          example: "Dry clean seats, Interior cleaning, Blow dry",
+                        );
+                      },
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.help_outline,
+                          size: 14,
+                          color: ColorClass.base_color,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const Text(
                   "Add your own services to this package",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-                const SizedBox(height: 16),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: customServiceController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: "e.g., Dry clean seats, Interior cleaning, Blow dry",
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          prefixIcon: Icon(Icons.add_circle_outline, color: ColorClass.base_color),
                         ),
                         onSubmitted: (value) {
                           _addCustomService(value);
@@ -837,11 +984,15 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                       onPressed: () {
                         _addCustomService(customServiceController.text);
                       },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorClass.base_color,
+                        foregroundColor: Colors.white,
+                      ),
                       child: const Text("Add"),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 if (customServices.isNotEmpty) ...[
                   const Text(
                     "Custom Services:",
@@ -850,7 +1001,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -873,19 +1024,48 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
             ),
           ),
           
-            const SizedBox(height: 20),
+          const SizedBox(height: 10),
           
           // Existing Services Section
-          const Text(
-            "Select from Existing Services",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "Select Services to Link (optional)",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  UXHelperWidget.showHelpDialog(
+                    context,
+                    title: "Existing Services",
+                    message: "Select services from your service list. These are services you've already created. You can select multiple services.",
+                    example: "Check the boxes next to services you want to include",
+                  );
+                },
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 14,
+                    color: ColorClass.base_color,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-            
+          const SizedBox(height: 12),
             if (availableServices.isEmpty)
               const Center(
               child: Column(
@@ -897,30 +1077,48 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                 ],
               ),
             )
-          else if (availableServices.length == 0)
-            const Center(
+          else
+            Builder(
+              builder: (context) {
+                // Show all services (remove price filter - services can have price 0 or null)
+                // The price filter was too restrictive and hiding valid services
+                final filteredServices = availableServices.toList();
+                
+                // Debug: Print filtered services
+                debugPrint('=== Filtered Services Debug ===');
+                debugPrint('Total services after filter: ${filteredServices.length}');
+                for (int i = 0; i < filteredServices.length; i++) {
+                  final service = filteredServices[i];
+                  debugPrint('Filtered Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
+                }
+                debugPrint('=== End Filtered Services Debug ===');
+                
+                if (filteredServices.isEmpty) {
+                  return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.info_outline, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text("No services available", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                        Text("No services available", style: TextStyle(fontSize: 18, color: Colors.grey)),
                   SizedBox(height: 8),
-                  Text("Please add some services first", style: TextStyle(color: Colors.grey)),
+                        Text("Please create services first", style: TextStyle(color: Colors.grey)),
                 ],
               ),
-              )
-            else
-              ListView.builder(
+                  );
+                }
+                
+                return ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: availableServices.length,
+                  padding: EdgeInsets.zero,
+                  itemCount: filteredServices.length,
                 itemBuilder: (context, index) {
-                  final service = availableServices[index];
+                    final service = filteredServices[index];
                   final isSelected = selectedServices.contains(service.sId);
                   
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
+                      margin: EdgeInsets.only(bottom: index == filteredServices.length - 1 ? 0 : 10),
                     child: CheckboxListTile(
                       title: Text(
                         service.serviceTitle ?? "Unknown Service",
@@ -944,16 +1142,14 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                         setState(() {
                           if (value == true) {
                             selectedServices.add(service.sId!);
-                            print("✅ Added service: ${service.serviceTitle} (ID: ${service.sId})");
-                            print("🔍 Selected services now: $selectedServices");
                           } else {
                             selectedServices.remove(service.sId!);
-                            print("❌ Removed service: ${service.serviceTitle} (ID: ${service.sId})");
-                            print("🔍 Selected services now: $selectedServices");
                           }
                         });
                       },
                     ),
+                    );
+                  },
                   );
                 },
               ),
@@ -1010,9 +1206,13 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                   const SizedBox(height: 15),
                   Row(
                     children: [
-                      _buildInfoChip("Price", "\$${packagePriceController.text}"),
-                      const SizedBox(width: 10),
-                      _buildInfoChip("Duration", "${packageDurationController.text} hours"),
+                      // Show price range if both small and large vehicle prices are set
+                      if (smallVehiclePriceController.text.isNotEmpty && largeVehiclePriceController.text.isNotEmpty)
+                        _buildInfoChip("Price", "\$${smallVehiclePriceController.text}-\$${largeVehiclePriceController.text}")
+                      else if (packagePriceController.text.isNotEmpty)
+                        _buildInfoChip("Price", "\$${packagePriceController.text}")
+                      else
+                        _buildInfoChip("Price", "N/A"),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -1035,11 +1235,10 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                           backgroundColor: Colors.blue.withOpacity(0.1),
                           labelStyle: const TextStyle(color: Colors.blue),
                         );
-                      }).toList(),
+                      }),
                       
                       // Selected Services (from existing services)
                       ...selectedServices.map((serviceId) {
-                        print("🔍 Looking for service with ID: $serviceId");
                         
                         final service = availableServices.firstWhere(
                           (s) => s.sId == serviceId,
@@ -1047,17 +1246,15 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                         );
                         
                         if (service.sId != null) {
-                          print("🔍 Found service: ${service.serviceTitle} (ID: ${service.sId})");
                           return Chip(
                             label: Text(service.serviceTitle ?? "Unknown Service"),
                             backgroundColor: ColorClass.base_color.withOpacity(0.1),
                             labelStyle: TextStyle(color: ColorClass.base_color),
                           );
                         } else {
-                          print("❌ Service not found for ID: $serviceId");
                           return const SizedBox.shrink(); // Don't show anything for unknown services
                         }
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ],
@@ -1110,7 +1307,6 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
       packageDescriptionController.text = template.description;
       smallVehiclePriceController.text = template.smallPrice;
       largeVehiclePriceController.text = template.largePrice;
-      packageDurationController.text = template.duration;
       selectedTier = template.tier;
       isBestSeller = template.isBestSeller;
       
@@ -1123,35 +1319,163 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
     CommonWidget.successShowSnackBarFor(context, "Package template selected!");
   }
 
-  void _nextStep() {
-    if (currentStep == 0) {
-      if (packageNameController.text.isEmpty || 
-          packageDescriptionController.text.isEmpty ||
-          smallVehiclePriceController.text.isEmpty ||
-          largeVehiclePriceController.text.isEmpty ||
-          packageDurationController.text.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please fill all required fields");
-        return;
-      }
+  // Validation methods
+  String? _validatePackageName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Package name is required";
+    }
+    if (value.trim().length < 3) {
+      return "Package name must be at least 3 characters";
+    }
+    if (value.trim().length > 100) {
+      return "Package name must be less than 100 characters";
+    }
+    return null;
+  }
+
+  String? _validateDescription(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Description is required";
+    }
+    if (value.trim().length < 10) {
+      return "Description must be at least 10 characters";
+    }
+    if (value.trim().length > 500) {
+      return "Description must be less than 500 characters";
+    }
+    return null;
+  }
+
+  String? _validatePrice(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return "$fieldName is required";
+    }
+    final price = double.tryParse(value.trim());
+    if (price == null) {
+      return "$fieldName must be a valid number";
+    }
+    if (price < 0) {
+      return "$fieldName cannot be negative";
+    }
+    if (price > 10000) {
+      return "$fieldName cannot exceed \$10,000";
+    }
+    return null;
+  }
+
+  String? _validateDuration(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Duration is required";
+    }
+    final duration = double.tryParse(value.trim());
+    if (duration == null) {
+      return "Duration must be a valid number";
+    }
+    if (duration <= 0) {
+      return "Duration must be greater than 0";
+    }
+    if (duration > 24) {
+      return "Duration cannot exceed 24 hours";
+    }
+    return null;
+  }
+
+  bool _validateBasicInfo() {
+    // Validate package name
+    final nameError = _validatePackageName(packageNameController.text);
+    if (nameError != null) {
+      CommonWidget.errorShowSnackBarFor(context, nameError);
+      return false;
+    }
+
+    // Validate description
+    final descError = _validateDescription(packageDescriptionController.text);
+    if (descError != null) {
+      CommonWidget.errorShowSnackBarFor(context, descError);
+      return false;
+    }
+
+    // Validate small vehicle price
+    final smallPriceError = _validatePrice(smallVehiclePriceController.text, "Small vehicle price");
+    if (smallPriceError != null) {
+      CommonWidget.errorShowSnackBarFor(context, smallPriceError);
+      return false;
+    }
+
+    // Validate large vehicle price
+    final largePriceError = _validatePrice(largeVehiclePriceController.text, "Large vehicle price");
+    if (largePriceError != null) {
+      CommonWidget.errorShowSnackBarFor(context, largePriceError);
+      return false;
+    }
+
+    // Validate that large vehicle price is >= small vehicle price
+    final smallPrice = double.tryParse(smallVehiclePriceController.text.trim());
+    final largePrice = double.tryParse(largeVehiclePriceController.text.trim());
+    if (smallPrice != null && largePrice != null && largePrice < smallPrice) {
+      CommonWidget.errorShowSnackBarFor(context, "Large vehicle price should be greater than or equal to small vehicle price");
+      return false;
+    }
       
-      if (customServices.isEmpty && selectedServices.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please add at least one service to the package");
-        return;
-      }
-    } else if (currentStep == 1) {
+    // Note: Services validation is done in step 1 (Services step), not in Basic Info step
+    // Services will be validated when moving from step 1 to step 2, or in the final review step
+
+    return true;
+  }
+
+  bool _validateServices() {
       if (selectedServices.isEmpty && customServices.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
-        return;
+      CommonWidget.errorShowSnackBarFor(context, "Please select or add at least one service");
+      return false;
       }
+    return true;
     }
     
+  void _nextStep() {
+    bool isValid = false;
+    
+    // Validate based on current step
+    if (currentStep == 0) {
+      // Step 0: Basic Info validation
+      isValid = _validateBasicInfo();
+    } else if (currentStep == 1) {
+      // Step 1: Services validation
+      isValid = _validateServices();
+    } else if (currentStep == 2) {
+      // Step 2: Review - validate everything before updating
+      isValid = _validateAllSteps();
+    }
+    
+    // Only proceed to next step if validation passes
+    if (isValid && currentStep < 2) {
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+    }
+  }
+  
+  // Comprehensive validation for all steps
+  bool _validateAllSteps() {
+    // Validate Basic Info
+    if (!_validateBasicInfo()) {
+      return false;
+    }
+    
+    // Validate Services
+    if (!_validateServices()) {
+      return false;
+    }
+    
+    return true;
   }
 
   Future<void> _updatePackage() async {
+    // Final comprehensive validation before updating package
+    if (!_validateAllSteps()) {
+      return;
+    }
+    
     try {
       showDialog(
         context: context,
@@ -1161,33 +1485,25 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         ),
       );
       
-      // Only send actual service IDs (not custom service names)
-      // Custom services will be handled in the package description or as a separate field
-      print("🔍 Updating package with services:");
-      print("🔍 Selected services (IDs): $selectedServices");
-      print("🔍 Custom services (names): $customServices");
-      
-      // Create a combined description that includes custom services
-      String combinedDescription = packageDescriptionController.text;
-      if (customServices.isNotEmpty) {
-        combinedDescription += "\n\nServices included:\n• ${customServices.join('\n• ')}";
-      }
-      
+      // Send custom services as a separate field (not in description)
       var response = await dataManager!.updatePackage(
         context,
         widget.packageData.sId!,
         packageNameController.text,
-        combinedDescription, // Include custom services in description
+        packageDescriptionController.text, // Keep description clean, custom services sent separately
         packagePriceController.text,
-        packageDurationController.text,
+        "", // Duration removed - pass empty string
         selectedServices, // Only send actual service IDs
         widget.packageData.isActive ?? true,
+        smallVehiclePrice: smallVehiclePriceController.text,
+        largeVehiclePrice: largeVehiclePriceController.text,
+        packageTier: selectedTier,
+        isBestSeller: isBestSeller,
+        customServices: customServices, // Send custom services as separate field
       );
       
       Navigator.pop(context); // Close loader
       
-      print("📦 Package Update Response Status: ${response.statusCode}");
-      print("📦 Package Update Response Body: ${response.body}");
       
       // Check if response is HTML (error page) instead of JSON
       if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
@@ -1197,8 +1513,6 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
       
       try {
         var data = PackageModelData.fromJson(jsonDecode(response.body));
-        print("📦 Package Data Status: ${data.status}");
-        print("📦 Package Data Message: ${data.message}");
         
         if (data.status == "success") {
           CommonWidget.successShowSnackBarFor(context, "Package updated successfully!");
@@ -1206,16 +1520,11 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         } else {
           CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to update package");
         }
-      } catch (e, stackTrace) {
-        print("❌ Error parsing package update response: $e");
-        print("❌ Stack Trace: $stackTrace");
-        print("❌ Response body: ${response.body}");
+      } catch (e) {
         CommonWidget.errorShowSnackBarFor(context, "Error parsing response: $e");
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       Navigator.pop(context); // Close loader
-      print("❌ Package Update Error: $e");
-      print("❌ Stack Trace: $stackTrace");
       CommonWidget.errorShowSnackBarFor(context, "Error updating package: $e");
     }
   }

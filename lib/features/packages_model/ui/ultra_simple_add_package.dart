@@ -21,7 +21,7 @@ class _UltraSimpleAddPackageState extends State<UltraSimpleAddPackage> {
   final TextEditingController _priceController = TextEditingController();
   
   List<ServicesData> _availableServices = [];
-  List<String> _selectedServiceIds = [];
+  final List<String> _selectedServiceIds = [];
   PackageDataManager? dataManager;
   SharedPreferences? sharedPreferences;
 
@@ -71,7 +71,6 @@ class _UltraSimpleAddPackageState extends State<UltraSimpleAddPackage> {
         }
       }
     } catch (e) {
-      print("Error loading services: $e");
     }
   }
 
@@ -82,9 +81,9 @@ class _UltraSimpleAddPackageState extends State<UltraSimpleAddPackage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => CommonWidget.safePop(context),
+        leading: CommonWidget.buildAppBarBackButton(
+          context,
+          iconColor: Colors.black,
         ),
         title: const Text(
           "Add Package",
@@ -198,7 +197,7 @@ class _UltraSimpleAddPackageState extends State<UltraSimpleAddPackage> {
             
             // Select services (optional but helpful)
             if (_availableServices.isNotEmpty) ...[
-              Text(
+              const Text(
                 "Which services are included? (Optional)",
                 style: TextStyle(
                   fontSize: 16,

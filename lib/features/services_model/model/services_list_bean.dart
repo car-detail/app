@@ -179,10 +179,8 @@ class ServicesListData {
     data['__v'] = iV;
     data['average_rating'] = averageRating;
     data['total_reviews'] = totalReviews;
-    if (offers != null) {
-      data['offers'] = offers.map((v) => v.toJson()).toList();
-    }
-    data['id'] = id;
+    data['offers'] = offers.map((v) => v.toJson()).toList();
+      data['id'] = id;
     return data;
   }
 }

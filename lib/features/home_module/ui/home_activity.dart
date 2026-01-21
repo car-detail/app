@@ -1,6 +1,7 @@
 import 'dart:convert';
 // import 'dart:ffi'; // Not available on web platform
 
+import 'package:flutter/services.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
@@ -43,7 +44,15 @@ import 'location_picker_screen.dart';
 
 class HomeActivity extends StatefulWidget {
   Function(bool value) offline;
-  HomeActivity(this.offline, {super.key});
+  final GlobalKey? shopStatusKey;
+  final GlobalKey? quickAccessKey;
+  
+  HomeActivity(
+    this.offline, {
+    this.shopStatusKey,
+    this.quickAccessKey,
+    super.key,
+  });
 
   @override
   State<HomeActivity> createState() => _HomeActivityState();
@@ -61,12 +70,22 @@ class _HomeActivityState extends State<HomeActivity> {
   List<Notifications> notificationsList = [];
   var vendorId = "";
   bool isShopOpen = true; // Store status toggle state
+  PageController? offerPageController;
+  int currentOfferPage = 0;
+  String vendorName = ""; // Store vendor display name
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    offerPageController = PageController();
     start();
+  }
+
+  @override
+  void dispose() {
+    offerPageController?.dispose();
+    super.dispose();
   }
 
   start() async {
@@ -78,48 +97,82 @@ class _HomeActivityState extends State<HomeActivity> {
       vendorId = vendorIdValue;
     });
     
-    print("🔍 Home - Checking vendorId: '$vendorIdValue'");
-    print("🔍 Home - User ID: ${sharedPreferences!.getString(Constant.id) ?? ""}");
 
     if (vendorIdValue.isNotEmpty) {
-      print("✅ VendorId found, loading vendor data");
       getdetails(context);
       getServices(context); // Load services data for Business Overview
     } else {
-      print("❌ No vendorId found - vendor needs to complete registration");
       // Don't make API calls if there's no vendorId
     }
   }
 
   getdetails(BuildContext context) async {
+    if (!mounted) return;
     try {
       var response = await dataManager!.getdetails(context);
-      print("🔍 Home getdetails response: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 404) {
-        print("❌ Vendor not found - vendorId might be missing");
-        // Don't show error snackbar here as it might be expected for new vendors
+        if (mounted && context.mounted) {
+          // Only show error if vendor was previously registered
+          final hasVendorId = sharedPreferences?.getString(Constant.vendorId)?.isNotEmpty ?? false;
+          if (hasVendorId) {
+            CommonWidget.errorShowSnackBarFor(
+              context, 
+              "Unable to load your business details. Please check your connection."
+            );
+          }
+        }
         return;
       }
       
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Unable to load business details. Please try again."
+          );
+        }
+        return;
+      }
+      
+      // Check if response is valid JSON
+      try {
       var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
-      if (data.status == "success") {
+        if (data.status == "success" && data.data != null) {
+          if (mounted) {
         setState(() {
-          isShopOpen = data.data!.isShopOpen!;
+              isShopOpen = data.data?.isShopOpen ?? true;
+              vendorName = data.data?.displayName ?? "";
         });
-        if(data.data!.isShopOpen! == true) {
+          }
+          if (data.data?.isShopOpen == true && mounted && context.mounted) {
           getBookingListFilter(context);
           getoffer(context);
           getNotifications(context);
         }
-        print("✅ Home vendor details loaded successfully");
       } else {
-        print("❌ Home API returned error: ${data.message}");
-        // Don't show error snackbar here as it might be expected for new vendors
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(
+              context, 
+              data.message ?? "Unable to load business details."
+            );
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Received invalid response from server. Please try again."
+          );
+        }
       }
     } catch (e) {
-      print("❌ Error in Home getdetails: $e");
-      // Don't show error snackbar here as it might be expected for new vendors
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(
+          context, 
+          "Error loading business details: ${e.toString()}. Please check your connection."
+        );
+      }
     }
   }
   
@@ -197,186 +250,225 @@ class _HomeActivityState extends State<HomeActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
+    // Set status bar style when this screen builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: ColorClass.base_color,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
+      );
+    });
+    
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, // Transparent so green background shows
+        statusBarIconBrightness: Brightness.light, // White icons
+        statusBarBrightness: Brightness.dark, // For iOS
+        systemNavigationBarColor: ColorClass.base_color,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            // Green status bar background - MUST be at the very top
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: MediaQuery.of(context).padding.top,
+                color: ColorClass.base_color,
+                width: double.infinity,
+              ),
+            ),
+            // Main content
+            Column(
         children: [
           // Header with store status and notifications
           Container(
-            padding: const EdgeInsets.only(top: 45, bottom: 15),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              bottom: 20,
+            ),
             decoration: BoxDecoration(
-            color: ColorClass.base_color,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  ColorClass.base_color,
+                  ColorClass.base_color.withOpacity(0.9),
+                ],
               ),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(25),
+                bottomRight: Radius.circular(25),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: ColorClass.base_color.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               children: [
-                Row(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LocationPickerScreen(
-                          currentLocation: sharedPreferences?.getString(Constant.location),
-                        ),
-                      ),
-                    );
-                    
-                    if (result != null && mounted) {
-                      setState(() {
-                        // Location updated, refresh the screen
-                      });
-                    }
-                  },
-                  child: Container(
-                      margin: const EdgeInsets.only(left: 15),
-                      child: const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                ),
-                ),
-                Expanded(
-                      child: GestureDetector(
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LocationPickerScreen(
-                                currentLocation: sharedPreferences?.getString(Constant.location),
-                              ),
-                            ),
-                          );
-                          
-                          if (result != null && mounted) {
-                            setState(() {
-                              // Location updated, refresh the screen
-                            });
-                          }
-                        },
-                        child: CommonWidget.getTextWidget500(
-                          sharedPreferences?.getString(Constant.location) ?? "Location not set",
-                            color: Colors.white,
-                        ),
-                      ),
-                    ),
-                GestureDetector(
-                  onTap: () {
-                    CommonWidget.navigateToScreen(
-                        context, NotificationActivity(notificationsList));
-                  },
-                  child: Container(
-                        margin: const EdgeInsets.only(right: 15),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Stack(
-                          children: [
-                            const Icon(
-                              Icons.notifications_outlined,
-                        color: Colors.white,
-                              size: 24,
-                            ),
-                            if (notificationsList.isNotEmpty)
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
+                // Top row with vendor name and notifications
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      // Vendor name on the left
+                                Expanded(
                                   child: Text(
-                                    '${notificationsList.length}',
+                          vendorName.isNotEmpty ? vendorName : "My Business",
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Pop600",
                                     ),
-                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Notification icon on the right
+                      GestureDetector(
+                        onTap: () {
+                          CommonWidget.navigateToScreen(
+                              context, NotificationActivity(notificationsList));
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                              if (notificationsList.isNotEmpty)
+                                Positioned(
+                                  right: -4,
+                                  top: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 18,
+                                      minHeight: 18,
+                                    ),
+                                    child: Text(
+                                      '${notificationsList.length > 9 ? "9+" : notificationsList.length}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
-                              ),
-              ],
-            ),
-          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Store status card
-                  if (vendorId != "")
-                    Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15),
-                    padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                          offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.store,
-                            color: Colors.green,
-                            size: 24,
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Store status card
+                if (vendorId != "")
+                  Container(
+                    key: widget.shopStatusKey,
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.store_rounded,
+                          color: isShopOpen ? ColorClass.base_color : Colors.grey[400],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                          child: Row(
+                            children: [
                               const Text(
                                 "Shop Status",
-                                  style: TextStyle(
-                                    fontFamily: "PopSemi",
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
+                                style: TextStyle(
+                                  fontFamily: "Pop600",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: Colors.black87,
                                 ),
-                              const SizedBox(height: 4),
-                                Text(
-                                isShopOpen 
-                                  ? "Your shop is currently online and accepting bookings"
-                                  : "Your shop is currently offline and not accepting bookings",
-                                  style: TextStyle(
-                                  fontFamily: "PopReg",
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isShopOpen 
+                                      ? ColorClass.base_color.withOpacity(0.1)
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: isShopOpen ? ColorClass.base_color : Colors.grey[400],
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isShopOpen ? "Online" : "Offline",
+                                      style: TextStyle(
+                                        fontFamily: "Pop500",
+                                        fontSize: 11,
+                                        color: isShopOpen ? ColorClass.base_color : Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          Switch(
-                            activeColor: ColorClass.base_color,
-                            inactiveThumbColor: Colors.red,
-                            inactiveTrackColor: Colors.red[100],
+                        ),
+                        Transform.scale(
+                          scale: 0.85,
+                          child: Switch(
+                            activeThumbColor: ColorClass.base_color,
+                            inactiveThumbColor: Colors.grey[400],
+                            inactiveTrackColor: Colors.grey[200],
                             value: isShopOpen,
                             onChanged: (val) {
                               CommonPopUp.showalertDialog(
@@ -387,9 +479,9 @@ class _HomeActivityState extends State<HomeActivity> {
                                   : "Are you sure you want to make the store online?",
                                 "No",
                                 "Yes",
-                                "", // No image to avoid asset loading error
-                                    () => CommonWidget.safePop(context),
-                                    () async {
+                                "",
+                                () => CommonWidget.safePop(context),
+                                () async {
                                   CommonWidget.safePop(context);
                                   makeOffLine(context);
                                 },
@@ -400,13 +492,21 @@ class _HomeActivityState extends State<HomeActivity> {
                               );
                             },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
               ],
             ),
           ),
           Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                if (mounted && context.mounted) {
+                  await getdetails(context);
+                  await getServices(context);
+                }
+              },
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -422,29 +522,43 @@ class _HomeActivityState extends State<HomeActivity> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Recent Bookings",
                                 style: TextStyle(
-                                  fontFamily: "PopSemi",
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 18,
-                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                  fontFamily: "Pop500",
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
+                              TextButton(
+                                onPressed: () {
+                                  if (!mounted) return;
+                                  try {
                                   CommonWidget.navigateToScreen(
                                     context,
                                     const BookingListActivity(),
                                   );
+                                  } catch (e) {
+                                    if (mounted && context.mounted) {
+                                      CommonWidget.errorShowSnackBarFor(
+                                        context,
+                                        "Unable to open bookings. Please try again."
+                                      );
+                                    }
+                                  }
                                 },
-                                child: Text(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(50, 30),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
                                   "View All",
                                   style: TextStyle(
-                                    fontFamily: "PopSemi",
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
-                                    color: ColorClass.base_color,
+                                    color: Color(0xFF1CB273),
                                   ),
                                 ),
                               ),
@@ -452,7 +566,7 @@ class _HomeActivityState extends State<HomeActivity> {
                           ),
                           const SizedBox(height: 12),
                           // Show only the first 3 pending bookings
-                          ...records.take(3).map((booking) => _buildPendingBookingCard(booking)).toList(),
+                          ...records.take(3).map((booking) => _buildPendingBookingCard(booking)),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -462,52 +576,36 @@ class _HomeActivityState extends State<HomeActivity> {
                   // Business Metrics Cards
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        const Text(
-                          "Business Overview",
-                          style: TextStyle(
-                            fontFamily: "PopSemi",
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color: Color(0xFF6B7280),
-                            letterSpacing: 0.2,
+                        Expanded(
+                          child: _buildMetricCard(
+                            "Bookings",
+                            "${records.length}",
+                            "calendar_blue.png",
+                            const Color(0xFF3B82F6), // Blue
+                            0,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildMetricCard(
-                                "Bookings",
-                                "${records.length}",
-                                Icons.calendar_today_outlined,
-                                const Color(0xFF3B82F6), // Blue
-                                0,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _buildMetricCard(
-                                "Services",
-                                "${servicesData.length}",
-                                Icons.build_outlined,
-                                const Color(0xFFF59E0B), // Orange
-                                1,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _buildMetricCard(
-                                "Rating",
-                                "4.8",
-                                Icons.star_outline,
-                                const Color(0xFFFBBF24), // Amber
-                                2,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildMetricCard(
+                            "Services",
+                            "${servicesData.length}",
+                            "assignment.png",
+                            const Color(0xFFF59E0B), // Orange
+                            1,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildMetricCard(
+                            "Rating",
+                            "4.8",
+                            "stars_icon.png",
+                            const Color(0xFFFBBF24), // Amber
+                            2,
+                          ),
                         ),
                       ],
                     ),
@@ -517,27 +615,27 @@ class _HomeActivityState extends State<HomeActivity> {
                   
                   // Quick Actions
                   Container(
+                    key: widget.quickAccessKey,
                     margin: const EdgeInsets.symmetric(horizontal: 15),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                        const Text(
+                        Text(
                           "Quick Actions",
                           style: TextStyle(
-                            fontFamily: "PopSemi",
                             fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color: Color(0xFF6B7280),
-                            letterSpacing: 0.2,
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontFamily: "Pop500",
                           ),
                         ),
                         const SizedBox(height: 16),
-                              Row(
-                                children: [
+                        Row(
+                          children: [
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Services",
-                                Icons.design_services_outlined,
+                                Icons.auto_awesome_rounded,
                                 const Color(0xFF10B981), // Green
                                 () {
                                   CommonWidget.navigateToScreen(
@@ -545,13 +643,13 @@ class _HomeActivityState extends State<HomeActivity> {
                                     const ServicesListActivity()
                                   );
                                 },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: _buildQuickActionCard(
                                 "Packages",
-                                Icons.inventory_2_outlined,
+                                Icons.card_giftcard_rounded,
                                 const Color(0xFF8B5CF6), // Purple
                                 () {
                                   CommonWidget.navigateToScreen(
@@ -560,16 +658,16 @@ class _HomeActivityState extends State<HomeActivity> {
                                   );
                                 },
                               ),
-                                        ),
-                                      ],
-                                    ),
-                        const SizedBox(height: 10),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Offers",
-                                Icons.local_offer_outlined,
+                                Icons.local_fire_department_rounded,
                                 const Color(0xFFF59E0B), // Orange
                                 () {
                                   CommonWidget.navigateToScreen(
@@ -579,11 +677,11 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Manage Bookings",
-                                Icons.calendar_today_outlined,
+                                Icons.event_available_rounded,
                                 const Color(0xFF3B82F6), // Blue
                                 () {
                                   CommonWidget.navigateToScreen(
@@ -593,15 +691,15 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                               ),
                             ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Expanded(
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
                               child: _buildQuickActionCard(
                                 "View Analytics",
-                                Icons.analytics_outlined,
+                                Icons.trending_up_rounded,
                                 const Color(0xFF6366F1), // Indigo
                                 () {
                                   // TODO: Navigate to analytics screen
@@ -612,11 +710,11 @@ class _HomeActivityState extends State<HomeActivity> {
                                 },
                               ),
                             ),
-                            const SizedBox(width: 10),
-                                    Expanded(
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: _buildQuickActionCard(
                                 "Quick Add",
-                                Icons.add_circle_outline,
+                                Icons.add_circle_rounded,
                                 const Color(0xFF14B8A6), // Teal
                                 () {
                                   _showQuickAddOptions(context);
@@ -640,13 +738,13 @@ class _HomeActivityState extends State<HomeActivity> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               "Recent Bookings",
                               style: TextStyle(
-                                fontFamily: "PopSemi",
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                                color: Colors.black,
+                                fontFamily: "Pop500",
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.grey[600],
                               ),
                             ),
                             GestureDetector(
@@ -669,37 +767,44 @@ class _HomeActivityState extends State<HomeActivity> {
                         ),
                         const SizedBox(height: 15),
                         if (records.isEmpty)
-                      Container(
-                            padding: const EdgeInsets.all(20),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
                             decoration: BoxDecoration(
                               color: Colors.grey[50],
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.grey[200]!),
                             ),
-                        child: Column(
-                          children: [
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
                                 Icon(
                                   Icons.book_online_outlined,
-                                  size: 48,
+                                  size: 64,
                                   color: Colors.grey[400],
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 16),
                                 Text(
                                   "No bookings yet",
                                   style: TextStyle(
-                                    fontFamily: "PopSemi",
+                                    fontFamily: "Pop500",
                                     fontSize: 16,
-                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[700],
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
                                   "Your bookings will appear here",
                                   style: TextStyle(
-                                    fontFamily: "PopReg",
-                                    fontSize: 12,
+                                    fontFamily: "Pop400",
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
                                     color: Colors.grey[500],
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -717,7 +822,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   ),
                   ),
                   
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 20),
                   
                   // Offers Section
                   if (offerListData.isNotEmpty)
@@ -728,6 +833,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Text(
                                 "Active Offers",
@@ -745,128 +851,231 @@ class _HomeActivityState extends State<HomeActivity> {
                                     const EnhancedOfferListScreen()
                                   );
                                 },
-                                child: Text(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
                                   "View All",
                                   style: TextStyle(
-                                    fontFamily: "PopReg",
+                                        fontFamily: "PopSemi",
                                     fontSize: 14,
                                     color: ColorClass.base_color,
+                                        fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 12,
+                                      color: ColorClass.base_color,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 15),
-                          SizedBox(
-                            height: 150,
-                            child: ListView.builder(
-                              itemCount: offerListData.length,
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                return _buildOfferCard(offerListData[index]);
-                              },
-            ),
-          ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          offerListData.isEmpty
+                              ? Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "No offers available",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: "Pop400",
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 200,
+                                      child: PageView.builder(
+                                        controller: offerPageController,
+                                        onPageChanged: (index) {
+                                          setState(() {
+                                            currentOfferPage = index;
+                                          });
+                                        },
+                                        itemCount: offerListData.length,
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 0),
+                                            child: _buildFullWidthOfferCard(offerListData[index]),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    if (offerListData.length > 1)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 12),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: List.generate(
+                                            offerListData.length,
+                                            (index) => Container(
+                                              width: 8,
+                                              height: 8,
+                                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: currentOfferPage == index
+                                                    ? ColorClass.base_color
+                                                    : Colors.grey[300],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
         ],
                       ),
                     ),
                   
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                 ],
+              ),
               ),
             ),
           ),
         ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // Helper method to build metric cards
-  Widget _buildMetricCard(String title, String value, IconData icon, Color iconColor, int index) {
+  // Helper method to build metric cards - Minimal design with realistic icons
+  Widget _buildMetricCard(String title, String value, String iconAsset, Color iconColor, int index) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: iconColor,
-            size: 20,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Image.asset(
+              CommonWidget.getImagePath(iconAsset),
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.info_outline,
+                  color: iconColor,
+                  size: 32,
+                );
+              },
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             value,
             style: const TextStyle(
-              fontFamily: "PopSemi",
-              fontSize: 24,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF111827),
-              height: 1.2,
-              letterSpacing: -0.3,
+              fontSize: 28,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+              height: 1.1,
+              fontFamily: "Pop500",
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
-              fontFamily: "PopSemi",
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: 13,
               fontWeight: FontWeight.w400,
-              color: Color(0xFF6B7280),
-              letterSpacing: 0.1,
+              color: Colors.grey[600],
+              fontFamily: "Pop400",
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  // Helper method to build quick action cards
+  // Helper method to build quick action cards - Enhanced design
   Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFE5E7EB),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: color,
-                size: 22,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withOpacity(0.2),
+                      color.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 28,
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 title,
                 style: const TextStyle(
-                  fontFamily: "PopSemi",
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
-                  letterSpacing: 0.1,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                  fontFamily: "Pop600",
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -879,29 +1088,37 @@ class _HomeActivityState extends State<HomeActivity> {
     );
   }
 
-  // Helper method to build booking cards
+  // Helper method to build booking cards - Simple design
   Widget _buildBookingCard(Records booking) {
     return Container(
-      margin: const EdgeInsets.only(bottom: ModernDesignSystem.spacingM),
-      padding: const EdgeInsets.all(ModernDesignSystem.spacingL),
-      decoration: ModernDesignSystem.modernCard(
-        borderRadius: ModernDesignSystem.radiusM,
-        shadows: ModernDesignSystem.shadowMedium,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
                 child: Column(
         children: [
           Row(
             children: [
               Container(
-                height: 50,
-                width: 50,
+                height: 48,
+                width: 48,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(25),
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.person,
-                  color: Colors.grey[600],
+                  color: Colors.grey,
                   size: 24,
                 ),
               ),
@@ -913,43 +1130,40 @@ class _HomeActivityState extends State<HomeActivity> {
                     Text(
                       "${booking.createdByFirstName ?? ""} ${booking.createdByLastName ?? ""}",
                       style: const TextStyle(
-                        fontFamily: "PopSemi",
                         fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black,
+                        fontSize: 15,
+                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "Slot: ${CommonWidget.convertToLocalTime(booking.timeSlot ?? "")}",
-                      style: TextStyle(
-                        fontFamily: "PopReg",
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: Colors.grey,
                       ),
                     ),
                     Text(
                       "Date: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(booking.date ?? ""))}",
-                      style: TextStyle(
-                        fontFamily: "PopReg",
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: Colors.grey,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingXS),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getStatusColor(booking.orderStatus ?? "").withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   booking.orderStatus ?? "",
                   style: TextStyle(
-                    fontFamily: "PopSemi",
-                    fontSize: 10,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                     color: _getStatusColor(booking.orderStatus ?? ""),
                   ),
                 ),
@@ -961,48 +1175,46 @@ class _HomeActivityState extends State<HomeActivity> {
                     Row(
                       children: [
                         Expanded(
-                  child: InkWell(
-                            onTap: () {
+                  child: ElevatedButton(
+                    onPressed: () {
                       putStatusCompleted(context, booking);
                             },
-                            child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                        color: ColorClass.base_color,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1CB273),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
+                      ),
                               ),
                               child: const Text(
                         "Complete",
                                 style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: "PopSemi",
-                          fontSize: 12,
-                                ),
-                        textAlign: TextAlign.center,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
                 const SizedBox(width: 8),
                         Expanded(
-                  child: InkWell(
-                            onTap: () {
+                  child: OutlinedButton(
+                    onPressed: () {
                       _showCancelDialog(context, booking);
                             },
-                            child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                        color: Colors.red,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red, width: 1),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
+                      ),
                               ),
                               child: const Text(
                         "Cancel",
                                 style: TextStyle(
-                                  color: Colors.white,
-                          fontFamily: "PopSemi",
-                          fontSize: 12,
-                                ),
-                        textAlign: TextAlign.center,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -1016,18 +1228,214 @@ class _HomeActivityState extends State<HomeActivity> {
   }
 
   // Helper method to build offer cards
-  Widget _buildOfferCard(OfferListModelData offer) {
+  // Build Full Width Offer Card for Carousel
+  Widget _buildFullWidthOfferCard(OfferListModelData offer) {
     return Container(
-        margin: const EdgeInsets.only(right: ModernDesignSystem.spacingM),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Background Image or Color
+            if (offer.image != null && offer.image!.isNotEmpty)
+              Image.network(
+                offer.image!,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          ColorClass.base_color,
+                          ColorClass.base_color.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              )
+            else
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      ColorClass.base_color,
+                      ColorClass.base_color.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
+            // Content Overlay
+            Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.local_fire_department,
+                          color: Colors.orange[300],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            offer.title ?? "Offer",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: "Pop600",
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      offer.description ?? "",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (offer.discount != null && offer.discount! > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "${offer.discount}% OFF",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.all_inclusive,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  "Never expires",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: (offer.isActive ?? true) ? Colors.green : Colors.grey,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            (offer.isActive ?? true) ? "Active" : "Inactive",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build Offer Card (keeping for compatibility if needed elsewhere)
+  Widget _buildOfferCard(OfferListModelData offer) {
+    final isExpired = offer.validUntil != null && 
+                     offer.validUntil!.isNotEmpty &&
+                     DateTime.parse(offer.validUntil!).isBefore(DateTime.now());
+    
+    return Container(
+      margin: const EdgeInsets.only(right: 16),
         width: 280,
-        decoration: ModernDesignSystem.modernCard(
-          borderRadius: ModernDesignSystem.radiusM,
-          shadows: ModernDesignSystem.shadowMedium,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
+        borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
+            // Background Image
               Image.network(
                 offer.image ?? "",
                 height: 150,
@@ -1037,58 +1445,192 @@ class _HomeActivityState extends State<HomeActivity> {
                   return Container(
                     height: 150,
                     width: 280,
-                    color: Colors.grey[300],
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        ColorClass.base_color.withOpacity(0.3),
+                        ColorClass.base_color.withOpacity(0.6),
+                      ],
+                    ),
+                  ),
                     child: const Icon(
-                      Icons.image,
-                      color: Colors.grey,
+                    Icons.local_offer_rounded,
+                    color: Colors.white,
                       size: 48,
                     ),
                   );
                 },
               ),
+            
+            // Discount Badge - Top Right
+            if (offer.discount != null && offer.discount! > 0)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        "OFF",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "PopBold",
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "${offer.discount}%",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: "PopBold",
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            
+            // Expired Badge - Top Left
+            if (isExpired)
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.red[700],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    "EXPIRED",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: "PopSemi",
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            
+            // Bottom Gradient Overlay with Content
               Positioned(
                 bottom: 0,
                 left: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8),
+                      Colors.black.withOpacity(0.85),
                       ],
                     ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                     children: [
+                    // Title
                       Text(
-                        offer.title ?? "",
+                      offer.title ?? "Special Offer",
                         style: const TextStyle(
                           color: Colors.white,
                           fontFamily: "PopSemi",
                           fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                        fontSize: 16,
+                        height: 1.3,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+                    // Description
+                    if (offer.description != null && offer.description!.isNotEmpty)
                       Text(
-                        offer.description ?? "",
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        offer.description!,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
                           fontFamily: "PopReg",
                           fontSize: 12,
+                          height: 1.4,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                    // Validity Info
+                    if (offer.validUntil != null && offer.validUntil!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: isExpired 
+                                ? Colors.red[300] 
+                                : Colors.white.withOpacity(0.8),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Valid until ${CommonWidget.getDateFormat(offer.validUntil!)}",
+                            style: TextStyle(
+                              color: isExpired 
+                                  ? Colors.red[300] 
+                                  : Colors.white.withOpacity(0.8),
+                              fontFamily: "PopReg",
+                              fontSize: 11,
+                            ),
                       ),
                     ],
                   ),
+                    ] else ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.all_inclusive_rounded,
+                            size: 12,
+                            color: Colors.green[300],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Never expires",
+                            style: TextStyle(
+                              color: Colors.green[300],
+                              fontFamily: "PopReg",
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
                 ),
               ),
             ],
@@ -1311,27 +1853,21 @@ class _HomeActivityState extends State<HomeActivity> {
   getServices(BuildContext context) async {
     try {
       var response = await dataManager!.getVendorServices(context);
-      print("🔍 Vendor Services API Response: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 404) {
-        print("❌ Vendor services not found - vendorId might be missing");
         return;
       }
       
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
-      print("🔍 Parsed Vendor Services Data: ${data.data?.length ?? 0} services");
       if (data.status == "success") {
         setState(() {
           servicesData.clear();
           servicesData.addAll(data.data!);
-          print("🔍 Vendor Services Data Updated: ${servicesData.length} services in state");
         });
       } else {
-        print("❌ Vendor Services API Error: ${data.message}");
         // Don't show error snackbar here as it might be expected for new vendors
       }
     } catch (e) {
-      print("❌ Error in getServices: $e");
       // Don't show error snackbar here as it might be expected for new vendors
     }
   }
@@ -1339,10 +1875,8 @@ class _HomeActivityState extends State<HomeActivity> {
   getBookingListFilter(BuildContext context) async {
     try {
       var response = await dataManager!.getBookingListFilter(context, "Pending");
-      print("🔍 Booking List API Response: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 404) {
-        print("❌ Booking list not found - vendorId might be missing");
         setState(() {
           records.clear();
         });
@@ -1355,16 +1889,13 @@ class _HomeActivityState extends State<HomeActivity> {
           records.clear();
           records.addAll(data.data!.records!);
         });
-        print("✅ Booking list loaded successfully: ${records.length} bookings");
       } else {
         setState(() {
           records.clear();
         });
-        print("❌ Booking list API error: ${data.message}");
         // Don't show error snackbar here as it might be expected for new vendors
       }
     } catch (e) {
-      print("❌ Error in getBookingListFilter: $e");
       setState(() {
         records.clear();
       });
@@ -1481,7 +2012,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       CommonWidget.safePop(context);
                       CommonWidget.navigateToScreen(
                         context,
-                        UltraSimpleAddService(),
+                        const UltraSimpleAddService(),
                       );
                     },
                   ),

@@ -42,9 +42,9 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
 
   // Selected values
   String _selectedBusinessType = "Car Wash";
-  String _selectedLocation = "";
-  List<String> _selectedServices = [];
-  List<String> _selectedPackages = [];
+  final String _selectedLocation = "";
+  final List<String> _selectedServices = [];
+  final List<String> _selectedPackages = [];
 
   // Predefined templates
   final List<BusinessTypeTemplate> _businessTypes = [
@@ -101,7 +101,7 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
                 onPressed: _previousStep,
               )
             : null,
-        title: Text(
+        title: const Text(
           "Setup Your Business",
           style: TextStyle(
             color: Colors.black,

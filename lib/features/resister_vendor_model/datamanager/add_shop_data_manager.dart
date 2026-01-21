@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Api/ApiFuntion.dart';
@@ -27,12 +26,13 @@ class AddShopDataManager {
         Constant.getVendorDetails);
   }
 
-  postImage(List<File> file, BuildContext context) {
+  postImage(List<File> file, BuildContext context, {bool skipAutoNavigation = false}) {
     return apiFuntions.sendMultipartRequest(
       context,
       Constant.uploadFile,
       file,
       <String, dynamic>{},
+      skipAutoNavigation: skipAutoNavigation,
     );
   }
 

@@ -52,14 +52,10 @@ class RateReviewModelData {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    if (reviews != null) {
-      data['reviews'] = reviews.map((v) => v.toJson()).toList();
-    }
-    data['totalCount'] = totalCount;
-    if (myReview != null) {
-      data['myReview'] = myReview.map((v) => v.toJson()).toList();
-    }
-    data['already_customer'] = alreadyCustomer;
+    data['reviews'] = reviews.map((v) => v.toJson()).toList();
+      data['totalCount'] = totalCount;
+    data['myReview'] = myReview.map((v) => v.toJson()).toList();
+      data['already_customer'] = alreadyCustomer;
     return data;
   }
 }

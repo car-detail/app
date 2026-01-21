@@ -38,18 +38,36 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     dataManager = HomeDataManager(sharedPreferences!);
-    print("Under Splash start Screen ");
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     appVersionCode = packageInfo.buildNumber;
     appVersionName = packageInfo.version;
-    print("appVersionCode:-$appVersionCode");
-    print("appVersionName:-$appVersionName");
-    print("Under Splash start Screen ");
+    
+    final userIdValue = sharedPreferences!.getString(Constant.id) ?? "";
+    final vendorIdValue = sharedPreferences!.getString(Constant.vendorId) ?? "";
+    
     setState(() {
-      userid = sharedPreferences!.getString(Constant.id) ?? "";
-      venderId = sharedPreferences!.getString(Constant.vendorId) ?? "";
-
+      userid = userIdValue;
+      venderId = vendorIdValue;
     });
+    
+    // Check if user is logged in - navigate immediately if yes
+    if (userIdValue.isNotEmpty) {
+      // Small delay for splash screen visibility, then navigate
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted && context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const DashboardActivity(),
+            ),
+            (route) => false,
+          );
+        }
+      });
+      return; // Don't show login buttons or check version if user is logged in
+    }
+    
+    // Only check version and show login screen if user is NOT logged in
     getForceVersion(context);
     // Future.delayed(const Duration(milliseconds: 1000), () {
     //    if (userid != null && userid != "" && venderId != "" && venderId != null) {
@@ -90,38 +108,15 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // if(userid == "" || userid == null  || venderId != "" || venderId != null)
-              // GestureDetector(
-              //     onTap: () {
-              //       FocusManager.instance.primaryFocus?.unfocus();
-              //       Navigator.pushAndRemoveUntil(
-              //         context,
-              //         MaterialPageRoute(
-              //           //builder: (BuildContext context) => DashboardActivity(data:data),
-              //           builder: (BuildContext context) => LoginActivity("Login"),
-              //         ),
-              //             (route) => false,
-              //       );
-              //     },
-              //     child: Container(
-              //       margin: EdgeInsets.only(left: 30, right: 30),
-              //       child: CommonWidget.getGradinetButton(
-              //           "Sign in",
-              //           startcolor: 0xff006538,
-              //           endcolor: 0xff006538,
-              //           height: 40
-              //       ),
-              //     )),
-              // if(userid == "" || userid == null|| venderId != "" || venderId != null)
-              // SizedBox(height: 20,),
-              if(userid == "" || userid == null|| venderId != "" || venderId != null)
+              // Only show Get Started button if user is NOT logged in
+              if(userid == null || userid!.isEmpty)
               GestureDetector(
                   onTap: () {
                     FocusManager.instance.primaryFocus?.unfocus();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (BuildContext context) => ModernLoginActivity(isSignUp: false),
+                        builder: (BuildContext context) => const ModernLoginActivity(),
                       ),
                           (route) => false,
                     );
@@ -129,38 +124,12 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                   child: Container(
                     margin: const EdgeInsets.only(left: 30, right: 30),
                     child: CommonWidget.getGradinetButton(
-                        "Sign In",
-                        startcolor: 0xff1CA669,
-                        endcolor: 0xff1CA669,
+                        "Get Started",
+                        startcolor: 0xff006538,
+                        endcolor: 0xff006538,
                         height: 50
                     ),
                   )),
-              if(userid == "" || userid == null|| venderId != "" || venderId != null)
-              const SizedBox(height: 16,),
-              if(userid == "" || userid == null|| venderId != "" || venderId != null)
-              GestureDetector(
-                  onTap: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => ModernLoginActivity(isSignUp: true),
-                      ),
-                          (route) => false,
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 30, right: 30),
-                    child: CommonWidget.getGradinetButton(
-                        "Sign Up",
-                        startcolor: 0xffE8F7F1,
-                        endcolor: 0xffE8F7F1,
-                        textColor: 0xff1CA669,
-                        height: 50
-                    ),
-                  )),
-              if(userid == "" || userid == null|| venderId != "" || venderId != null)
-              const SizedBox(height: 120,)
             ],
           ),
 
@@ -198,22 +167,17 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
           barrierDismissible: false, // This is key to forcing the update
         );
       } else {
+        // Only navigate if user is logged in and not already navigated
         Future.delayed(const Duration(milliseconds: 100), () {
-          if (userid != null && userid != "") {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                //builder: (BuildContext context) => DashboardActivity(data:data),
-                //builder: (BuildContext context) => DashboardActivity(),
-                builder: (BuildContext context) => const DashboardActivity(),
-              ),
-                  (route) => false,
-            );
+          if (mounted && context.mounted && (userid == null || userid!.isEmpty)) {
+            // User is not logged in, stay on splash screen (buttons already shown)
+            // Don't navigate - let user choose sign in or sign up
           }
         });
       }
     } else if (!kIsWeb) {
-      if (double.parse(appVersionName) < double.parse(data.ios!.name!)) {
+      // Compare semantic versions properly
+      if (_compareVersions(appVersionName, data.ios!.name ?? "0.0.0") < 0) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -238,33 +202,47 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
           barrierDismissible: false, // This is key to forcing the update
         );
       } else {
+        // Only navigate if user is logged in and not already navigated
         Future.delayed(const Duration(milliseconds: 100), () {
-          if (userid != null && userid != "") {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                //builder: (BuildContext context) => DashboardActivity(data:data),
-                //builder: (BuildContext context) => DashboardActivity(),
-                builder: (BuildContext context) => const DashboardActivity(),
-              ),
-                  (route) => false,
-            );
+          if (mounted && context.mounted && (userid == null || userid!.isEmpty)) {
+            // User is not logged in, stay on splash screen (buttons already shown)
+            // Don't navigate - let user choose sign in or sign up
           }
         });
       }
     } else if (kIsWeb) {
-      // For web, just navigate to dashboard after a delay
+      // For web, only navigate if user is logged in and not already navigated
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (userid != null && userid != "") {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (BuildContext context) => const DashboardActivity(),
-            ),
-            (route) => false,
-          );
+        if (mounted && context.mounted && (userid == null || userid == "" || userid!.isEmpty)) {
+          // User is not logged in, stay on splash screen (buttons already shown)
+          // Don't navigate - let user choose sign in or sign up
         }
       });
+    }
+  }
+
+  // Helper function to compare semantic versions (e.g., "1.6.0" vs "1.0.0")
+  // Returns: -1 if version1 < version2, 0 if equal, 1 if version1 > version2
+  int _compareVersions(String version1, String version2) {
+    try {
+      List<int> v1Parts = version1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> v2Parts = version2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      
+      // Pad shorter version with zeros
+      while (v1Parts.length < v2Parts.length) {
+        v1Parts.add(0);
+      }
+      while (v2Parts.length < v1Parts.length) {
+        v2Parts.add(0);
+      }
+      
+      for (int i = 0; i < v1Parts.length; i++) {
+        if (v1Parts[i] < v2Parts[i]) return -1;
+        if (v1Parts[i] > v2Parts[i]) return 1;
+      }
+      return 0;
+    } catch (e) {
+      return 0; // If comparison fails, assume versions are equal
     }
   }
 

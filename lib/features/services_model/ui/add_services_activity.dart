@@ -217,8 +217,9 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                   setState(() {
                                     for (int i = 0; i < data.length; i++) {
                                       setState(() {
-                                        if (selectedFiles.length < 1)
+                                        if (selectedFiles.isEmpty) {
                                           selectedFiles.add(data[i]);
+                                        }
                                       });
                                       if (selectedFiles.length == 1 &&
                                           i < data.length - 1) {
@@ -230,7 +231,6 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                                     }
                                                                     });
                                 }
-                                print(selectedFiles.length);
                               });
                             },
                             child: Container(
@@ -304,9 +304,9 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
                               if (BaseActivity.checkEmptyField(
                                   editingController: titleController,
                                   message: "Please enter service title.",
-                                  context: context))
+                                  context: context)) {
                                 return;
-                              else if (BaseActivity.checkEmptyField(
+                              } else if (BaseActivity.checkEmptyField(
                                   editingController: categoryController,
                                   message: "Please select category.",
                                   context: context))

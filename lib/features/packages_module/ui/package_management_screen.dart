@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/features/packages_module/model/package_model.dart';
-import 'package:car_app/features/packages_module/ui/add_package_screen.dart';
 
 class PackageManagementScreen extends StatefulWidget {
   final String vendorId;

@@ -256,7 +256,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                       isActive = value;
                     });
                   },
-                  activeColor: ColorClass.base_color,
+                  activeThumbColor: ColorClass.base_color,
                 ),
                 Text(
                   isActive ? "Active" : "Inactive",

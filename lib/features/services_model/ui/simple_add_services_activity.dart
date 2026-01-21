@@ -103,7 +103,6 @@ class _SimpleAddServicesActivityState extends State<SimpleAddServicesActivity> {
         });
       }
     } catch (e) {
-      print("Error fetching categories: $e");
       // Fallback to hardcoded categories if API fails
       setState(() {
         categories.clear();
@@ -411,7 +410,7 @@ class _SimpleAddServicesActivityState extends State<SimpleAddServicesActivity> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: selectedCategoryId.isEmpty ? null : selectedCategoryId,
+            initialValue: selectedCategoryId.isEmpty ? null : selectedCategoryId,
             decoration: InputDecoration(
               hintText: "Select a category",
               border: OutlineInputBorder(

@@ -69,15 +69,10 @@ class _CategoriesListActivityState extends State<CategoriesListActivity> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          CommonWidget.safePop(context);
-                        },
-                        child: Image.asset(
-                          CommonWidget.getImagePath("backspace.png"),
-                          height: 40,
-                          width: 40,
-                        ),
+                      CommonWidget.buildBackButton(
+                        context,
+                        backgroundColor: Colors.white.withOpacity(0.9),
+                        iconColor: Colors.black87,
                       ),
                       Expanded(
                           child: CommonWidget.getTextWidget500(

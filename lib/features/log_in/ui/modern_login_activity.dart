@@ -7,9 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/BaseActivity.dart';
 import '../../../Common/Color.dart';
@@ -19,10 +21,9 @@ import '../data_manager/LoginDataManager.dart';
 import '../model/GenerateOTPModelBean.dart';
 
 /// Modern, consistent login screen for vendor app
+/// Automatically handles both login and signup based on user existence
 class ModernLoginActivity extends StatefulWidget {
-  final bool isSignUp;
-  
-  const ModernLoginActivity({super.key, this.isSignUp = false});
+  const ModernLoginActivity({super.key});
 
   @override
   State<ModernLoginActivity> createState() => _ModernLoginActivityState();
@@ -30,6 +31,7 @@ class ModernLoginActivity extends StatefulWidget {
 
 class _ModernLoginActivityState extends State<ModernLoginActivity> {
   var mobileController = TextEditingController();
+  String selectedCountryCode = '+1'; // Default to US
   ApiFuntions apiFuntions = ApiFuntions();
   LoginDataManager? loginDataManager;
   late SharedPreferences? sharedPreferences;
@@ -63,7 +65,6 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
       sharedPreferences!
           .setString(Constant.long, possition.longitude.toString());
     } catch (e) {
-      print("Error getting location: $e");
       sharedPreferences!.setString(Constant.location, "Unknown Location");
       sharedPreferences!.setString(Constant.lat, "0.0");
       sharedPreferences!.setString(Constant.long, "0.0");
@@ -155,9 +156,9 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                             ),
                           const Spacer(),
                           // Title
-                          Text(
-                            widget.isSignUp ? "Create Account" : "Welcome Back",
-                            style: const TextStyle(
+                          const Text(
+                            "Get Started",
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -165,12 +166,10 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            widget.isSignUp
-                                ? "Start your business journey with us"
-                                : "Sign in to continue to your account",
+                          const Text(
+                            "Enter your mobile number to continue",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
                             ),
@@ -191,38 +190,87 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                   children: [
                     const SizedBox(height: 20),
                     
-                    // Mobile Number Input
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey[200]!),
-                      ),
-                      child: TextField(
-                        controller: mobileController,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                    // Mobile Number Input with Country Code
+                    Row(
+                      children: [
+                        // Country Code Picker
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: CountryCodePicker(
+                            onChanged: (CountryCode countryCode) {
+                              setState(() {
+                                selectedCountryCode = countryCode.dialCode ?? '+1';
+                              });
+                            },
+                            initialSelection: 'US',
+                            favorite: const ['+1', 'US', '+91', 'IN'],
+                            showCountryOnly: false,
+                            showOnlyCountryWhenClosed: false,
+                            alignLeft: false,
+                            padding: EdgeInsets.zero,
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                            dialogTextStyle: const TextStyle(
+                              fontSize: 16,
+                            ),
+                            flagWidth: 24,
+                            showFlag: true,
+                            showFlagDialog: true,
+                            hideMainText: false,
+                            hideSearch: false,
+                            boxDecoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
-                        decoration: InputDecoration(
-                          hintText: "Enter mobile number",
-                          hintStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 16,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.phone_android,
-                            color: ColorClass.base_color,
-                            size: 24,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 18,
+                        const SizedBox(width: 12),
+                        // Mobile Number Input
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: TextField(
+                              controller: mobileController,
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "1234567890",
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.phone_android,
+                                  color: ColorClass.base_color,
+                                  size: 24,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 18,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                     
                     const SizedBox(height: 24),
@@ -249,7 +297,7 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                               ),
                             )
                           : const Text(
-                              "Generate OTP",
+                              "Continue",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -327,22 +375,67 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
   }
 
   postLogin() async {
+    
     try {
-      var response =
-          await loginDataManager!.postlogin(mobileController.text, context);
-      var data = GenerateOTPModelBean.fromJson(jsonDecode(response.body));
+      // Validate phone number length (minimum 7 digits, maximum 15 digits)
+      String phoneDigits = mobileController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
       
-      setState(() {
-        _isLoading = false;
-      });
-      
-      if (data.status == "success") {
-        CommonWidget.navigateToScreen(
-            context, OTPScreenActivity(data, mobileController.text));
-      } else {
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      // Remove country code from phoneDigits if it's already included
+      // Extract country code digits (e.g., "+1" -> "1", "+91" -> "91")
+      String countryCodeDigits = selectedCountryCode.replaceAll(RegExp(r'[^0-9]'), '');
+      if (countryCodeDigits.isNotEmpty && phoneDigits.startsWith(countryCodeDigits)) {
+        phoneDigits = phoneDigits.substring(countryCodeDigits.length);
       }
+      
+      if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+        setState(() {
+          _isLoading = false;
+        });
+        CommonWidget.errorShowSnackBarFor(
+          context, 
+          "Please enter a valid phone number (7-15 digits)"
+        );
+        return;
+      }
+      
+      // Combine country code and mobile number
+      String fullPhoneNumber = '$selectedCountryCode$phoneDigits';
+      
+      
+      // Use Firebase Phone Auth
+      await loginDataManager!.sendFirebaseOTP(
+        fullPhoneNumber,
+        (String verificationId) {
+          // OTP sent successfully
+          
+          setState(() {
+            _isLoading = false;
+          });
+          
+          // Create a mock GenerateOTPModelBean with verificationId
+          var mockData = GenerateOTPModelBean(
+            status: "success",
+            message: "OTP sent successfully",
+            data: Data(
+              details: verificationId, // Store verificationId in details
+            ),
+          );
+          
+          CommonWidget.navigateToScreen(
+              context, OTPScreenActivity(mockData, fullPhoneNumber));
+        },
+        (String error) {
+          // Error sending OTP
+          
+          setState(() {
+            _isLoading = false;
+          });
+          CommonWidget.errorShowSnackBarFor(context, error);
+        },
+      );
+      
     } catch (e) {
+      
       setState(() {
         _isLoading = false;
       });

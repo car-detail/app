@@ -24,10 +24,6 @@ class _OfferListWidgetState extends State<OfferListWidget> {
                   itemCount: widget.offers.length,
                   itemBuilder: (context, index) {
                     var data = widget.offers[index];
-                    // Add null safety check
-                    if (data == null) {
-                      return const SizedBox.shrink();
-                    }
                     return Container(
                       height: 200,
                       margin: const EdgeInsets.all(10),

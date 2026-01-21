@@ -7,7 +7,6 @@ class SafeNavigationHelper {
   /// Checks if context is mounted and if navigation is possible
   static void safePop(BuildContext? context, {dynamic result}) {
     if (context == null || !context.mounted) {
-      print("⚠️ Cannot pop: Context is null or not mounted");
       return;
     }
     
@@ -16,10 +15,8 @@ class SafeNavigationHelper {
       if (navigator.canPop()) {
         navigator.pop(result);
       } else {
-        print("⚠️ Cannot pop: No routes to pop");
       }
     } catch (e) {
-      print("❌ Navigation pop error: $e");
     }
   }
 
@@ -29,7 +26,6 @@ class SafeNavigationHelper {
     Widget screen,
   ) {
     if (context == null || !context.mounted) {
-      print("⚠️ Cannot push: Context is null or not mounted");
       return null;
     }
 
@@ -40,7 +36,6 @@ class SafeNavigationHelper {
         ),
       );
     } catch (e) {
-      print("❌ Navigation push error: $e");
       return null;
     }
   }
@@ -52,7 +47,6 @@ class SafeNavigationHelper {
     TO? result,
   }) {
     if (context == null || !context.mounted) {
-      print("⚠️ Cannot push replacement: Context is null or not mounted");
       return null;
     }
 
@@ -64,7 +58,6 @@ class SafeNavigationHelper {
         result: result,
       );
     } catch (e) {
-      print("❌ Navigation push replacement error: $e");
       return null;
     }
   }
@@ -76,7 +69,6 @@ class SafeNavigationHelper {
     bool Function(Route<dynamic>) predicate,
   ) {
     if (context == null || !context.mounted) {
-      print("⚠️ Cannot push and remove: Context is null or not mounted");
       return null;
     }
 
@@ -88,7 +80,6 @@ class SafeNavigationHelper {
         predicate,
       );
     } catch (e) {
-      print("❌ Navigation push and remove error: $e");
       return null;
     }
   }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
@@ -26,7 +27,6 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   TextEditingController packageNameController = TextEditingController();
   TextEditingController packageDescriptionController = TextEditingController();
   TextEditingController packagePriceController = TextEditingController();
-  TextEditingController packageDurationController = TextEditingController();
   TextEditingController smallVehiclePriceController = TextEditingController();
   TextEditingController largeVehiclePriceController = TextEditingController();
   
@@ -113,65 +113,83 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   }
 
   void _addCustomService(String serviceName) {
-    if (serviceName.trim().isNotEmpty) {
+    if (serviceName.trim().isNotEmpty && !customServices.contains(serviceName.trim())) {
       setState(() {
         customServices.add(serviceName.trim());
         customServiceController.clear();
       });
-      print("✅ Added custom service: ${serviceName.trim()}");
-      print("🔍 Custom services now: $customServices");
     }
+  }
+  
+  // Get list of common services that haven't been selected yet
+  List<String> get _availableCommonServices {
+    const List<String> allCommonServices = [
+      "Interior wash", "Exterior wash", "Compounding", "Engine cleansing",
+      "Waxing", "Polishing", "Tire cleaning", "Dashboard cleaning",
+      "Seat cleaning", "Carpet cleaning", "Window cleaning", "Headlight restoration"
+    ];
+    
+    // Filter out services that are already in customServices
+    return allCommonServices.where((service) => !customServices.contains(service)).toList();
   }
 
   Future<void> getAvailableServices() async {
-    print("🔄 Loading available services...");
     var response = await dataManager!.getAllServices(context);
-    print("📡 Services API Response Status: ${response.statusCode}");
-    print("📡 Services API Response Body: ${response.body}");
     
     try {
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
-      print("📦 Services Data Status: ${data.status}");
-      print("📦 Services Count: ${data.data?.length ?? 0}");
       
       if (data.status == "success") {
         setState(() {
           availableServices.clear();
           availableServices.addAll(data.data!);
         });
-        print("✅ Services loaded successfully: ${availableServices.length} services");
         
         // Debug: Print details of each service
+        debugPrint('=== Available Services Debug (Add Package) ===');
+        debugPrint('Total services loaded: ${availableServices.length}');
         for (int i = 0; i < availableServices.length; i++) {
           final service = availableServices[i];
-          print("🔍 Service $i: ID=${service.sId}, Title=${service.serviceTitle}, About=${service.about}, Description=${service.description}, Price=${service.price}");
+          debugPrint('Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
         }
+        debugPrint('=== End Services Debug ===');
         
         // Debug: Print selected services
-        print("🔍 Selected Services: $selectedServices");
       } else {
-        print("❌ Services API returned error: ${data.message}");
+        debugPrint('Failed to load services: ${data.message}');
       }
-    } catch (e, stackTrace) {
-      print("❌ Error parsing services response: $e");
-      print("❌ Stack Trace: $stackTrace");
+    } catch (e) {
+      debugPrint('Error loading services: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text("Create Package"),
-        backgroundColor: ColorClass.base_color,
-        foregroundColor: Colors.white,
+        leading: CommonWidget.buildAppBarBackButton(
+          context,
+          iconColor: Colors.black87,
+        ),
+        title: const Text(
+          "Create Package",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Column(
         children: [
-          // Progress Indicator
+          // Progress Indicator - Simple design
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
+            color: Colors.white,
             child: Row(
               children: [
                 _buildStepIndicator(0, "Basic Info"),
@@ -187,6 +205,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           Expanded(
             child: PageView(
               controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent bypassing validation
               onPageChanged: (index) {
                 setState(() {
                   currentStep = index;
@@ -202,36 +221,59 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           
           // Navigation Buttons
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Color(0xFFE0E0E0), width: 1)),
+            ),
             child: Row(
               children: [
                 if (currentStep > 0)
                   Expanded(
-                    child: ElevatedButton(
+                    child: OutlinedButton(
                       onPressed: () {
                         _pageController.previousPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[300],
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFF1CB273), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text("Previous"),
+                      child: const Text(
+                        "Previous",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1CB273),
+                        ),
+                      ),
                     ),
                   ),
-                if (currentStep > 0) const SizedBox(width: 15),
+                if (currentStep > 0) const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: currentStep < 2 ? _nextStep : _createPackage,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorClass.base_color,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: const Color(0xFF1CB273),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    child: Text(currentStep < 2 ? "Next" : "Create Package"),
+                    child: Text(
+                      currentStep < 2 ? "Next" : "Create Package",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -246,10 +288,10 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
     return Column(
       children: [
         Container(
-          width: 30,
-          height: 30,
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
-            color: currentStep >= step ? ColorClass.base_color : Colors.grey[300],
+            color: currentStep >= step ? const Color(0xFF1CB273) : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -257,17 +299,18 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               "${step + 1}",
               style: TextStyle(
                 color: currentStep >= step ? Colors.white : Colors.grey[600],
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 4),
         Text(
           title,
           style: TextStyle(
             fontSize: 10,
-            color: currentStep >= step ? ColorClass.base_color : Colors.grey[600],
+            color: currentStep >= step ? const Color(0xFF1CB273) : Colors.grey[600],
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -278,7 +321,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   Widget _buildStepLine(int step) {
     return Container(
       height: 2,
-      color: currentStep > step ? ColorClass.base_color : Colors.grey[300],
+      color: currentStep > step ? const Color(0xFF1CB273) : Colors.grey[300],
     );
   }
 
@@ -288,6 +331,13 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Welcome Banner
+          UXHelperWidget.buildInfoBanner(
+            message: "Create a package by combining multiple services. Customers love packages because they save money!",
+            icon: Icons.info_outline,
+          ),
+          const SizedBox(height: 30),
+          
           const Text(
             "Package Details",
             style: TextStyle(
@@ -459,7 +509,44 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           ),
           const SizedBox(height: 15),
           
-          // Vehicle Size Pricing
+          // Vehicle Size Pricing with help
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  "Pricing by Vehicle Size",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  UXHelperWidget.showHelpDialog(
+                    context,
+                    title: "Vehicle Size Pricing",
+                    message: "You can charge different prices for small cars (sedans, hatchbacks) and large vehicles (SUVs, trucks). This helps you price fairly based on the work required.",
+                    example: "Small car: \$35, Large vehicle: \$45",
+                  );
+                },
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 14,
+                    color: ColorClass.base_color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           const Text(
             "Vehicle Size Pricing *",
             style: TextStyle(
@@ -513,7 +600,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: selectedTier,
+            initialValue: selectedTier,
             decoration: InputDecoration(
               hintText: "Select package tier",
               border: OutlineInputBorder(
@@ -532,28 +619,6 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                 selectedTier = value ?? "BASIC";
               });
             },
-          ),
-          const SizedBox(height: 15),
-          
-          // Duration
-          const Text(
-            "Duration (hours) *",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: packageDurationController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: "2",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              prefixIcon: const Icon(Icons.schedule),
-            ),
           ),
           const SizedBox(height: 15),
           
@@ -628,24 +693,32 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    "Interior wash", "Exterior wash", "Compounding", "Engine cleansing",
-                    "Waxing", "Polishing", "Tire cleaning", "Dashboard cleaning",
-                    "Seat cleaning", "Carpet cleaning", "Window cleaning", "Headlight restoration"
-                  ].map((service) {
-                    return ActionChip(
-                      label: Text(service),
-                      onPressed: () {
-                        _addCustomService(service);
-                      },
-                      backgroundColor: Colors.blue.withOpacity(0.1),
-                      labelStyle: const TextStyle(color: Colors.blue, fontSize: 12),
-                    );
-                  }).toList(),
-                ),
+                _availableCommonServices.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          "All common services have been added",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _availableCommonServices.map((service) {
+                          return ActionChip(
+                            label: Text(service),
+                            onPressed: () {
+                              _addCustomService(service);
+                            },
+                            backgroundColor: Colors.blue.withOpacity(0.1),
+                            labelStyle: const TextStyle(color: Colors.blue, fontSize: 12),
+                          );
+                        }).toList(),
+                      ),
                 
                 const SizedBox(height: 16),
                 
@@ -700,7 +773,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     isBestSeller = value;
                   });
                 },
-                activeColor: ColorClass.base_color,
+                activeThumbColor: ColorClass.base_color,
               ),
             ],
           ),
@@ -733,102 +806,15 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           ),
           const SizedBox(height: 30),
           
-          // Custom Services Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Add Custom Services",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Add your own services to this package",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: customServiceController,
-                        decoration: const InputDecoration(
-                          hintText: "e.g., Dry clean seats, Interior cleaning, Blow dry",
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                        onSubmitted: (value) {
-                          _addCustomService(value);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        _addCustomService(customServiceController.text);
-                      },
-                      child: const Text("Add"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (customServices.isNotEmpty) ...[
-                  const Text(
-                    "Custom Services:",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: customServices.map((service) {
-                      return Chip(
-                        label: Text(service),
-                        backgroundColor: Colors.blue.withOpacity(0.1),
-                        labelStyle: const TextStyle(color: Colors.blue),
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () {
-                          setState(() {
-                            customServices.remove(service);
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 20),
-          
           // Existing Services Section
           const Text(
-            "Select from Existing Services",
+            "Select services to link (optional)",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 10),
           
           if (availableServices.isEmpty)
             const Center(
@@ -841,66 +827,264 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                 ],
               ),
             )
-          else if (availableServices.length == 0)
-            const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.info_outline, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text("No services available", style: TextStyle(fontSize: 18, color: Colors.grey)),
-                  SizedBox(height: 8),
-                  Text("Please add some services first", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            )
           else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: availableServices.length,
-              itemBuilder: (context, index) {
-                  final service = availableServices[index];
-                  final isSelected = selectedServices.contains(service.sId);
+            Builder(
+              builder: (context) {
+                // Show all services, don't filter by price
+                final servicesToShow = availableServices.where((service) {
+                  // Only filter out services without an ID
+                  return service.sId != null && service.sId!.isNotEmpty;
+                }).toList();
+                
+                if (servicesToShow.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No services available",
+                          style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Please add some services first",
+                          style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: servicesToShow.length,
+                  itemBuilder: (context, index) {
+                    final service = servicesToShow[index];
+                    final isSelected = selectedServices.contains(service.sId);
                   
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: CheckboxListTile(
-                      title: Text(
-                        service.serviceTitle ?? "Unknown Service",
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          selectedServices.remove(service.sId!);
+                        } else {
+                          selectedServices.add(service.sId!);
+                        }
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? ColorClass.base_color.withOpacity(0.05) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? ColorClass.base_color : Colors.grey[300]!,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isSelected 
+                                ? ColorClass.base_color.withOpacity(0.1)
+                                : Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      subtitle: Text(
-                        service.description ?? service.about ?? "No description",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      secondary: Text(
-                        "\$${service.price ?? 0}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ColorClass.base_color,
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            // Checkbox
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected ? ColorClass.base_color : Colors.transparent,
+                                border: Border.all(
+                                  color: isSelected ? ColorClass.base_color : Colors.grey[400]!,
+                                  width: 2,
+                                ),
+                              ),
+                              child: isSelected
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 16,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 14),
+                            // Service Image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: service.coverImage != null && service.coverImage!.isNotEmpty
+                                  ? Image.network(
+                                      service.coverImage!,
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          width: 70,
+                                          height: 70,
+                                          color: Colors.grey[200],
+                                          child: Icon(
+                                            Icons.build_circle_rounded,
+                                            color: Colors.grey[400],
+                                            size: 30,
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      width: 70,
+                                      height: 70,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        Icons.build_circle_rounded,
+                                        color: Colors.grey[400],
+                                        size: 30,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(width: 14),
+                            // Service Details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    service.categoryName ?? service.serviceTitle ?? "Unknown Service",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                      fontFamily: "Pop600",
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (service.serviceTitle != null && service.serviceTitle != service.categoryName)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        service.serviceTitle!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                          fontFamily: "Pop500",
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 6),
+                                  if (service.about != null && service.about!.isNotEmpty)
+                                    Text(
+                                      service.about!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  else if (service.description != null && service.description!.isNotEmpty)
+                                    Text(
+                                      service.description!,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  else
+                                    Text(
+                                      "No description",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[400],
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 8),
+                                  // Info badges
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: ColorClass.base_color.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.attach_money, size: 12, color: ColorClass.base_color),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              "${service.price ?? 0}",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: ColorClass.base_color,
+                                                fontFamily: "Pop600",
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (service.serviceDuration != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.access_time, size: 12, color: Colors.blue[700]),
+                                              const SizedBox(width: 2),
+                                              Text(
+                                                service.serviceDuration!,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.blue[700],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      value: isSelected,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedServices.add(service.sId!);
-                            print("✅ Added service: ${service.serviceTitle} (ID: ${service.sId})");
-                            print("🔍 Selected services now: $selectedServices");
-                          } else {
-                            selectedServices.remove(service.sId!);
-                            print("❌ Removed service: ${service.serviceTitle} (ID: ${service.sId})");
-                            print("🔍 Selected services now: $selectedServices");
-                          }
-                        });
-                      },
                     ),
                   );
                 },
-              ),
+              );
+              },
+            ),
         ],
       ),
     );
@@ -954,9 +1138,13 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   const SizedBox(height: 15),
                   Row(
                     children: [
-                      _buildInfoChip("Price", "\$${packagePriceController.text}"),
-                      const SizedBox(width: 10),
-                      _buildInfoChip("Duration", "${packageDurationController.text} hours"),
+                      // Show price range if both small and large vehicle prices are set
+                      if (smallVehiclePriceController.text.isNotEmpty && largeVehiclePriceController.text.isNotEmpty)
+                        _buildInfoChip("Price", "\$${smallVehiclePriceController.text} - \$${largeVehiclePriceController.text}")
+                      else if (packagePriceController.text.isNotEmpty)
+                        _buildInfoChip("Price", "\$${packagePriceController.text}")
+                      else
+                        _buildInfoChip("Price", "N/A"),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -972,18 +1160,8 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      // Custom Services
-                      ...customServices.map((service) {
-                        return Chip(
-                          label: Text(service),
-                          backgroundColor: Colors.blue.withOpacity(0.1),
-                          labelStyle: const TextStyle(color: Colors.blue),
-                        );
-                      }).toList(),
-                      
                       // Selected Services (from existing services)
                       ...selectedServices.map((serviceId) {
-                        print("🔍 Looking for service with ID: $serviceId");
                         
                         final service = availableServices.firstWhere(
                           (s) => s.sId == serviceId,
@@ -991,17 +1169,20 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                         );
                         
                         if (service.sId != null) {
-                          print("🔍 Found service: ${service.serviceTitle} (ID: ${service.sId})");
                           return Chip(
-                            label: Text(service.serviceTitle ?? "Unknown Service"),
+                            label: Text(service.categoryName ?? service.serviceTitle ?? "Unknown Service"),
                             backgroundColor: ColorClass.base_color.withOpacity(0.1),
                             labelStyle: TextStyle(color: ColorClass.base_color),
                           );
                         } else {
-                          print("❌ Service not found for ID: $serviceId");
                           return const SizedBox.shrink(); // Don't show anything for unknown services
                         }
-                      }).toList(),
+                      }),
+                      if (selectedServices.isEmpty)
+                        Text(
+                          "No services selected",
+                          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        ),
                     ],
                   ),
                 ],
@@ -1054,7 +1235,6 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
       packageDescriptionController.text = template.description;
       smallVehiclePriceController.text = template.smallPrice;
       largeVehiclePriceController.text = template.largePrice;
-      packageDurationController.text = template.duration;
       selectedTier = template.tier;
       isBestSeller = template.isBestSeller;
       
@@ -1067,35 +1247,149 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
     CommonWidget.successShowSnackBarFor(context, "Package template selected!");
   }
 
+  // Validation methods
+  String? _validatePackageName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Package name is required";
+    }
+    if (value.trim().length < 3) {
+      return "Package name must be at least 3 characters";
+    }
+    if (value.trim().length > 100) {
+      return "Package name must be less than 100 characters";
+    }
+    return null;
+  }
+
+  String? _validateDescription(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Description is required";
+    }
+    if (value.trim().length < 10) {
+      return "Description must be at least 10 characters";
+    }
+    if (value.trim().length > 500) {
+      return "Description must be less than 500 characters";
+    }
+    return null;
+  }
+
+  String? _validatePrice(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return "$fieldName is required";
+    }
+    final price = double.tryParse(value.trim());
+    if (price == null) {
+      return "$fieldName must be a valid number";
+    }
+    if (price < 0) {
+      return "$fieldName cannot be negative";
+    }
+    if (price > 10000) {
+      return "$fieldName cannot exceed \$10,000";
+    }
+    return null;
+  }
+
+
+  bool _validateBasicInfo() {
+    // Validate package name
+    final nameError = _validatePackageName(packageNameController.text);
+    if (nameError != null) {
+      CommonWidget.errorShowSnackBarFor(context, nameError);
+      return false;
+    }
+
+    // Validate description
+    final descError = _validateDescription(packageDescriptionController.text);
+    if (descError != null) {
+      CommonWidget.errorShowSnackBarFor(context, descError);
+      return false;
+    }
+
+    // Validate small vehicle price
+    final smallPriceError = _validatePrice(smallVehiclePriceController.text, "Small vehicle price");
+    if (smallPriceError != null) {
+      CommonWidget.errorShowSnackBarFor(context, smallPriceError);
+      return false;
+    }
+
+    // Validate large vehicle price
+    final largePriceError = _validatePrice(largeVehiclePriceController.text, "Large vehicle price");
+    if (largePriceError != null) {
+      CommonWidget.errorShowSnackBarFor(context, largePriceError);
+      return false;
+    }
+
+    // Validate that large vehicle price is >= small vehicle price
+    final smallPrice = double.tryParse(smallVehiclePriceController.text.trim());
+    final largePrice = double.tryParse(largeVehiclePriceController.text.trim());
+    if (smallPrice != null && largePrice != null && largePrice < smallPrice) {
+      CommonWidget.errorShowSnackBarFor(context, "Large vehicle price should be greater than or equal to small vehicle price");
+      return false;
+    }
+
+    // Note: Services validation is done in step 1 (Services step), not in Basic Info step
+    // Services will be validated when moving from step 1 to step 2, or in the final review step
+
+    return true;
+  }
+
+  bool _validateServices() {
+    if (selectedServices.isEmpty) {
+      CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+      return false;
+    }
+    return true;
+  }
+
   void _nextStep() {
+    bool isValid = false;
+    
+    // Validate based on current step
     if (currentStep == 0) {
-      if (packageNameController.text.isEmpty || 
-          packageDescriptionController.text.isEmpty ||
-          smallVehiclePriceController.text.isEmpty ||
-          largeVehiclePriceController.text.isEmpty ||
-          packageDurationController.text.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please fill all required fields");
-        return;
-      }
-      
-      if (customServices.isEmpty && selectedServices.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please add at least one service to the package");
-        return;
-      }
+      // Step 0: Basic Info validation
+      isValid = _validateBasicInfo();
     } else if (currentStep == 1) {
-      if (selectedServices.isEmpty && customServices.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
-        return;
-      }
+      // Step 1: Services validation
+      isValid = _validateServices();
+    } else if (currentStep == 2) {
+      // Step 2: Review - validate everything before creating
+      isValid = _validateAllSteps();
     }
     
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    // Only proceed to next step if validation passes
+    if (isValid && currentStep < 2) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+  
+  // Comprehensive validation for all steps
+  bool _validateAllSteps() {
+    // Validate Basic Info
+    if (!_validateBasicInfo()) {
+      return false;
+    }
+    
+    // Validate Services
+    if (!_validateServices()) {
+      return false;
+    }
+    
+    return true;
   }
 
   Future<void> _createPackage() async {
+    if (!mounted || !context.mounted) return;
+    
+    // Final comprehensive validation before creating package
+    if (!_validateAllSteps()) {
+      return;
+    }
+    
     try {
       showDialog(
         context: context,
@@ -1105,64 +1399,70 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
         ),
       );
       
-      // Only send actual service IDs (not custom service names)
-      // Custom services will be handled in the package description or as a separate field
-      print("🔍 Creating package with services:");
-      print("🔍 Selected services (IDs): $selectedServices");
-      print("🔍 Custom services (names): $customServices");
-      
-      // Create a combined description that includes custom services
-      String combinedDescription = packageDescriptionController.text;
-      if (customServices.isNotEmpty) {
-        combinedDescription += "\n\nServices included:\n• ${customServices.join('\n• ')}";
-      }
+      // Send actual service IDs
       
       var response = await dataManager!.createPackage(
         context,
         packageNameController.text,
-        combinedDescription, // Include custom services in description
+        packageDescriptionController.text,
         smallVehiclePriceController.text, // Use small vehicle price as base price
-        packageDurationController.text,
+        "", // Duration removed - pass empty string
         selectedServices, // Only send actual service IDs
         smallVehiclePrice: smallVehiclePriceController.text,
         largeVehiclePrice: largeVehiclePriceController.text,
         packageTier: selectedTier,
         isBestSeller: isBestSeller,
+        customServices: customServices, // Send custom services
       );
       
-      Navigator.pop(context); // Close loader
+      if (!mounted || !context.mounted) return;
       
-      print("📦 Package Creation Response Status: ${response.statusCode}");
-      print("📦 Package Creation Response Body: ${response.body}");
+      if (Navigator.canPop(context)) {
+      Navigator.pop(context); // Close loader
+      }
+      
       
       // Check if response is HTML (error page) instead of JSON
       if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+        }
+        return;
+      }
+      
+      // Check response status code
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to create package. Please check your connection and try again.");
+        }
         return;
       }
       
       try {
         var data = PackageModelData.fromJson(jsonDecode(response.body));
-        print("📦 Package Data Status: ${data.status}");
-        print("📦 Package Data Message: ${data.message}");
         
         if (data.status == "success") {
+          if (mounted && context.mounted) {
           CommonWidget.successShowSnackBarFor(context, "Package created successfully!");
-          Navigator.pop(context);
+            Navigator.pop(context, true);
+          }
         } else {
-          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to create package");
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to create package. Please try again.");
+          }
         }
-      } catch (e, stackTrace) {
-        print("❌ Error parsing package creation response: $e");
-        print("❌ Stack Trace: $stackTrace");
-        print("❌ Response body: ${response.body}");
-        CommonWidget.errorShowSnackBarFor(context, "Error parsing response: $e");
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error parsing response. Please try again.");
       }
-    } catch (e, stackTrace) {
+      }
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) {
       Navigator.pop(context); // Close loader
-      print("❌ Package Creation Error: $e");
-      print("❌ Stack Trace: $stackTrace");
-      CommonWidget.errorShowSnackBarFor(context, "Error creating package: $e");
+      }
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error creating package. Please check your connection and try again.");
+      }
     }
   }
 }

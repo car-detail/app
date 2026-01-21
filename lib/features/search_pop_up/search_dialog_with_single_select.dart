@@ -137,7 +137,7 @@ class _SearchDialogWithSingleSelectState
                                     margin: const EdgeInsets.all(5),
                                     width: double.infinity,
                                     child: CommonWidget.getTextWidgetPopReg(
-                                      "${data.title ?? ""}",textsize: 14, textAlign: TextAlign.start
+                                      data.title ?? "",textsize: 14, textAlign: TextAlign.start
                                     ),
                                   ),
                                   Divider(

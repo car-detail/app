@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:car_app/Common/BaseActivity.dart';
-import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ContainerDecoration.dart';

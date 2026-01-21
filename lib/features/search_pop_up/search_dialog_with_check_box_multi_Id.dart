@@ -5,7 +5,6 @@ import '../../Common/CommonWidget.dart';
 import '../../Models/check_dialog_box.dart';
 import 'package:flutter/material.dart';
 
-import '../../Models/check_dialog_box.dart';
 
 class SearchDialogWithCheckBoxMultiId extends StatefulWidget {
   String title;

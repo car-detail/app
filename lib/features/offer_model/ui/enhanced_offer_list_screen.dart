@@ -40,28 +40,73 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
   }
 
   Future<void> getOffers() async {
+    if (!mounted || !context.mounted) return;
+    
     setState(() {
       isLoading = true;
     });
 
     try {
       var response = await offerDataManager!.getOfferList(context);
-      var data = OfferListModelBean.fromJson(jsonDecode(response.body));
       
-      if (data.status == "success") {
-        setState(() {
-          offers.clear();
-          offers.addAll(data.data!);
-        });
-      } else {
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load offers");
+      if (!mounted || !context.mounted) return;
+      
+      // Check if response is HTML (error page) instead of JSON
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+        }
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+        return;
+      }
+      
+      // Check response status code
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to load offers. Please check your connection and try again.");
+        }
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+        return;
+      }
+      
+      try {
+        var data = OfferListModelBean.fromJson(jsonDecode(response.body));
+        
+        if (data.status == "success") {
+          if (mounted) {
+            setState(() {
+              offers.clear();
+              offers.addAll(data.data!);
+            });
+          }
+        } else {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load offers");
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error parsing offers data. Please try again.");
+        }
       }
     } catch (e) {
-      CommonWidget.errorShowSnackBarFor(context, "Error loading offers: $e");
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading offers. Please check your connection and try again.");
+      }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -117,16 +162,10 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               children: [
                 Row(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        onPressed: () => CommonWidget.safePop(context),
-                        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-                        iconSize: 20,
-                      ),
+                    CommonWidget.buildBackButton(
+                      context,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      iconColor: Colors.white,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -307,22 +346,18 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
 
   Widget _buildOfferCard(OfferListModelData offer) {
     final isExpired = offer.validUntil != null && 
+                     offer.validUntil!.isNotEmpty &&
                      DateTime.parse(offer.validUntil!).isBefore(DateTime.now());
     final isActive = offer.isCurrentlyActive == true && !isExpired;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 25,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -330,238 +365,249 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
       ),
       child: Column(
         children: [
-          // Modern Offer Header
+          // Compact Header with Image Background
           Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isActive
-                    ? [ColorClass.base_color, ColorClass.base_color.withOpacity(0.9)]
-                    : isExpired
-                        ? [Colors.red[400]!, Colors.red[500]!]
-                        : [Colors.grey[400]!, Colors.grey[500]!],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
+            height: 140,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
-            child: Row(
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                // Modern Offer Image
+                // Background Image
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: offer.image != null && offer.image!.isNotEmpty
+                      ? Image.network(
+                          offer.image!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: ColorClass.base_color.withOpacity(0.3),
+                              child: const Icon(
+                                Icons.local_offer_rounded,
+                                color: Colors.white,
+                                size: 48,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: ColorClass.base_color,
+                          child: const Icon(
+                            Icons.local_offer_rounded,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                        ),
+                ),
+                // Gradient Overlay
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: offer.image != null && offer.image!.isNotEmpty
-                        ? Image.network(
-                            offer.image!,
-                            height: 70,
-                            width: 70,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaceholderImage();
-                            },
-                          )
-                        : _buildPlaceholderImage(),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
+                // Content Overlay
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Top Row: Status Badge
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Service Tag
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              offer.service?.serviceTitle ?? "Service",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Status Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isExpired 
+                                  ? Colors.red[700]!.withOpacity(0.9)
+                                  : isActive 
+                                      ? Colors.green[700]!.withOpacity(0.9)
+                                      : Colors.grey[700]!.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isExpired 
+                                  ? "EXPIRED"
+                                  : isActive 
+                                      ? "ACTIVE" 
+                                      : "INACTIVE",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Bottom: Title
                       Text(
                         offer.title ?? "Untitled Offer",
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
+                          letterSpacing: 0.2,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          offer.service?.serviceTitle ?? "Service Offer",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.95),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ),
-                // Modern Status Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    isExpired 
-                        ? "EXPIRED"
-                        : isActive 
-                            ? "ACTIVE" 
-                            : "INACTIVE",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
                   ),
                 ),
               ],
             ),
           ),
           
-          // Modern Offer Content
+          // Compact Content Section
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Modern Discount Badge
-                if (offer.discount != null && offer.discount! > 0) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.red[400]!, Colors.red[500]!],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.red.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.local_offer_rounded, color: Colors.white, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          "${offer.discount}% OFF",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-                
-                // Modern Description
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.grey[200]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    offer.description ?? "No description",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey[700],
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Modern Validity Period
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isExpired ? Colors.red[50] : ColorClass.base_light_color,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isExpired ? Colors.red[200]! : ColorClass.base_color.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
+                // Discount and Validity in Row
+                Row(
+                  children: [
+                    // Discount Badge
+                    if (offer.discount != null && offer.discount! > 0) ...[
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isExpired ? Colors.red[100] : ColorClass.base_color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Icon(
-                          Icons.calendar_today_rounded, 
-                          size: 18, 
-                          color: isExpired ? Colors.red[600] : ColorClass.base_color
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
+                            const Icon(Icons.local_offer_rounded, color: Colors.white, size: 14),
+                            const SizedBox(width: 4),
                             Text(
-                              "Valid until",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isExpired ? Colors.red[600] : Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              CommonWidget.getDateFormat(offer.validUntil!),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isExpired ? Colors.red[700] : ColorClass.base_color,
+                              "${offer.discount}% OFF",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                     ],
-                  ),
+                    // Validity Info
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isExpired 
+                              ? Colors.red[50] 
+                              : offer.validUntil == null || offer.validUntil!.isEmpty
+                                  ? Colors.green[50]
+                                  : ColorClass.base_light_color,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              offer.validUntil == null || offer.validUntil!.isEmpty
+                                  ? Icons.all_inclusive_rounded
+                                  : Icons.calendar_today_rounded,
+                              size: 12,
+                              color: isExpired 
+                                  ? Colors.red[700]
+                                  : offer.validUntil == null || offer.validUntil!.isEmpty
+                                      ? Colors.green[700]
+                                      : ColorClass.base_color,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                offer.validUntil == null || offer.validUntil!.isEmpty
+                                    ? "Never expires"
+                                    : "Until ${CommonWidget.getDateFormat(offer.validUntil!)}",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isExpired 
+                                      ? Colors.red[700]
+                                      : offer.validUntil == null || offer.validUntil!.isEmpty
+                                          ? Colors.green[700]
+                                          : ColorClass.base_color,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
                 
-                // Modern Action Buttons
+                // Description (if available)
+                if (offer.description != null && offer.description!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    offer.description!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                
+                const SizedBox(height: 16),
+                
+                // Action Buttons
                 Row(
                   children: [
                     Expanded(
@@ -569,26 +615,36 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                         Icons.edit_rounded,
                         "Edit",
                         () {
-                          CommonWidget.successShowSnackBarFor(context, "Edit feature coming soon!");
+                          if (mounted && context.mounted) {
+                            CommonWidget.successShowSnackBarFor(context, "Edit feature coming soon! You can delete and recreate the offer for now.");
+                          }
                         },
                         isPrimary: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _buildModernActionButton(
                         Icons.delete_rounded,
                         "Delete",
-                        () => _showDeleteDialog(offer.sId.toString()),
+                        () {
+                          if (mounted && context.mounted) {
+                            _showDeleteDialog(offer.sId.toString());
+                          }
+                        },
                         isDestructive: true,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _buildModernActionButton(
                         offer.isCurrentlyActive == true ? Icons.pause_rounded : Icons.play_arrow_rounded,
                         offer.isCurrentlyActive == true ? "Pause" : "Activate",
-                        () => _toggleOfferStatus(offer.sId.toString()),
+                        () {
+                          if (mounted && context.mounted) {
+                            _toggleOfferStatus(offer.sId.toString());
+                          }
+                        },
                         isSecondary: true,
                       ),
                     ),
@@ -657,45 +713,62 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
       borderColor = ColorClass.base_color.withOpacity(0.3);
     }
     
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          // Add haptic feedback for better UX
+          // HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(12),
+        splashColor: isPrimary 
+            ? Colors.white.withOpacity(0.2)
+            : isDestructive
+                ? Colors.red.withOpacity(0.2)
+                : Colors.grey.withOpacity(0.2),
+        highlightColor: isPrimary 
+            ? Colors.white.withOpacity(0.1)
+            : isDestructive
+                ? Colors.red.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.1),
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 60,
+            minWidth: 60,
           ),
-          boxShadow: isPrimary ? [
-            BoxShadow(
-              color: ColorClass.base_color.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: borderColor,
+              width: 1.5,
             ),
-          ] : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon, 
-              size: 16, 
-              color: iconColor,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 22, 
+                color: iconColor,
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

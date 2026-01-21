@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io' show File;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
@@ -61,7 +60,9 @@ class _OfferScreenState extends State<OfferScreen> {
     setState(() {
       venderId = sharedPreferences!.getString(Constant.vendorId) ?? "";
     });
-    if (venderId != "") getCategory(context);
+    if (venderId != "" && mounted && context.mounted) {
+      getCategory(context);
+    }
   }
 
   @override
@@ -125,14 +126,12 @@ class _OfferScreenState extends State<OfferScreen> {
                         //     CommonPopUp.showdateNewDialog(context, (date) {
                         //       String formattedDate =
                         //           DateFormat('dd-MM-yyyy').format(date);
-                        //       print(formattedDate);
-                        //       setState(() {
+                        //                        //       setState(() {
                         //         validFromController.text = formattedDate;
                         //         /*fromDate =
                         //               DateFormat('yyyy-MM-dd').format(date);*/
                         //         fromDate = date.toString();
-                        //         print(fromDate);
-                        //       });
+                        //                        //       });
                         //     }, DateTime.now(), DateTime.now(), DateTime(2050));
                         //   }, "calendar_black"),
                         // ),
@@ -140,22 +139,44 @@ class _OfferScreenState extends State<OfferScreen> {
                         //   width: 10,
                         // ),
                         Expanded(
-                          child: CommonWidget
-                              .getTextFieldWithgrayboderandclickable(
-                                  "Valid Until", validUntilController, () {
-                            CommonPopUp.showdateNewDialog(context, (date) {
-                              String formattedDate =
-                                  DateFormat('dd-MM-yyyy').format(date);
-                              print(formattedDate);
-                              setState(() {
-                                validUntilController.text = formattedDate;
-                                /*toDate =
-                                      DateFormat('yyyy-MM-dd').format(date);*/
-                                toDate = date.toString();
-                                print(toDate);
-                              });
-                            }, DateTime.now(), DateTime.now(), DateTime(2050));
-                          }, "calendar_black"),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Valid Until",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "(Optional)",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              CommonWidget
+                                  .getTextFieldWithgrayboderandclickable(
+                                      "Select end date (optional)", validUntilController, () {
+                                CommonPopUp.showdateNewDialog(context, (date) {
+                                  String formattedDate =
+                                      DateFormat('dd-MM-yyyy').format(date);
+                                  setState(() {
+                                    validUntilController.text = formattedDate;
+                                    toDate = date.toString();
+                                  });
+                                }, DateTime.now(), DateTime.now(), DateTime(2050));
+                              }, "calendar_black"),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -180,7 +201,6 @@ class _OfferScreenState extends State<OfferScreen> {
                               }
                             }
                           }
-                          print("Selected file count: ${selectedFiles.length}");
                         });
                       },
                       child: Container(
@@ -314,15 +334,18 @@ class _OfferScreenState extends State<OfferScreen> {
                   //       context, "From date cannot be greater than To date.");
                   //   return;
                   // }
-                  // if (toDateTime.isBefore(fromDateTime)) {
-                  //   CommonWidget.errorShowSnackBarFor(
-                  //       context, "To date cannot be earlier than From date.");
-                  //   return;
-                  // }
-                  if (toDateTime.isBefore(DateTime.now())) {
-                    CommonWidget.errorShowSnackBarFor(
-                        context, "Date should be grater then today date");
-                    return;
+                  // Expiration date is now optional - only validate if provided
+                  if (toDate.isNotEmpty) {
+                    try {
+                      DateTime toDateTime = DateTime.parse(toDate);
+                      if (toDateTime.isBefore(DateTime.now())) {
+                        CommonWidget.errorShowSnackBarFor(
+                            context, "Expiration date should be greater than today's date");
+                        return;
+                      }
+                    } catch (e) {
+                      // Invalid date format - allow it to proceed (will be handled by backend)
+                    }
                   }
                   await postImage(context);
                   addOffer();
@@ -347,53 +370,147 @@ class _OfferScreenState extends State<OfferScreen> {
   }
 
   postImage(BuildContext context) async {
-    List<File> image = [selectedFiles[0]];
-    var response = await offerDataManager!.postImage(image, context);
-    var data = ImageModuleData.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      coverImage = data.data?.url ?? "";
-      //CommonWidget.successShowSnackBarFor(context, data.message??"");
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    if (!mounted || !context.mounted) return;
+    
+    try {
+      List<File> image = [selectedFiles[0]];
+      var response = await offerDataManager!.postImage(image, context);
+      
+      if (!mounted || !context.mounted) return;
+      
+      // Check response status code
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to upload image. Please try again.");
+        }
+        return;
+      }
+      
+      try {
+        var data = ImageModuleData.fromJson(jsonDecode(response.body));
+        if (data.status == "success") {
+          if (mounted) {
+            setState(() {
+              coverImage = data.data?.url ?? "";
+            });
+          }
+        } else {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image. Please try again.");
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error processing image upload. Please try again.");
+        }
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error uploading image. Please check your connection and try again.");
+      }
     }
   }
 
   void addOffer() async {
-    var response = await offerDataManager?.addOffer(
-        context,
-        titleController.text,
-        descriptionController.text,
-        discountController.text,
-        fromDate,
-        toDate,
-        serviceId,
-        coverImage);
-    var data = CommonBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      CommonWidget.safePop(context, result: true);
-      //CommonWidget.navigateToKillScreen(context, ServicesListActivity());
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    if (!mounted || !context.mounted) return;
+    
+    try {
+      // Send empty string if expiration date is not provided
+      var response = await offerDataManager?.addOffer(
+          context,
+          titleController.text,
+          descriptionController.text,
+          discountController.text,
+          fromDate,
+          toDate.isEmpty ? "" : toDate,
+          serviceId,
+          coverImage);
+      
+      if (!mounted || !context.mounted) return;
+      
+      // Check response status code
+      if (response?.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to create offer. Please try again.");
+        }
+        return;
+      }
+      
+      try {
+        var data = CommonBean.fromJson(jsonDecode(response!.body));
+        if (data.status == "success") {
+          if (mounted && context.mounted) {
+            CommonWidget.successShowSnackBarFor(context, data.message ?? "Offer created successfully!");
+            CommonWidget.safePop(context, result: true);
+          }
+        } else {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to create offer. Please try again.");
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error processing request. Please try again.");
+        }
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error creating offer. Please check your connection and try again.");
+      }
     }
   }
 
   getCategory(BuildContext context) async {
-    var response = await offerDataManager!.getServicesList(context);
-    var data = ServicesListBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      setState(() {
-        servicesData.clear();
-        servicesData.addAll(data.data!);
-        if(data.data!.isNotEmpty){
-          serviceController.text = data.data![0].categoryName??"";
-          serviceId = data.data![0].id??"";
+    if (!mounted || !context.mounted) return;
+    
+    try {
+      var response = await offerDataManager!.getServicesList(context);
+      
+      if (!mounted || !context.mounted) return;
+      
+      // Check if response is HTML (error page) instead of JSON
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
         }
-      });
-
-      //CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+        return;
+      }
+      
+      // Check response status code
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to load services. Please check your connection and try again.");
+        }
+        return;
+      }
+      
+      try {
+        var data = ServicesListBean.fromJson(jsonDecode(response.body));
+        if (data.status == "success") {
+          if (mounted) {
+            setState(() {
+              servicesData.clear();
+              servicesData.addAll(data.data!);
+              if(data.data!.isNotEmpty){
+                serviceController.text = data.data![0].categoryName??"";
+                serviceId = data.data![0].id??"";
+              }
+            });
+          }
+        } else {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load services. Please try again.");
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error parsing services data. Please try again.");
+        }
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading services. Please check your connection and try again.");
+      }
     }
   }
 

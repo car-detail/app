@@ -137,12 +137,16 @@ class UXHelperWidget {
             Expanded(
               child: Row(
                 children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ),
                   if (isRequired)
@@ -199,7 +203,7 @@ class UXHelperWidget {
             prefixIcon: Icon(icon, color: ColorClass.base_color),
             hintText: hintText ?? "Enter $label",
             helperText: example != null ? "Example: $example" : null,
-            helperMaxLines: 2,
+            helperMaxLines: 3,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey[300]!),
@@ -222,11 +226,12 @@ class UXHelperWidget {
 
   /// Build friendly error message
   static void showFriendlyError(BuildContext context, String message) {
+    final mediaQuery = MediaQuery.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info_outline, color: Colors.white),
+            const Icon(Icons.info_outline, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -238,6 +243,11 @@ class UXHelperWidget {
         ),
         backgroundColor: Colors.red[600],
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: mediaQuery.size.height - mediaQuery.padding.top - 100,
+          left: 16,
+          right: 16,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -269,6 +279,11 @@ class UXHelperWidget {
         ),
         backgroundColor: Colors.green[600],
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - 100,
+          left: 16,
+          right: 16,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -291,7 +306,7 @@ class UXHelperWidget {
         color: (backgroundColor ?? Colors.blue[50])!,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: (iconColor ?? Colors.blue[300]!)!,
+          color: (iconColor ?? Colors.blue[300]!),
           width: 1,
         ),
       ),

@@ -143,7 +143,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                                           SizedBox(
                                             height: 20,
                                             child: Switch(
-                                                activeColor:
+                                                activeThumbColor:
                                                     ColorClass.base_color,
                                                 inactiveThumbColor: Colors.red,
                                                 inactiveTrackColor:

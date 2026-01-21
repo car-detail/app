@@ -1,13 +1,16 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ShimmerLoader.dart';
-import 'package:car_app/Common/FirstTimeTutorial.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/Common/TourGuide.dart';
 import 'package:car_app/features/dashboard_module/model/vendor_details_main_bean.dart';
 import 'package:car_app/features/home_module/ui/home_activity.dart';
 import 'package:car_app/features/services_model/ui/services_list_activity.dart';
 import 'package:car_app/features/booking_model/ui/booking_list_activity.dart';
+import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
+import 'package:car_app/features/log_in/model/vendor_details_bean.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,20 +33,33 @@ class _DashboardActivityState extends State<DashboardActivity> {
   final List<Widget> _pageNo = [];
   HomeDataManager? dataManager;
   SharedPreferences? sharedPreferences;
+  bool? tourShown; // This comes from database - tour_shown field
+  LoginDataManager? loginDataManager;
+  
+  // Tour guide keys
+  final GlobalKey _homeNavKey = GlobalKey();
+  final GlobalKey _bookingsNavKey = GlobalKey();
+  final GlobalKey _profileNavKey = GlobalKey();
+  
+  // Home screen tour guide keys
+  final GlobalKey _shopStatusKey = GlobalKey();
+  final GlobalKey _quickAccessKey = GlobalKey();
 
   @override
   void initState() {
     // TODO: implement initState
     _pageNo.addAll([
-      HomeActivity((value) {
-        print(
-            "offlineofflineofflineofflineofflineofflineofflineofflineofflineoffline");
+      HomeActivity(
+        (value) {
         if (mounted) {
           setState(() {
             isValid = value;
           });
         }
-      }),
+        },
+        shopStatusKey: _shopStatusKey,
+        quickAccessKey: _quickAccessKey,
+      ),
       _buildBookingsPage(),
       const ProfileVendorListActivity(),
     ]);
@@ -54,82 +70,199 @@ class _DashboardActivityState extends State<DashboardActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     dataManager = HomeDataManager(sharedPreferences!);
+    loginDataManager = LoginDataManager(sharedPreferences!);
     
     final vendorId = sharedPreferences!.getString(Constant.vendorId);
-    print("🔍 Dashboard - Checking vendorId: '$vendorId'");
-    print("🔍 Dashboard - All SharedPreferences keys: ${sharedPreferences!.getKeys()}");
     
     if (vendorId != null && vendorId.isNotEmpty) {
-      print("✅ VendorId found, loading vendor details");
       getdetails(context);
-      
-      // Show tutorial for first-time users
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await FirstTimeTutorial.showDashboardTutorial(context);
-      });
+      _loadVendorDetails();
     } else {
-      print("❌ No vendorId found - vendor needs to complete registration");
       // Show a message to complete registration
       if (context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Please complete your vendor registration first");
       }
     }
   }
+  
+  Future<void> _loadVendorDetails() async {
+    try {
+      final response = await loginDataManager!.getUserDetails(context);
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['status'] == 'success' && jsonData['data'] != null && jsonData['data'].isNotEmpty) {
+          final vendorDetails = VendorDetailBean.fromJson(jsonData);
+          if (vendorDetails.data != null && vendorDetails.data!.isNotEmpty) {
+            if (mounted) {
+              setState(() {
+                tourShown = vendorDetails.data![0].tour_shown ?? false;
+              });
+              // Show tour guide only if not shown before (based on database tour_shown flag) and only on home screen
+              // Only check tour_shown from database, not session flag
+              if (!(tourShown ?? false) && selectedpage == 0) {
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  // Wait longer for home screen to be fully rendered, especially after navigation
+                  await Future.delayed(const Duration(milliseconds: 2000));
+                  // Retry up to 3 times if keys are not ready
+                  int retryCount = 0;
+                  while (retryCount < 3 && mounted && context.mounted && selectedpage == 0) {
+                    if (_homeNavKey.currentContext != null && 
+                        _shopStatusKey.currentContext != null &&
+                        _quickAccessKey.currentContext != null) {
+                      _showTourGuide();
+                      break;
+                    } else {
+                      await Future.delayed(const Duration(milliseconds: 500));
+                      retryCount++;
+                    }
+                  }
+                  if (retryCount >= 3 && mounted && context.mounted && selectedpage == 0) {
+                    _showTourGuide();
+                  }
+                });
+              } else {
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Don't show tour guide if API fails - user might have already seen it
+    }
+  }
+  
+  Future<void> _markTourAsSeen() async {
+    try {
+      if (loginDataManager != null) {
+        final response = await loginDataManager!.markTourShown(context);
+        if (response.statusCode == 200) {
+          if (mounted) {
+            setState(() {
+              tourShown = true; // Update local state to reflect database change
+            });
+          }
+        } else {
+        }
+      }
+    } catch (e) {
+    }
+  }
 
   var isValid = true;
 
   makeItOffline() {
-    print(
-        "offlineofflineofflineofflineofflineofflineofflineofflineofflineoffline");
   }
 
   makeOffLine(BuildContext context) async {
+    if (!mounted || !context.mounted) return;
+    try {
     var response = await dataManager!.makeOffLine(context);
+      
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Unable to update store status. Please try again."
+          );
+        }
+        return;
+      }
+      
+      try {
     var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
+        if (data.status == "success" && data.data != null) {
       if (mounted) {
         setState(() {
-          isValid = data.data!.isShopOpen!;
+              isValid = data.data?.isShopOpen ?? true;
         });
       }
-      if (context.mounted) {
-        CommonWidget.successShowSnackBarFor(context, data.message ?? "");
+          if (mounted && context.mounted) {
+            CommonWidget.successShowSnackBarFor(
+              context, 
+              data.message ?? "Store status updated successfully"
+            );
       }
     } else {
-      if (context.mounted) {
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(
+              context, 
+              data.message ?? "Unable to update store status"
+            );
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Received invalid response. Please try again."
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(
+          context, 
+          "Error updating store status. Please check your connection."
+        );
       }
     }
   }
   getdetails(BuildContext context) async {
+    if (!mounted || !context.mounted) return;
     try {
       var response = await dataManager!.getdetails(context);
-      print("🔍 Dashboard getdetails response: ${response.statusCode} - ${response.body}");
       
       if (response.statusCode == 404) {
-        print("❌ Vendor not found - vendorId might be missing");
-        CommonWidget.errorShowSnackBarFor(context, "Vendor profile not found. Please complete your registration.");
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Business profile not found. Please complete your registration."
+          );
+        }
         return;
       }
       
+      if (response.statusCode != 200) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Unable to load business details. Please check your connection and try again."
+          );
+        }
+        return;
+      }
+      
+      // Check if response is valid JSON
+      try {
       var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
-      if (data.status == "success") {
+        if (data.status == "success" && data.data != null) {
         if (mounted) {
           setState(() {
-            isValid = data.data!.isShopOpen!;
+              isValid = data.data?.isShopOpen ?? true;
           });
         }
-        print("✅ Vendor details loaded successfully");
       } else {
-        print("❌ API returned error: ${data.message}");
-        if (context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load vendor details");
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(
+              context, 
+              data.message ?? "Unable to load business details. Please try again."
+            );
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(
+            context, 
+            "Received invalid response. Please try again later."
+          );
         }
       }
     } catch (e) {
-      print("❌ Error in getdetails: $e");
-      if (context.mounted) {
-        CommonWidget.errorShowSnackBarFor(context, "Error loading vendor details: ${e.toString()}");
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(
+          context, 
+          "Error loading business details. Please check your connection."
+        );
       }
     }
   }
@@ -139,52 +272,213 @@ class _DashboardActivityState extends State<DashboardActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
+    // Set status bar style when this screen builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: ColorClass.base_color,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
+      );
+    });
+    
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, // Transparent so green background shows
+        statusBarIconBrightness: Brightness.light, // White icons
+        statusBarBrightness: Brightness.dark, // For iOS
+        systemNavigationBarColor: ColorClass.base_color,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            // Green status bar background
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: MediaQuery.of(context).padding.top,
+                color: ColorClass.base_color,
+                width: double.infinity,
+              ),
+            ),
+            // Main content
+            SafeArea(
         child: isValid
             ? IndexedStack(
                 key: const ValueKey('main_stack'),
                 index: selectedpage,
                 children: _pageNo,
               )
-            : Container(
-                child: Column(
-                  children: [
-                    CommonWidget.gettopbar("Store Status", context,
-                        isBack: false),
-                    Expanded(
-                        child: Container(
-                      margin: const EdgeInsets.all(15),
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CommonWidget.getTextWidgetPopbold(
-                              "Your Store is now Offline, Do you want to make it Online?"),
-                          const SizedBox(
-                            height: 20,
+            : Scaffold(
+                backgroundColor: Colors.grey[50],
+                body: SafeArea(
+                  child: Column(
+                    children: [
+                      // Modern Header
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          "Store Status",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: "Pop600",
                           ),
-                          SizedBox(
-                            height: 20,
-                            child: Switch(
-                                activeColor: ColorClass.base_color,
-                                inactiveThumbColor: Colors.red,
-                                inactiveTrackColor: Colors.red[100],
-                                value: isValid,
-                                onChanged: (onChanged) {
-                                  makeOffLine(context);
-                                }),
-                          ),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ))
-                  ],
+                      
+                      // Main Content
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Status Icon
+                                Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    color: isValid 
+                                        ? ColorClass.base_color.withOpacity(0.1)
+                                        : Colors.red.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isValid ? Icons.store : Icons.store_outlined,
+                                    size: 60,
+                                    color: isValid 
+                                        ? ColorClass.base_color 
+                                        : Colors.red[400],
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                
+                                // Status Message
+                                Text(
+                                  isValid 
+                                      ? "Your Store is now Online"
+                                      : "Your Store is now Offline",
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                    fontFamily: "Pop600",
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 12),
+                                
+                                Text(
+                                  isValid
+                                      ? "Customers can see and book your services"
+                                      : "Do you want to make it Online?",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontFamily: "Pop400",
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 48),
+                                
+                                // Modern Toggle Switch Card
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isValid ? "Online" : "Offline",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: isValid 
+                                                  ? ColorClass.base_color 
+                                                  : Colors.red[400],
+                                              fontFamily: "Pop600",
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            isValid 
+                                                ? "Tap to go offline"
+                                                : "Tap to go online",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                              fontFamily: "Pop400",
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Transform.scale(
+                                        scale: 1.2,
+                                        child: Switch(
+                                          activeThumbColor: ColorClass.base_color,
+                                          inactiveThumbColor: Colors.white,
+                                          inactiveTrackColor: Colors.red[300],
+                                          activeTrackColor: ColorClass.base_color.withOpacity(0.5),
+                                          value: isValid,
+                                          onChanged: (value) {
+                                            makeOffLine(context);
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+            ),
+          ],
       ),
       bottomNavigationBar: isValid
           ? _buildModernBottomNav()
           : null,
+      ),
     );
   }
 
@@ -192,8 +486,6 @@ class _DashboardActivityState extends State<DashboardActivity> {
   Future<String?> _getVendorId() async {
     sharedPreferences = await SharedPreferences.getInstance();
     String? vendorId = sharedPreferences?.getString(Constant.vendorId);
-    print("🔍 Dashboard - Vendor ID check: $vendorId");
-    print("🔍 Dashboard - All stored keys: ${sharedPreferences?.getKeys()}");
     return vendorId;
   }
 
@@ -283,123 +575,139 @@ class _DashboardActivityState extends State<DashboardActivity> {
 
   Widget _buildModernBottomNav() {
     return Container(
-      key: const ValueKey('bottom_nav'),
-      height: 75,
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: ModernDesignSystem.shadowLarge,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(ModernDesignSystem.radiusXL),
-          topRight: Radius.circular(ModernDesignSystem.radiusXL),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
+      child: SafeArea(
+        top: false,
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(
+            key: _homeNavKey,
             icon: Icons.home_rounded,
             label: 'Home',
             index: 0,
             isSelected: selectedpage == 0,
           ),
           _buildNavItem(
+            key: _bookingsNavKey,
             icon: Icons.calendar_today_rounded,
             label: 'Bookings',
             index: 1,
             isSelected: selectedpage == 1,
           ),
           _buildNavItem(
+            key: _profileNavKey,
             icon: Icons.person_rounded,
             label: 'Profile',
             index: 2,
             isSelected: selectedpage == 2,
           ),
         ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildNavItem({
+    Key? key,
     required IconData icon,
     required String label,
     required int index,
     required bool isSelected,
   }) {
-    // Help text for each tab
-    final helpTexts = {
-      0: "Tap here to see your business overview and manage services",
-      1: "Tap here to view and manage all customer bookings",
-      2: "Tap here to edit your profile and business settings",
-    };
-
-    return GestureDetector(
+    return Expanded(
+      key: key,
+      child: GestureDetector(
       onTap: () {
         if (mounted && selectedpage != index) {
           setState(() => selectedpage = index);
         }
       },
-      onLongPress: () {
-        if (!mounted) return;
-        // Show help on long press
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(icon, color: ColorClass.base_color),
-                const SizedBox(width: 8),
-                Text(label),
-              ],
-            ),
-            content: Text(helpTexts[index] ?? "This is the $label section"),
-            actions: [
-              TextButton(
-                onPressed: () => CommonWidget.safePop(context),
-                child: Text(
-                  "Got it!",
-                  style: TextStyle(color: ColorClass.base_color),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      child: Container(
-        key: ValueKey('nav_item_$index'),
-        padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingS),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSelected ? ColorClass.base_color : Colors.transparent,
-                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
-              ),
-              child: Icon(
+            Icon(
                 icon,
-                color: isSelected ? Colors.white : ColorClass.dark_gray_base,
-                size: 22,
-              ),
+              color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
+              size: 24,
             ),
-            const SizedBox(height: ModernDesignSystem.spacingXS),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
+            const SizedBox(height: 4),
+            Text(
+              label,
               style: TextStyle(
-                color: isSelected ? ColorClass.base_color : ColorClass.dark_gray_base,
-                fontSize: isSelected ? 11 : 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                letterSpacing: 0.3,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
               ),
-              child: Text(label),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showTourGuide() {
+    // Double check - don't show if already shown in database
+    if (tourShown == true) {
+      return;
+    }
+    
+    TourGuide.showTour(
+      context: context,
+      tourId: 'vendor_dashboard',
+      tourShown: tourShown ?? false,
+      onMarkAsSeen: _markTourAsSeen, // This will be called when tour is completed or skipped
+      steps: [
+        TourStep(
+          targetKey: _homeNavKey,
+          title: "Home Tab",
+          description: "View your business overview, manage services, view offers, and check your shop status",
+          icon: Icons.home_rounded,
+        ),
+        TourStep(
+          targetKey: _shopStatusKey,
+          title: "Shop Status",
+          description: "Toggle your shop status between online and offline. When online, customers can see and book your services",
+          icon: Icons.store_rounded,
+          alignment: Alignment.bottomCenter,
+        ),
+        TourStep(
+          targetKey: _quickAccessKey,
+          title: "Quick Actions",
+          description: "Quickly access your services, packages, offers, and bookings. Manage all your business features from here",
+          icon: Icons.dashboard_rounded,
+          alignment: Alignment.bottomCenter,
+        ),
+        TourStep(
+          targetKey: _bookingsNavKey,
+          title: "Bookings Tab",
+          description: "View and manage all customer bookings. See booking details, complete, or cancel bookings",
+          icon: Icons.calendar_today_rounded,
+        ),
+        TourStep(
+          targetKey: _profileNavKey,
+          title: "Profile Tab",
+          description: "Edit your business details, update your profile, manage settings, and view your business information",
+          icon: Icons.person_rounded,
+        ),
+      ],
     );
   }
 }

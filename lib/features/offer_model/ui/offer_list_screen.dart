@@ -75,9 +75,10 @@ class _OfferListScreenState extends State<OfferListScreen> {
               child: Row(
                 children: [
                   if (widget.value != "Main")
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    CommonWidget.buildBackButton(
+                      context,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      iconColor: Colors.white,
                     ),
                   Expanded(
                     child: Column(
@@ -243,7 +244,7 @@ class _OfferListScreenState extends State<OfferListScreen> {
                 ),
                 // Status Toggle
                 Switch(
-                  activeColor: Colors.white,
+                  activeThumbColor: Colors.white,
                   inactiveThumbColor: Colors.white,
                   inactiveTrackColor: Colors.white.withOpacity(0.3),
                   value: data.isCurrentlyActive,

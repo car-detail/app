@@ -85,7 +85,7 @@ class Data {
     isNewUser = json['isNewUser'];
     roleName = json['roleName'];
     status = json['status'];
-    fcmToken = json['fcmToken'] != null ? json['fcmToken'].cast<String>() : null;
+    fcmToken = json['fcmToken']?.cast<String>();
     deviceId = json['deviceId'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];

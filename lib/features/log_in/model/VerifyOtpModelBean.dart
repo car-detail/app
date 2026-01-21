@@ -8,7 +8,19 @@ class VerifyOtpModelBean {
 
   VerifyOtpModelBean.fromJson(Map<String, dynamic> json) {
     status = json['status'];
-    message = json['message'];
+    // Handle message as both string and array (backend returns array)
+    if (json['message'] != null) {
+      if (json['message'] is List) {
+        // If message is an array, take the first element
+        List<dynamic> messageList = json['message'] as List<dynamic>;
+        message = messageList.isNotEmpty ? messageList[0].toString() : null;
+      } else {
+        // If message is a string, use it directly
+        message = json['message'].toString();
+      }
+    } else {
+      message = null;
+    }
     statusCode = json['statusCode'];
     data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }

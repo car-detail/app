@@ -17,7 +17,7 @@ if [ -f "$GENERATED_XCCONFIG" ]; then
     FLUTTER_BUILD_NUMBER=$(grep "FLUTTER_BUILD_NUMBER=" "$GENERATED_XCCONFIG" | cut -d'=' -f2 | tr -d ' ')
 else
     echo "Warning: Generated.xcconfig not found, using defaults"
-    FLUTTER_BUILD_NAME="1.6.0"
+    FLUTTER_BUILD_NAME="1.7.0"
     FLUTTER_BUILD_NUMBER="1"
 fi
 

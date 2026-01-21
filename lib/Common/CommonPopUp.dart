@@ -186,9 +186,7 @@ class CommonPopUp {
       if (pickedDate == null) {
         return;
       }
-      print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
       String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
-      print(formattedDate);
       updatefield(
           pickedDate); //formatted date output using intl package =>  2021-03-16
       /*setState(() {
@@ -230,9 +228,7 @@ class CommonPopUp {
       if (pickedDate == null) {
         return;
       }
-      print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
       String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
-      print(formattedDate);
       updatefield(
           pickedDate); //formatted date output using intl package =>  2021-03-16
       /*setState(() {
@@ -269,7 +265,6 @@ class CommonPopUp {
       if (time == null) {
         return;
       }
-      print(time); //pickedDate output format => 2021-03-10 00:00:00.000
       updatefield(
           time); //formatted date output using intl package =>  2021-03-16
     });

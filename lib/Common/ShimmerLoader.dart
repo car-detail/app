@@ -19,7 +19,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: baseColor ?? _carBaseColor.withOpacity(0.03),
       highlightColor: highlightColor ?? _carHighlightColor.withOpacity(0.08),
-      period: Duration(milliseconds: 1800),
+      period: const Duration(milliseconds: 1800),
       child: Container(
         width: width,
         height: height,
@@ -42,7 +42,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 2000),
+      period: const Duration(milliseconds: 2000),
       child: Container(
         margin: const EdgeInsets.all(8.0),
         padding: const EdgeInsets.all(16.0),
@@ -88,7 +88,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 2000),
+      period: const Duration(milliseconds: 2000),
       child: Container(
         width: width,
         height: height,
@@ -115,7 +115,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 1800),
+      period: const Duration(milliseconds: 1800),
       child: Container(
         width: width,
         height: height,
@@ -142,7 +142,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 1800),
+      period: const Duration(milliseconds: 1800),
       child: Container(
         width: width,
         height: height,
@@ -168,7 +168,7 @@ class ShimmerLoader {
   }) {
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 12,
@@ -184,7 +184,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 2000),
+      period: const Duration(milliseconds: 2000),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -294,7 +294,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 2000),
+      period: const Duration(milliseconds: 2000),
       child: Container(
         width: 200,
         margin: const EdgeInsets.only(right: 16),
@@ -328,7 +328,7 @@ class ShimmerLoader {
                   end: Alignment.bottomRight,
                   colors: [Colors.grey[200]!, Colors.grey[100]!],
                 ),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
@@ -390,7 +390,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.02),
       highlightColor: _carHighlightColor.withOpacity(0.06),
-      period: Duration(milliseconds: 2000),
+      period: const Duration(milliseconds: 2000),
       child: Container(
         width: 32,
         height: 32,
@@ -427,7 +427,7 @@ class ShimmerLoader {
     return Shimmer.fromColors(
       baseColor: _carBaseColor.withOpacity(0.01),
       highlightColor: _carHighlightColor.withOpacity(0.03),
-      period: Duration(milliseconds: 2200),
+      period: const Duration(milliseconds: 2200),
       child: Container(
         width: width,
         height: height,

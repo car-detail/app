@@ -6,6 +6,7 @@ import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/packages_model/ui/add_package_activity.dart';
 import 'package:car_app/features/packages_model/ui/edit_package_activity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PackageListActivity extends StatefulWidget {
@@ -77,13 +78,40 @@ class _PackageListActivityState extends State<PackageListActivity> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: ColorClass.base_color,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
         backgroundColor: Colors.grey[50],
-        body: Column(
+        body: Stack(
+          children: [
+            // Green status bar background
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: MediaQuery.of(context).padding.top,
+                color: ColorClass.base_color,
+                width: double.infinity,
+              ),
+            ),
+            // Main content
+            Column(
           children: [
             // Enhanced Header with Back Button
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 16,
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                  ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -101,22 +129,10 @@ class _PackageListActivityState extends State<PackageListActivity> {
               child: Row(
                 children: [
                   // Back Button
-                  GestureDetector(
-                    onTap: () {
-                      CommonWidget.safePop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
+                  CommonWidget.buildBackButton(
+                    context,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    iconColor: Colors.white,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -140,28 +156,6 @@ class _PackageListActivityState extends State<PackageListActivity> {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddPackageActivity(),
-                        ),
-                      ).then((_) => getPackages());
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 24,
-                      ),
                     ),
                   ),
                 ],
@@ -197,6 +191,22 @@ class _PackageListActivityState extends State<PackageListActivity> {
                 ),
               ),
           ],
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddPackageActivity(),
+              ),
+            ).then((_) => getPackages());
+          },
+          backgroundColor: ColorClass.base_color,
+          tooltip: "Add Package",
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
         ),
     );
   }
@@ -259,7 +269,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
     return RefreshIndicator(
       onRefresh: getPackages,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         itemCount: packages.length,
         itemBuilder: (context, index) {
           final package = packages[index];
@@ -270,173 +280,404 @@ class _PackageListActivityState extends State<PackageListActivity> {
   }
 
   Widget _buildPackageCard(PackageData package) {
-    return Card(
+    final isBestSeller = package.isBestSeller ?? false;
+    final smallPrice = double.tryParse(package.smallVehiclePrice ?? package.packagePrice ?? "0") ?? 0;
+    final largePrice = double.tryParse(package.largeVehiclePrice ?? package.packagePrice ?? "0") ?? 0;
+    final duration = double.tryParse(package.packageDuration ?? "0") ?? 0;
+    final servicesCount = package.servicesIncluded?.length ?? 0;
+    final isActive = package.isActive ?? true;
+    final primaryColor = ColorClass.base_color;
+    
+    // Get service names from serviceDetails, customServices, or fallback to IDs
+    List<String> serviceNames = [];
+    
+    // First, add custom services (these are always service names)
+    if (package.customServices != null && package.customServices!.isNotEmpty) {
+      serviceNames.addAll(package.customServices!);
+    }
+    
+    // Then, add service names from populated service objects
+    if (package.serviceDetails != null && package.serviceDetails!.isNotEmpty) {
+      final serviceDetailNames = package.serviceDetails!
+          .map((s) => s['name']?.toString() ?? '')
+          .where((name) => name.isNotEmpty && !name.startsWith('Service '))
+          .toList();
+      serviceNames.addAll(serviceDetailNames);
+    } else if (package.servicesIncluded != null && package.customServices == null) {
+      // If no custom services and no service details, show IDs as fallback
+      debugPrint('Package: ${package.packageName} - No serviceDetails or customServices, servicesIncluded: ${package.servicesIncluded}');
+      serviceNames.addAll(package.servicesIncluded!.map((id) => 'Service $id').toList());
+    }
+    
+    // Remove duplicates while preserving order
+    serviceNames = serviceNames.toSet().toList();
+    
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        package.packageName ?? "Unknown Package",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditPackageActivity(packageData: package),
+              ),
+            ).then((_) => getPackages());
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header: Title, Status, Best Seller
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      package.packageName ?? "Unknown Package",
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF111827),
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isBestSeller) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.star, size: 12, color: Colors.white),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            "BEST",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                package.packageDescription ?? "No description",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  height: 1.3,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        package.packageDescription ?? "No description",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
+                        const SizedBox(width: 12),
+                        // Status Badge - Minimal
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isActive 
+                                ? const Color(0xFF10B981).withOpacity(0.1)
+                                : Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: isActive 
+                                      ? const Color(0xFF10B981)
+                                      : Colors.grey[600],
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isActive ? "Active" : "Inactive",
+                                style: TextStyle(
+                                  color: isActive 
+                                      ? const Color(0xFF10B981)
+                                      : Colors.grey[700],
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Pricing Row - Compact
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCompactPrice(
+                            icon: Icons.directions_car_rounded,
+                            price: smallPrice,
+                            color: primaryColor,
+                          ),
+                        ),
+                        Container(width: 1, height: 30, color: Colors.grey[200]),
+                        Expanded(
+                          child: _buildCompactPrice(
+                            icon: Icons.directions_car_filled,
+                            price: largePrice,
+                            color: primaryColor,
+                            iconSize: 20, // Slightly larger for SUV
+                          ),
+                        ),
+                        Container(width: 1, height: 30, color: Colors.grey[200]),
+                        Expanded(
+                          child: _buildCompactInfo(
+                            icon: Icons.access_time_rounded,
+                            text: "${duration.toStringAsFixed(0)}h",
+                          ),
+                        ),
+                        Container(width: 1, height: 30, color: Colors.grey[200]),
+                        Expanded(
+                          child: _buildCompactInfo(
+                            icon: Icons.build_rounded,
+                            text: "$servicesCount",
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Service Tags - Chip Style (like Quick Add Common Services)
+                    if (serviceNames.isNotEmpty) ...[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: serviceNames.map((serviceName) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              serviceName.length > 25 ? '${serviceName.substring(0, 25)}...' : serviceName,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF3B82F6),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
+                      const SizedBox(height: 12),
                     ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: package.isActive == true ? Colors.green : Colors.red,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    package.isActive == true ? "Active" : "Inactive",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (package.smallVehiclePrice != null && package.largeVehiclePrice != null) ...[
-                  _buildInfoChip(
-                    Icons.directions_car,
-                    "Small: \$${package.smallVehiclePrice}",
-                    Colors.green,
-                  ),
-                  _buildInfoChip(
-                    Icons.local_shipping,
-                    "Large: \$${package.largeVehiclePrice}",
-                    Colors.blue,
-                  ),
-                ] else
-                  _buildInfoChip(
-                    Icons.attach_money,
-                    "\$${package.packagePrice ?? "0"}",
-                    Colors.green,
-                  ),
-                _buildInfoChip(
-                  Icons.schedule,
-                  "${package.packageDuration ?? "0"} hours",
-                  Colors.blue,
-                ),
-                _buildInfoChip(
-                  Icons.design_services,
-                  "${package.servicesIncluded?.length ?? 0} services",
-                  Colors.orange,
-                ),
-                if (package.packageTier != null)
-                  _buildInfoChip(
-                    Icons.category,
-                    package.packageTier!,
-                    Colors.purple,
-                  ),
-                if (package.isBestSeller == true)
-                  _buildInfoChip(
-                    Icons.star,
-                    "BEST SELLER",
-                    Colors.red,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditPackageActivity(packageData: package),
+                    
+                    // Package Tier
+                    if (package.packageTier != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ).then((_) => getPackages());
-                    },
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text("Edit"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ColorClass.base_color,
-                      side: BorderSide(color: ColorClass.base_color),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.category, size: 14, color: Colors.grey[700]),
+                            const SizedBox(width: 6),
+                            Text(
+                              package.packageTier!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    
+                    // Action Buttons - Compact
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCompactButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditPackageActivity(packageData: package),
+                                ),
+                              ).then((_) => getPackages());
+                            },
+                            label: "Edit",
+                            icon: Icons.edit_rounded,
+                            color: primaryColor,
+                            isPrimary: true,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildCompactButton(
+                            onPressed: () => _showDeleteDialog(package),
+                            label: "Delete",
+                            icon: Icons.delete_outline_rounded,
+                            color: const Color(0xFFEF4444),
+                            isPrimary: false,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      _showDeleteDialog(package);
-                    },
-                    icon: const Icon(Icons.delete, size: 16),
-                    label: const Text("Delete"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+  Widget _buildCompactPrice({
+    required IconData icon,
+    required double price,
+    required Color color,
+    double iconSize = 18,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: iconSize, color: color),
+        const SizedBox(height: 4),
+        Text(
+          "\$${price.toStringAsFixed(0)}",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactInfo({
+    required IconData icon,
+    required String text,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: 18, color: Colors.grey[600]),
+        const SizedBox(height: 4),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactButton({
+    required VoidCallback onPressed,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isPrimary,
+  }) {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: isPrimary ? color : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: isPrimary ? null : Border.all(color: color.withOpacity(0.3), width: 1.5),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: isPrimary ? Colors.white : color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isPrimary ? Colors.white : color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
+
+
 
   void _showDeleteDialog(PackageData package) {
     showDialog(

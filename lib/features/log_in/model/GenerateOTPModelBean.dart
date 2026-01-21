@@ -10,7 +10,7 @@ class GenerateOTPModelBean {
     status = json['status'];
     message = json['message'];
     statusCode = json['statusCode'];
-    //data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {

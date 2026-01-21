@@ -4,6 +4,7 @@ import 'package:car_app/Common/BaseActivity.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:car_app/features/services_model/model/add_services_bean.dart';
 import 'package:car_app/features/services_model/model/services_list_bean.dart';
@@ -32,6 +33,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   final TextEditingController _serviceTitleController = TextEditingController();
   final TextEditingController _aboutController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
 
   // Data managers
   ServicesDataManager? servicesDataManager;
@@ -41,7 +43,6 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   String _selectedCategory = "Car Wash";
   String _selectedServiceDuration = "0.5hr - 1hr";
   String _selectedCapacity = "5";
-  String _selectedMobile = "";
 
   // Predefined options
   final List<String> _serviceDurations = [
@@ -58,7 +59,11 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   ];
 
   List<CategoryData> categoryData = [];
+  List<CategoryData> filteredCategoryData = []; // Categories filtered to exclude those with existing services
   String categoryId = "";
+  
+  // Existing services to check which categories are already used
+  List<ServicesListData> existingServices = [];
 
   // Image handling
   List<File> selectedFiles = [];
@@ -99,7 +104,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
       _priceController.text = widget.serviceToEdit!.price?.toString() ?? "0";
       _selectedCategory = widget.serviceToEdit!.categoryName ?? "Car Wash";
       categoryId = widget.serviceToEdit!.categoryId ?? "";
-      _selectedMobile = widget.serviceToEdit!.mobile ?? "";
+      _mobileController.text = widget.serviceToEdit!.mobile ?? "";
       
       // Set existing image
       serviceImage = widget.serviceToEdit!.coverImage ?? "";
@@ -110,7 +115,10 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
       _setRandomText();
     }
     
-    getCategory(context);
+    // Fetch categories and existing services
+    await getCategory(context);
+    await _fetchExistingServices(context);
+    _filterCategories();
   }
   
   void _clearForm() {
@@ -118,7 +126,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     _serviceTitleController.clear();
     _aboutController.clear();
     _priceController.clear();
-    _selectedMobile = "";
+    _mobileController.clear();
     serviceImage = "";
     selectedFiles.clear();
     categoryId = "";
@@ -140,24 +148,25 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: _currentStep > 0
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+            ? CommonWidget.buildAppBarBackButton(
+                context,
+                iconColor: Colors.black87,
                 onPressed: _previousStep,
               )
-            : IconButton(
-                icon: const Icon(Icons.close, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
+            : CommonWidget.buildAppBarBackButton(
+                context,
+                iconColor: Colors.black87,
               ),
         title: Text(
           widget.serviceToEdit != null ? "Edit Service" : "Add Service",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -192,18 +201,19 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
 
   Widget _buildProgressIndicator() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
       child: Column(
         children: [
           Row(
             children: List.generate(_totalSteps, (index) {
               return Expanded(
                 child: Container(
-                  height: 4,
-                  margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
+                  height: 3,
+                  margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 6 : 0),
                   decoration: BoxDecoration(
                     color: index <= _currentStep
-                        ? ColorClass.base_color
+                        ? const Color(0xFF1CB273)
                         : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
@@ -211,12 +221,12 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
               );
             }),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             "Step ${_currentStep + 1} of $_totalSteps",
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -232,58 +242,121 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Service Information",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Tell us about your service",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+            // Welcome Banner
+            UXHelperWidget.buildInfoBanner(
+              message: widget.serviceToEdit != null
+                  ? "Update your service information below. You can change anything anytime!"
+                  : "Let's add your service! Just fill in the basic details. We'll help you every step of the way.",
+              icon: widget.serviceToEdit != null ? Icons.edit_outlined : Icons.info_outline,
             ),
             const SizedBox(height: 30),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
               controller: _serviceTitleController,
-              label: "Service Title",
+              label: "Service Name",
               icon: Icons.design_services,
-              hint: "e.g., Premium Car Wash",
+              helpText: "Give your service a clear and descriptive name, like 'Basic Car Wash' or 'Premium Interior Detailing'. This is what customers will see.",
+              example: "Basic Car Wash",
               isRequired: true,
             ),
             const SizedBox(height: 20),
-            _buildDropdownField(
-              label: "Category",
-              value: _selectedCategory,
-              options: categoryData.map((cat) => cat.categoryTitle ?? "").toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value!;
-                  categoryId = categoryData
-                      .firstWhere((cat) => cat.categoryTitle == value)
-                      .sId
-                      .toString();
-                });
-              },
-              icon: Icons.category,
-            ),
+            _buildCategoryDropdown(),
             const SizedBox(height: 20),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
               controller: _aboutController,
               label: "Service Description",
               icon: Icons.description,
-              hint: "Describe your service...",
+              helpText: "Briefly describe what this service includes. Keep it simple and clear so customers know what to expect.",
+              example: "Complete exterior wash with soap and water",
               maxLines: 4,
               isRequired: true,
             ),
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildCategoryDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                "Service Type *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                UXHelperWidget.showHelpDialog(
+                  context,
+                  title: "Service Type",
+                  message: "What type of service is this? Choose the category that best matches your service.",
+                  example: "Car Wash, Car Detailing, etc.",
+                );
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: ColorClass.base_color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.help_outline,
+                  size: 14,
+                  color: ColorClass.base_color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: filteredCategoryData.any((cat) => cat.categoryTitle == _selectedCategory) ? _selectedCategory : null,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1CB273)),
+              hint: const Text("Select service type", style: TextStyle(color: Colors.grey)),
+              items: filteredCategoryData.map((CategoryData cat) {
+                return DropdownMenuItem<String>(
+                  value: cat.categoryTitle ?? "",
+                  child: Text(
+                    cat.categoryTitle ?? "",
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedCategory = value;
+                    categoryId = filteredCategoryData
+                        .firstWhere((cat) => cat.categoryTitle == value)
+                        .sId
+                        .toString();
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -294,67 +367,154 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Service Details",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Set up pricing and capacity",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+            UXHelperWidget.buildInfoBanner(
+              message: "Set up pricing and capacity for your service. Don't worry, you can change these later.",
+              icon: Icons.settings_outlined,
             ),
             const SizedBox(height: 30),
-            _buildInputField(
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
               controller: _priceController,
-              label: "Price (\$)",
+              label: "Price",
               icon: Icons.attach_money,
-              hint: "0 (Optional)",
+              helpText: "How much do you charge for this service? Enter just the number. You can leave this empty and set it later.",
+              example: "25",
+              hintText: "e.g., 25 (Optional)",
               keyboardType: TextInputType.number,
               isRequired: false,
             ),
             const SizedBox(height: 20),
-            _buildDropdownField(
-              label: "Service Duration",
-              value: _selectedServiceDuration,
-              options: _serviceDurations,
-              onChanged: (value) {
-                setState(() {
-                  _selectedServiceDuration = value!;
-                });
-              },
-              icon: Icons.schedule,
-            ),
+            _buildDurationDropdown(),
             const SizedBox(height: 20),
-            _buildDropdownField(
-              label: "Capacity per hour",
-              value: _selectedCapacity,
-              options: _capacityOptions,
-              onChanged: (value) {
-                setState(() {
-                  _selectedCapacity = value!;
-                });
-              },
-              icon: Icons.people,
-            ),
+            _buildCapacityDropdown(),
             const SizedBox(height: 20),
-            _buildInputField(
-              controller: TextEditingController(text: _selectedMobile),
-              label: "Mobile Number (Optional)",
+            UXHelperWidget.buildHelpfulInputField(
+              context: context,
+              controller: _mobileController,
+              label: "Mobile Number",
               icon: Icons.phone,
-              hint: "Enter mobile number",
+              helpText: "Optional: Enter a contact number for this service if it's different from your main number.",
+              hintText: "e.g., 9876543210",
               keyboardType: TextInputType.phone,
-              onChanged: (value) => _selectedMobile = value,
+              isRequired: false,
             ),
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildDurationDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                "Service Duration *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                UXHelperWidget.showHelpDialog(
+                  context,
+                  title: "Service Duration",
+                  message: "How long does it take to complete this service? This helps customers plan their visit.",
+                  example: "0.5hr - 1hr for a basic wash",
+                );
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: ColorClass.base_color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.help_outline,
+                  size: 14,
+                  color: ColorClass.base_color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _buildDropdownField(
+          label: "Service Duration",
+          value: _selectedServiceDuration,
+          options: _serviceDurations,
+          onChanged: (value) {
+            setState(() {
+              _selectedServiceDuration = value!;
+            });
+          },
+          icon: Icons.schedule,
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildCapacityDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                "How many cars can you handle at once? *",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                UXHelperWidget.showHelpDialog(
+                  context,
+                  title: "Capacity",
+                  message: "How many cars can you service at the same time? This helps us manage bookings better.",
+                  example: "If you can wash 5 cars at once, select 5",
+                );
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: ColorClass.base_color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.help_outline,
+                  size: 14,
+                  color: ColorClass.base_color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _buildDropdownField(
+          label: "Capacity per hour",
+          value: _selectedCapacity,
+          options: _capacityOptions,
+          onChanged: (value) {
+            setState(() {
+              _selectedCapacity = value!;
+            });
+          },
+          icon: Icons.directions_car,
+        ),
+      ],
     );
   }
 
@@ -365,21 +525,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Service Images",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Add images to showcase your service",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+            UXHelperWidget.buildInfoBanner(
+              message: "Add a cover image for your service. This helps customers see what to expect. You can skip this and add it later.",
+              icon: Icons.image_outlined,
             ),
             const SizedBox(height: 30),
             _buildImageSection(
@@ -482,29 +630,21 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: options.contains(value) ? value : null,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: ColorClass.base_color),
-              hint: Text("Select $label"),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1CB273)),
+              hint: Text("Select $label", style: const TextStyle(color: Colors.grey)),
               items: options.map((String option) {
                 return DropdownMenuItem<String>(
                   value: option,
-                  child: Row(
-                    children: [
-                      Icon(icon, color: ColorClass.base_color, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          option,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    option,
+                    style: const TextStyle(fontSize: 15),
                   ),
                 );
               }).toList(),
@@ -552,14 +692,14 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
               color: ColorClass.base_color,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.cloud_upload, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
+                Icon(Icons.cloud_upload, color: Colors.white, size: 24),
+                SizedBox(width: 12),
                 Text(
                   "Upload Images",
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -608,7 +748,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             borderRadius: BorderRadius.circular(12),
             child: isUploadedImage
                 ? Image.network(
-                    existingImage!,
+                    existingImage,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
                   )
@@ -639,7 +779,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             },
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,
               ),
@@ -708,23 +848,60 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
 
   Future<void> _uploadSelectedImage() async {
     if (selectedFiles.isEmpty) {
-      CommonWidget.errorShowSnackBarFor(context, "Please select an image first");
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Please select an image first");
+      }
       return;
     }
     
+    if (!mounted || !context.mounted) return;
+    
+    // Store dialog context to prevent navigation issues
+    BuildContext? dialogContext;
+    
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      // Check if access token exists before uploading
+      String? accessToken = sharedPreferences?.getString(Constant.accessToken);
+      if (accessToken == null || accessToken.isEmpty) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Session expired. Please login again.");
+        }
+        return;
+      }
+      
+      // Show loading dialog
+      if (mounted && context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogBuildContext) {
+            dialogContext = dialogBuildContext;
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+      }
       
       // Upload the first image (cover image)
       String uploadedUrl = await _postImage(context, [selectedFiles[0]]);
       
-      Navigator.pop(context); // Close loading dialog
+      // Close loading dialog using the dialog's context
+      if (mounted && dialogContext != null && dialogContext!.mounted) {
+        try {
+          Navigator.of(dialogContext!).pop();
+        } catch (e) {
+          // Fallback: try with main context if dialog context fails
+          if (mounted && context.mounted && Navigator.of(context).canPop()) {
+            try {
+              Navigator.of(context).pop();
+            } catch (e2) {
+            }
+          }
+        }
+      }
+      
+      if (!mounted || !context.mounted) return;
       
       if (uploadedUrl.isNotEmpty) {
         setState(() {
@@ -737,14 +914,33 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         CommonWidget.errorShowSnackBarFor(context, "Failed to upload image");
       }
     } catch (e) {
-      Navigator.pop(context); // Close loading dialog
-      CommonWidget.errorShowSnackBarFor(context, "Error uploading image: ${e.toString()}");
+      // Close loading dialog on error
+      if (mounted && dialogContext != null && dialogContext!.mounted) {
+        try {
+          Navigator.of(dialogContext!).pop();
+        } catch (e2) {
+          // Fallback: try with main context if dialog context fails
+          if (mounted && context.mounted && Navigator.of(context).canPop()) {
+            try {
+              Navigator.of(context).pop();
+            } catch (e3) {
+            }
+          }
+        }
+      }
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error uploading image: ${e.toString()}");
+      }
     }
   }
 
   Widget _buildNavigationButtons() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE0E0E0), width: 1)),
+      ),
       child: Row(
         children: [
           if (_currentStep > 0)
@@ -752,35 +948,40 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
               child: OutlinedButton(
                 onPressed: _previousStep,
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: ColorClass.base_color),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: Color(0xFF1CB273), width: 1.5),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: const Text(
                   "Previous",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1CB273),
+                  ),
                 ),
               ),
             ),
-          if (_currentStep > 0) const SizedBox(width: 16),
+          if (_currentStep > 0) const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
               onPressed: _currentStep == _totalSteps - 1 ? _saveService : _nextStep,
               style: ElevatedButton.styleFrom(
-                backgroundColor: ColorClass.base_color,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: const Color(0xFF1CB273),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Text(
                 _currentStep == _totalSteps - 1 
-                    ? (widget.serviceToEdit != null ? "Update Service" : "Save Service") 
+                    ? (widget.serviceToEdit != null ? "Update" : "Save") 
                     : "Next",
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -852,17 +1053,14 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     try {
       // Upload service image if any new files selected (not already uploaded)
       if (selectedFiles.isNotEmpty && serviceImage.isEmpty) {
+        if (!mounted || !context.mounted) return;
         serviceImage = await _postImage(context, [selectedFiles[0]]);
+        if (!mounted || !context.mounted) return;
       }
 
       var response;
       if (widget.serviceToEdit != null) {
         // Update existing service
-        print("🔧 Updating service with ID: ${widget.serviceToEdit!.sId}");
-        print("🔧 New title: ${_serviceTitleController.text}");
-        print("🔧 New price: ${_priceController.text}");
-        print("🔧 New category: $_selectedCategory");
-        print("🔧 Service image: $serviceImage");
         
         response = await servicesDataManager?.updateService(
             context,
@@ -875,19 +1073,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _selectedCategory,
             categoryId,
             serviceImage,
-            _selectedMobile);
+            _mobileController.text);
       } else {
         // Create new service
-        print("🔧 Creating new service with data:");
-        print("🔧 Title: ${_serviceTitleController.text}");
-        print("🔧 Description: ${_aboutController.text}");
-        print("🔧 Capacity: $_selectedCapacity");
-        print("🔧 Price: ${_priceController.text.isEmpty ? "0" : _priceController.text}");
-        print("🔧 Duration: $_selectedServiceDuration");
-        print("🔧 Category: $_selectedCategory");
-        print("🔧 Category ID: $categoryId");
-        print("🔧 Image: $serviceImage");
-        print("🔧 Mobile: $_selectedMobile");
         
         response = await servicesDataManager?.postServies(
             context,
@@ -899,42 +1087,105 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _selectedCategory,
             categoryId,
             serviceImage,
-            _selectedMobile);
+            _mobileController.text);
       }
       
-      Navigator.pop(context); // Close loading dialog
+      if (!mounted || !context.mounted) return;
       
-      print("🔧 API Response Status: ${response.statusCode}");
-      print("🔧 API Response Body: ${response.body}");
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context); // Close loading dialog
+      }
       
-      var data = AddServicesBean.fromJson(jsonDecode(response.body));
-      if (data.status == "success") {
-        print("✅ Service creation/update successful: ${data.message}");
-        print("✅ Service Title: ${_serviceTitleController.text}");
-        print("✅ Service Description: ${_aboutController.text}");
-        print("✅ Service Price: ${_priceController.text}");
-        print("✅ Service Category: $_selectedCategory");
-        print("✅ Service Image: $serviceImage");
-        CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-        Navigator.pop(context, true);
-      } else {
-        print("❌ Service creation/update failed: ${data.message}");
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      
+      // Check if response is HTML (error page) instead of JSON
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+        }
+        return;
+      }
+      
+      // Check response status code
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Unable to save service. Please check your connection and try again.");
+        }
+        return;
+      }
+      
+      try {
+        var data = AddServicesBean.fromJson(jsonDecode(response.body));
+        if (data.status == "success") {
+          if (mounted && context.mounted) {
+            // Show success message
+            CommonWidget.successShowSnackBarFor(context, data.message ?? "Service saved successfully!");
+            // Wait a bit for the snackbar to show, then pop the screen
+            await Future.delayed(const Duration(milliseconds: 500));
+            // Ensure we're still mounted and can pop
+            if (mounted && context.mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(true);
+            }
+          }
+        } else {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to save service. Please try again.");
+          }
+        }
+      } catch (jsonError) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Error parsing response. Please try again.");
+        }
       }
       
     } catch (e) {
-      Navigator.pop(context); // Close loading dialog
-      CommonWidget.errorShowSnackBarFor(context, "Error: ${e.toString()}");
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context); // Close loading dialog
+      }
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error saving service. Please check your connection and try again.");
+      }
     }
   }
 
   Future<String> _postImage(BuildContext context, List<File> image) async {
-    var response = await servicesDataManager!.postImage(image, context);
-    var data = ImageModuleData.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      return data.data?.url ?? "";
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    if (!mounted || !context.mounted) return "";
+    
+    var response = await servicesDataManager!.postImage(
+      image,
+      context,
+      skipAutoNavigation: true, // Prevent auto-navigation
+    );
+    
+    // Check if response is HTML (error page) instead of JSON
+    if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+      }
+      return "";
+    }
+    
+    if (response.statusCode == 401) {
+      // Handle 401 without navigating away
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Session expired. Please login again.");
+      }
+      return "";
+    }
+    
+    try {
+      var data = ImageModuleData.fromJson(jsonDecode(response.body));
+      if (data.status == "success") {
+        return data.data?.url ?? "";
+      } else {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
+        }
+        return "";
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error parsing upload response");
+      }
       return "";
     }
   }
@@ -951,8 +1202,76 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           categoryId = categoryData.first.sId.toString();
         }
       });
+      // Filter categories after loading
+      _filterCategories();
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
+  }
+
+  Future<void> _fetchExistingServices(BuildContext context) async {
+    try {
+      var response = await servicesDataManager!.getServicesList(context);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var data = ServicesListBean.fromJson(jsonDecode(response.body));
+        if (data.status == "success" && data.data != null) {
+          setState(() {
+            existingServices = data.data!;
+          });
+          // Re-filter categories after fetching services
+          _filterCategories();
+        }
+      }
+    } catch (e) {
+      // Don't show error to user, just continue with all categories
+    }
+  }
+
+  void _filterCategories() {
+    if (categoryData.isEmpty) return;
+    
+    // Get set of category IDs that already have services
+    Set<String> usedCategoryIds = {};
+    for (var service in existingServices) {
+      // Skip the service being edited (if any)
+      if (widget.serviceToEdit != null && service.sId == widget.serviceToEdit!.sId) {
+        continue;
+      }
+      if (service.categoryId != null && service.categoryId!.isNotEmpty) {
+        usedCategoryIds.add(service.categoryId!);
+      }
+      // Also check by category name as fallback
+      if (service.categoryName != null && service.categoryName!.isNotEmpty) {
+        var matchingCategory = categoryData.firstWhere(
+          (cat) => cat.categoryTitle == service.categoryName,
+          orElse: () => CategoryData(sId: "", categoryTitle: ""),
+        );
+        if (matchingCategory.sId != null && matchingCategory.sId!.isNotEmpty) {
+          usedCategoryIds.add(matchingCategory.sId!);
+        }
+      }
+    }
+    
+    // Filter categories: exclude those with existing services, but always include the currently selected one (if editing)
+    setState(() {
+      filteredCategoryData = categoryData.where((category) {
+        // If editing and this is the current category, always include it
+        if (widget.serviceToEdit != null && 
+            (category.sId == widget.serviceToEdit!.categoryId || 
+             category.categoryTitle == widget.serviceToEdit!.categoryName)) {
+          return true;
+        }
+        // Otherwise, exclude if it's already used
+        if (category.sId == null || category.sId!.isEmpty) return false;
+        return !usedCategoryIds.contains(category.sId);
+      }).toList();
+      
+      // If current selection is not in filtered list (shouldn't happen when editing), reset it
+      if (filteredCategoryData.isNotEmpty && 
+          !filteredCategoryData.any((cat) => cat.categoryTitle == _selectedCategory)) {
+        _selectedCategory = filteredCategoryData.first.categoryTitle ?? "";
+        categoryId = filteredCategoryData.first.sId?.toString() ?? "";
+      }
+    });
   }
 }

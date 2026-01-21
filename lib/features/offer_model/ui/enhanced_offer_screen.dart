@@ -8,7 +8,6 @@ import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dar
 import 'package:car_app/features/home_module/model/services_model_data.dart';
 import 'package:car_app/Models/image_module_data.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,7 +30,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   
   // Data
   List<ServicesData> availableServices = [];
-  ServicesData? selectedService;
+  List<ServicesData> selectedServices = [];
   List<File> selectedFiles = [];
   String uploadedImageUrl = "";
   DateTime? validUntilDate;
@@ -102,7 +101,6 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         });
       }
     } catch (e) {
-      print("Error loading services: $e");
     }
   }
 
@@ -110,6 +108,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: CommonWidget.buildAppBarBackButton(
+          context,
+          backgroundColor: Colors.white.withOpacity(0.2),
+          iconColor: Colors.white,
+        ),
         title: const Text("Create Offer"),
         backgroundColor: ColorClass.base_color,
         foregroundColor: Colors.white,
@@ -245,12 +248,34 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            "Choose which service this offer applies to",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "Choose which service(s) this offer applies to (you can select multiple)",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+              if (selectedServices.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "${selectedServices.length} selected",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 30),
           
@@ -265,7 +290,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                 ],
               ),
             )
-          else if (availableServices.length == 0)
+          else if (availableServices.isEmpty)
             const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -285,27 +310,53 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               itemCount: availableServices.length,
               itemBuilder: (context, index) {
                 final service = availableServices[index];
-                final isSelected = selectedService?.sId == service.sId;
+                final isSelected = selectedServices.any((s) => s.sId == service.sId);
                 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
+                  elevation: isSelected ? 4 : 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: isSelected 
+                          ? ColorClass.base_color 
+                          : Colors.grey[300]!,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        selectedService = service;
+                        if (isSelected) {
+                          selectedServices.removeWhere((s) => s.sId == service.sId);
+                        } else {
+                          selectedServices.add(service);
+                        }
                       });
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: isSelected 
-                            ? Border.all(color: ColorClass.base_color, width: 2)
-                            : null,
-                      ),
                       child: Row(
                         children: [
+                          // Checkbox
+                          Checkbox(
+                            value: isSelected,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  if (!selectedServices.any((s) => s.sId == service.sId)) {
+                                    selectedServices.add(service);
+                                  }
+                                } else {
+                                  selectedServices.removeWhere((s) => s.sId == service.sId);
+                                }
+                              });
+                            },
+                            activeColor: ColorClass.base_color,
+                          ),
+                          const SizedBox(width: 8),
+                          // Icon
                           Container(
                             width: 50,
                             height: 50,
@@ -320,45 +371,17 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
+                          // Content - Only Category Name
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  service.serviceTitle ?? "Unknown Service",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  service.description ?? service.about ?? "No description",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "\$${service.price ?? 0}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: ColorClass.base_color,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              service.categoryName ?? "Uncategorized",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected ? ColorClass.base_color : Colors.black87,
+                              ),
                             ),
                           ),
-                          if (isSelected)
-                            Icon(
-                              Icons.check_circle,
-                              color: ColorClass.base_color,
-                              size: 24,
-                            ),
                         ],
                       ),
                     ),
@@ -420,13 +443,9 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               
               return GestureDetector(
                 onTap: () {
-                  print("🎯 Offer type clicked: ${template.type}");
-                  print("🎯 Previous offer type: $offerType");
                   setState(() {
                     offerType = template.type;
                   });
-                  print("🎯 New offer type: $offerType");
-                  print("🎯 isSelected after tap: ${offerType == template.type}");
                 },
                 child: Container(
                   padding: const EdgeInsets.all(12),
@@ -483,8 +502,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                       ),
                       if (isSelected)
                         Positioned(
-                          top: 8,
-                          right: 8,
+                          top: 0,
+                          right: 0,
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
@@ -583,39 +602,79 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           ),
           const SizedBox(height: 15),
           
-          // Discount Amount
-          if (offerType == "percentage" || offerType == "fixed") ...[
-            const Text(
-              "Discount Amount *",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: discountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: offerType == "percentage" ? "20" : "10",
-                labelText: offerType == "percentage" ? "Percentage (%)" : "Amount (\$)",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                prefixIcon: Icon(
-                  offerType == "percentage" ? Icons.percent : Icons.attach_money,
+          // Discount Amount (Optional)
+          Row(
+            children: [
+              const Text(
+                "Discount Amount",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(width: 4),
+              Text(
+                "(Optional)",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: discountController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: offerType == "percentage" ? "20" : offerType == "fixed" ? "10" : "Enter discount amount",
+              labelText: offerType == "percentage" 
+                  ? "Percentage (%)" 
+                  : offerType == "fixed" 
+                      ? "Amount (\$)" 
+                      : "Discount Amount",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              prefixIcon: Icon(
+                offerType == "percentage" 
+                    ? Icons.percent 
+                    : offerType == "fixed" 
+                        ? Icons.attach_money 
+                        : Icons.discount,
+              ),
             ),
-            const SizedBox(height: 15),
-          ],
+          ),
+          const SizedBox(height: 15),
           
-          // Valid Until
-          const Text(
-            "Valid Until *",
+          // Valid Until (Optional)
+          Row(
+            children: [
+              const Text(
+                "Valid Until",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                "(Optional)",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Leave empty if you want the offer to never expire",
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: Colors.grey[600],
             ),
           ),
           const SizedBox(height: 8),
@@ -623,11 +682,22 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             controller: validUntilController,
             readOnly: true,
             decoration: InputDecoration(
-              hintText: "Select end date",
+              hintText: "Select end date (optional)",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
               prefixIcon: const Icon(Icons.calendar_today),
+              suffixIcon: validUntilController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          validUntilDate = null;
+                          validUntilController.clear();
+                        });
+                      },
+                    )
+                  : null,
             ),
             onTap: () async {
               final date = await showDatePicker(
@@ -646,23 +716,6 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           ),
           const SizedBox(height: 20),
           
-          // Debug Info (remove in production)
-          if (offerType != null) ...[
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Text(
-                "Debug: Offer Type = $offerType",
-                style: const TextStyle(fontSize: 10, color: Colors.blue),
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-          
           // Image Upload
           const Text(
             "Offer Image",
@@ -674,141 +727,177 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () async {
-              BaseActivity.showFilePicker(context, (List<File>? list) {
-                if (list != null) {
-                  for (int i = 0; i < list.length; i++) {
-                    if (selectedFiles.isEmpty) {
-                      setState(() {
-                        selectedFiles.add(list[i]);
-                      });
-                    } else {
-                      CommonWidget.errorShowSnackBarFor(
-                        context,
-                        "You can only upload 1 offer image.",
-                      );
-                      break;
-                    }
+              BaseActivity.showFilePicker(context, (List<File>? list) async {
+                if (list != null && list.isNotEmpty) {
+                  if (selectedFiles.isEmpty) {
+                    setState(() {
+                      selectedFiles.add(list[0]);
+                    });
+                    // Automatically upload the image when selected
+                    await _uploadImage(context);
+                  } else {
+                    CommonWidget.errorShowSnackBarFor(
+                      context,
+                      "You can only upload 1 offer image.",
+                    );
                   }
                 }
-                print("Selected file count: ${selectedFiles.length}");
               }, isFile: false, isPhoto: true, isOnlyPhoto: true, allowMultipleImage: false);
             },
             child: Container(
-              height: 120,
+              height: 200,
               decoration: BoxDecoration(
                 color: Colors.grey[50],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: selectedFiles.isNotEmpty ? ColorClass.base_color : Colors.grey[300]!,
+                  color: selectedFiles.isNotEmpty && uploadedImageUrl.isNotEmpty
+                      ? ColorClass.base_color 
+                      : Colors.grey[300]!,
+                  width: selectedFiles.isNotEmpty && uploadedImageUrl.isNotEmpty ? 2 : 1,
                   style: BorderStyle.solid,
                 ),
               ),
               child: selectedFiles.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: CommonWidget.imageFromFile(
-                        selectedFiles[0],
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                  ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: CommonWidget.imageFromFile(
+                            selectedFiles[0],
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        // Upload status indicator
+                        if (uploadedImageUrl.isEmpty)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    "Uploading...",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    "Uploaded",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        // Remove button
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedFiles.clear();
+                                uploadedImageUrl = "";
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.cloud_upload,
-                          size: 40,
-                          color: Colors.grey[400],
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: ColorClass.base_color.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 48,
+                            color: ColorClass.base_color,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         Text(
-                          "Tap to upload image",
+                          "Tap to select image",
                           style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
+                            color: Colors.grey[700],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Image will be uploaded automatically",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
             ),
           ),
-          const SizedBox(height: 10),
-          if (selectedFiles.isNotEmpty) ...[
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: selectedFiles.length,
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(top: 10, left: 10),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          margin: const EdgeInsets.only(top: 10, left: 10),
-                          child: CommonWidget.determineImageAsset(selectedFiles[index].path),
-                        ),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedFiles.removeAt(index);
-                                uploadedImageUrl = ""; // Clear uploaded URL when removing image
-                              });
-                            },
-                            child: Image.asset(
-                              CommonWidget.getImagePath("delete.png"),
-                              height: 25,
-                              width: 25,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (uploadedImageUrl.isEmpty)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _uploadImage(context),
-                  icon: const Icon(Icons.cloud_upload),
-                  label: const Text("Upload Image"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorClass.base_color,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.green),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Image uploaded successfully!",
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -904,7 +993,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              selectedService?.serviceTitle ?? "Service",
+                              selectedServices.isNotEmpty
+                                  ? selectedServices.length == 1
+                                      ? selectedServices[0].categoryName ?? "Category"
+                                      : "${selectedServices.length} categories selected"
+                                  : "Category",
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 14,
@@ -967,26 +1060,50 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                       const SizedBox(height: 16),
                       
                       // Validity
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Valid until: ${validUntilController.text}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                      if (validUntilController.text.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Valid until: ${validUntilController.text}",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.all_inclusive, size: 16, color: Colors.green[700]),
+                              const SizedBox(width: 8),
+                              Text(
+                                "No expiration date - offer never expires",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.green[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1000,74 +1117,247 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
 
   Future<void> _uploadImage(BuildContext context) async {
     if (selectedFiles.isEmpty) {
-      CommonWidget.errorShowSnackBarFor(context, "Please select an image first");
       return;
     }
     
+    if (!mounted) return;
+    
+    // Store dialog context to prevent navigation issues
+    BuildContext? dialogContext;
+    
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      // Show loading indicator
+      if (mounted && context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogBuildContext) {
+            dialogContext = dialogBuildContext;
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+      }
       
       List<File> image = [selectedFiles[0]];
-      var response = await offerDataManager!.postImage(image, context);
-      var data = ImageModuleData.fromJson(jsonDecode(response.body));
+      var response = await offerDataManager!.postImage(image, context, skipAutoNavigation: true);
       
-      Navigator.pop(context); // Close loader
+      // Close loading indicator using the dialog's context
+      if (mounted && dialogContext != null && dialogContext!.mounted) {
+        try {
+          Navigator.of(dialogContext!).pop();
+        } catch (e) {
+          // Fallback: try with main context if dialog context fails
+          if (mounted && context.mounted && Navigator.of(context).canPop()) {
+            try {
+              Navigator.of(context).pop();
+            } catch (e2) {
+            }
+          }
+        }
+      }
       
-      if (data.status == "success") {
-        setState(() {
-          uploadedImageUrl = data.data?.url ?? "";
-        });
-        CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          var data = ImageModuleData.fromJson(jsonDecode(response.body));
+          
+          if (data.status == "success") {
+            if (mounted) {
+              setState(() {
+                uploadedImageUrl = data.data?.url ?? "";
+              });
+            }
+            if (mounted && context.mounted) {
+              CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
+            }
+          } else {
+            if (mounted && context.mounted) {
+              CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
+            }
+            // Remove the selected file if upload failed
+            if (mounted) {
+              setState(() {
+                selectedFiles.clear();
+              });
+            }
+          }
+        } catch (parseError) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Error processing upload response");
+          }
+          if (mounted) {
+            setState(() {
+              selectedFiles.clear();
+            });
+          }
+        }
+      } else if (response.statusCode == 401) {
+        // Handle 401 without redirecting
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Session expired. Please login again.");
+        }
+        if (mounted) {
+          setState(() {
+            selectedFiles.clear();
+          });
+        }
       } else {
-        CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to upload image. Please try again.");
+        }
+        if (mounted) {
+          setState(() {
+            selectedFiles.clear();
+          });
+        }
       }
     } catch (e) {
-      Navigator.pop(context); // Close loader
-      CommonWidget.errorShowSnackBarFor(context, "Error uploading image: $e");
+      
+      // Close loading indicator if still open
+      if (mounted && dialogContext != null && dialogContext!.mounted) {
+        try {
+          Navigator.of(dialogContext!).pop();
+        } catch (e) {
+          if (mounted && context.mounted && Navigator.of(context).canPop()) {
+            try {
+              Navigator.of(context).pop();
+            } catch (e2) {
+            }
+          }
+        }
+      }
+      
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error uploading image: $e");
+      }
+      if (mounted) {
+        setState(() {
+          selectedFiles.clear();
+        });
+      }
     }
   }
 
-  void _nextStep() {
-    if (currentStep == 0) {
-      if (selectedService == null) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select a service");
-        return;
+  bool _validateStep(int step) {
+    if (step == 0) {
+      // Step 0: Service Selection
+      if (selectedServices.isEmpty) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+        }
+        return false;
       }
-    } else if (currentStep == 1) {
-      if (titleController.text.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please enter offer title");
-        return;
+      return true;
+    } else if (step == 1) {
+      // Step 1: Offer Details
+      
+      // Validate Title
+      if (titleController.text.trim().isEmpty) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please enter offer title");
+        }
+        return false;
       }
-      if (descriptionController.text.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please enter offer description");
-        return;
+      if (titleController.text.trim().length < 3) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Offer title must be at least 3 characters");
+        }
+        return false;
       }
-      if (offerType == null) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select offer type");
-        return;
+      if (titleController.text.trim().length > 100) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Offer title must be less than 100 characters");
+        }
+        return false;
       }
-      if ((offerType == "percentage" || offerType == "fixed") && discountController.text.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please enter discount amount");
-        return;
+      
+      // Validate Description
+      if (descriptionController.text.trim().isEmpty) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please enter offer description");
+        }
+        return false;
       }
-      if (validUntilDate == null) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select valid until date");
-        return;
+      if (descriptionController.text.trim().length < 10) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Offer description must be at least 10 characters");
+        }
+        return false;
       }
+      if (descriptionController.text.trim().length > 500) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Offer description must be less than 500 characters");
+        }
+        return false;
+      }
+      
+      // Validate Discount (if provided)
+      if (discountController.text.trim().isNotEmpty) {
+        final discountValue = double.tryParse(discountController.text.trim());
+        if (discountValue == null) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Please enter a valid discount amount");
+          }
+          return false;
+        }
+        if (discountValue < 0) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Discount amount cannot be negative");
+          }
+          return false;
+        }
+        if (offerType == "percentage" && discountValue > 100) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Percentage discount cannot exceed 100%");
+          }
+          return false;
+        }
+      }
+      
+      // Validate Valid Until Date (if provided)
+      if (validUntilDate != null) {
+        if (validUntilDate!.isBefore(DateTime.now())) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Valid until date must be in the future");
+          }
+          return false;
+        }
+      }
+      
+      // Validate Image
       if (selectedFiles.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please select an offer image");
-        return;
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please select an offer image");
+        }
+        return false;
       }
       if (uploadedImageUrl.isEmpty) {
-        CommonWidget.errorShowSnackBarFor(context, "Please upload the selected image");
-        return;
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please wait for the image to finish uploading");
+        }
+        return false;
       }
+      
+      return true;
+    } else if (step == 2) {
+      // Step 2: Preview - Validate all previous steps silently
+      // First check services
+      if (selectedServices.isEmpty) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+        }
+        return false;
+      }
+      // Then check details (this will show appropriate error message)
+      return _validateStep(1);
+    }
+    return true;
+  }
+
+  void _nextStep() {
+    if (!_validateStep(currentStep)) {
+      return;
     }
     
     _pageController.nextPage(
@@ -1077,39 +1367,148 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   }
 
   Future<void> _createOffer() async {
+    // Validate all steps before creating offer
+    if (!_validateStep(0) || !_validateStep(1)) {
+      return;
+    }
+    
+    if (!mounted || !context.mounted) return;
+    
+    BuildContext? dialogContext;
+    
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      // Show loading dialog
+      if (mounted && context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogBuildContext) {
+            dialogContext = dialogBuildContext;
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+      }
       
-      // Create offer with uploaded image URL
-      var response = await offerDataManager!.addOffer(
-        context,
-        titleController.text,
-        descriptionController.text,
-        discountController.text,
-        "", // fromDate - not used in current implementation
-        validUntilDate!.toIso8601String(),
-        selectedService!.sId!,
-        uploadedImageUrl,
-      );
+      int successCount = 0;
+      int failCount = 0;
       
-      Navigator.pop(context); // Close loader
+      // Create an offer for each selected service
+      for (var service in selectedServices) {
+        if (!mounted) break;
+        
+        try {
+          var response = await offerDataManager!.addOffer(
+            context,
+            titleController.text.trim(),
+            descriptionController.text.trim(),
+            discountController.text.trim(),
+            "", // fromDate - not used in current implementation
+            validUntilDate != null ? validUntilDate!.toIso8601String() : "",
+            service.sId!,
+            uploadedImageUrl,
+          );
+          
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            try {
+              var data = jsonDecode(response.body);
+              if (data['status'] == "success") {
+                successCount++;
+              } else {
+                failCount++;
+              }
+            } catch (parseError) {
+              failCount++;
+            }
+          } else {
+            failCount++;
+          }
+        } catch (e) {
+          failCount++;
+        }
+      }
       
-      var data = jsonDecode(response.body);
-      if (data['status'] == "success") {
-        CommonWidget.successShowSnackBarFor(context, "Offer created successfully!");
-        Navigator.pop(context, true);
+      // Close loading dialog safely
+      if (mounted) {
+        if (dialogContext != null && dialogContext!.mounted) {
+          try {
+            if (Navigator.of(dialogContext!).canPop()) {
+              Navigator.of(dialogContext!).pop();
+            }
+          } catch (e) {
+            // Fallback: try with main context
+            if (context.mounted && Navigator.of(context).canPop()) {
+              try {
+                Navigator.of(context).pop();
+              } catch (e2) {
+              }
+            }
+          }
+        } else if (context.mounted && Navigator.of(context).canPop()) {
+          // Try to pop from main context if dialog context is not available
+          try {
+            Navigator.of(context).pop();
+          } catch (e) {
+          }
+        }
+      }
+      
+      if (!mounted || !context.mounted) return;
+      
+      // Show result and navigate
+      if (successCount > 0) {
+        String message = successCount == selectedServices.length
+            ? "All $successCount offer(s) created successfully!"
+            : "$successCount of ${selectedServices.length} offer(s) created successfully.";
+        if (failCount > 0) {
+          message += " $failCount offer(s) failed.";
+        }
+        CommonWidget.successShowSnackBarFor(context, message);
+        
+        // Add delay to allow snackbar to show before navigating
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted && context.mounted) {
+          // Check if we can pop before navigating back
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop(true);
+          } else {
+            // If we can't pop, try using pushAndRemoveUntil or just pop without result
+            Navigator.of(context).pop();
+          }
+        }
       } else {
-        CommonWidget.errorShowSnackBarFor(context, data['message'] ?? "Failed to create offer");
+        CommonWidget.errorShowSnackBarFor(context, "Failed to create offers. Please try again.");
       }
     } catch (e) {
-      Navigator.pop(context); // Close loader
-      CommonWidget.errorShowSnackBarFor(context, "Error creating offer: $e");
+      
+      // Close loading dialog if still open
+      if (mounted) {
+        if (dialogContext != null && dialogContext!.mounted) {
+          try {
+            if (Navigator.of(dialogContext!).canPop()) {
+              Navigator.of(dialogContext!).pop();
+            }
+          } catch (e) {
+            if (context.mounted && Navigator.of(context).canPop()) {
+              try {
+                Navigator.of(context).pop();
+              } catch (e2) {
+              }
+            }
+          }
+        } else if (context.mounted && Navigator.of(context).canPop()) {
+          try {
+            Navigator.of(context).pop();
+          } catch (e2) {
+          }
+        }
+      }
+      
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error creating offer: $e");
+      }
     }
   }
 }

@@ -22,7 +22,6 @@ class SpecialistsDataManager{
         cycle: false,
       );
     } catch (e) {
-      print("❌ Error in getVendorPackages API call: $e");
       return http.Response('{"status":"error","message":"API call failed: $e"}', 500);
     }
   }

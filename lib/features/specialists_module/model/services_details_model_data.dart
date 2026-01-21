@@ -161,13 +161,9 @@ class ServicesDetailsData {
     data['__v'] = iV;
     data['average_rating'] = averageRating;
     data['total_reviews'] = totalReviews;
-    if (offers != null) {
-      data['offers'] = offers.map((v) => v.toJson()).toList();
-    }
-    if (packages != null) {
+    data['offers'] = offers.map((v) => v.toJson()).toList();
       data['packages'] = packages;
-    }
-    data['id'] = id;
+      data['id'] = id;
     return data;
   }
 }

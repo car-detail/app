@@ -41,6 +41,7 @@ class VendorDetailData {
   String? roleName;
   List<VendorDetails>? vendorDetails;
   Location? location;
+  bool? tour_shown;
 
   VendorDetailData(
       {this.sId,
@@ -52,7 +53,8 @@ class VendorDetailData {
         this.isNewUser,
         this.roleName,
         this.vendorDetails,
-        this.location});
+        this.location,
+        this.tour_shown});
 
   VendorDetailData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -63,6 +65,8 @@ class VendorDetailData {
     mobile = json['mobile'];
     isNewUser = json['isNewUser'];
     roleName = json['roleName'];
+    // Default to false if tour_shown is not present in response
+    tour_shown = json['tour_shown'] ?? false;
     if (json['vendorDetails'] != null) {
       vendorDetails = <VendorDetails>[];
       json['vendorDetails'].forEach((v) {
@@ -84,6 +88,7 @@ class VendorDetailData {
     data['mobile'] = mobile;
     data['isNewUser'] = isNewUser;
     data['roleName'] = roleName;
+    data['tour_shown'] = tour_shown;
     if (vendorDetails != null) {
       data['vendorDetails'] =
           vendorDetails!.map((v) => v.toJson()).toList();

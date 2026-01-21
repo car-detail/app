@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:car_app/Common/Color.dart';
-import 'package:car_app/features/home_module/model/category_model_data.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -64,15 +63,10 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      GestureDetector(
-                        onTap: (){
-                          CommonWidget.safePop(context);
-                        },
-                        child: Image.asset(
-                          CommonWidget.getImagePath("backspace.png"),
-                          height: 40,
-                          width: 40,
-                        ),
+                      CommonWidget.buildBackButton(
+                        context,
+                        backgroundColor: Colors.white.withOpacity(0.9),
+                        iconColor: Colors.black87,
                       ),
                       Expanded(child: CommonWidget.getTextWidget500("Explore",color: Colors.white,size: 18)),
                       Image.asset(
@@ -88,6 +82,12 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
           ),
           Expanded(child: Container(
             margin: const EdgeInsets.all(15),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                if (mounted && context.mounted) {
+                  await getServices(context);
+                }
+              },
             child: ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
@@ -143,6 +143,7 @@ class _CategoriesListActivityState extends State<ExploreListActivity> {
               ),
             );
             }),
+            ),
           ))
         ],
       ),

@@ -13,12 +13,10 @@ class ServicesModelData {
     if (json['data'] != null) {
       data = <ServicesData>[];
       if (json['data'] is List) {
-        (json['data'] as List).forEach((v) {
+        for (var v in (json['data'] as List)) {
           data!.add(ServicesData.fromJson(v));
-        });
+        }
       } else {
-        print("❌ ServicesModelData: 'data' field is not a List, it's: ${json['data'].runtimeType}");
-        print("❌ ServicesModelData: 'data' value: ${json['data']}");
       }
     }
   }
@@ -66,11 +64,11 @@ class ServicesData {
         this.vendorMobile});
 
   ServicesData.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
+    sId = json['_id'] ?? json['sId'] ?? json['id'];
     serviceTitle = json['serviceTitle'];
     about = json['about'];
     description = json['description'];
-    price = json['price'];
+    price = json['price'] is int ? json['price'] : (json['price'] is String ? int.tryParse(json['price']) : null);
     serviceDuration = json['serviceDuration'];
     categoryName = json['categoryName'];
     coverImage = json['coverImage'];

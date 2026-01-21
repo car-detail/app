@@ -17,9 +17,6 @@ class PackageDataManager {
     var url = "${Constant.baseurl}${Constant.versionNumber}/services/vendor/$vendorId";
     var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
     
-    print("🔍 PackageDataManager.getAllServices()");
-    print("🔍 Vendor ID: $vendorId");
-    print("🔍 URL: $url");
     
     var response = await http.get(
       Uri.parse(url),
@@ -30,8 +27,6 @@ class PackageDataManager {
       },
     );
     
-    print("📡 Response Status: ${response.statusCode}");
-    print("📡 Response Body: ${response.body}");
     
     return response;
   }
@@ -47,6 +42,7 @@ class PackageDataManager {
     String? largeVehiclePrice,
     String? packageTier,
     bool? isBestSeller,
+    List<String>? customServices,
   }) async {
     var vendorId = sharedPreferences!.getString(Constant.vendorId);
     var url = "${Constant.baseurl}${Constant.createPackage}";
@@ -58,6 +54,23 @@ class PackageDataManager {
       "servicesIncluded": servicesIncluded,
       "vendorId": vendorId,
     };
+    
+    // Add optional fields if provided
+    if (smallVehiclePrice != null && smallVehiclePrice.isNotEmpty) {
+      body["smallVehiclePrice"] = int.tryParse(smallVehiclePrice) ?? 0;
+    }
+    if (largeVehiclePrice != null && largeVehiclePrice.isNotEmpty) {
+      body["largeVehiclePrice"] = int.tryParse(largeVehiclePrice) ?? 0;
+    }
+    if (packageTier != null && packageTier.isNotEmpty) {
+      body["packageTier"] = packageTier;
+    }
+    if (isBestSeller != null) {
+      body["isBestSeller"] = isBestSeller;
+    }
+    if (customServices != null && customServices.isNotEmpty) {
+      body["customServices"] = customServices;
+    }
     
     var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
     return await http.post(
@@ -73,17 +86,27 @@ class PackageDataManager {
 
   Future<http.Response> getAllPackages(BuildContext context) async {
     var vendorId = sharedPreferences!.getString(Constant.vendorId);
-    var url = "${Constant.baseurl}${Constant.getAllPackages}?vendorId=$vendorId";
+    // Use vendor-specific endpoint to get all packages (including inactive ones for vendor view)
+    var url = "${Constant.baseurl}${Constant.getVendorPackages}$vendorId";
+    
     
     var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
-    return await http.get(
-      Uri.parse(url),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-      },
-    );
+    
+    try {
+      var response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+      
+      
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<http.Response> updatePackage(
@@ -94,8 +117,13 @@ class PackageDataManager {
     String packagePrice,
     String packageDuration,
     List<String> servicesIncluded,
-    bool isActive,
-  ) async {
+    bool isActive, {
+    String? smallVehiclePrice,
+    String? largeVehiclePrice,
+    String? packageTier,
+    bool? isBestSeller,
+    List<String>? customServices,
+  }) async {
     var url = "${Constant.baseurl}${Constant.versionNumber}/packages/$packageId";
     
     var body = {
@@ -105,6 +133,23 @@ class PackageDataManager {
       "servicesIncluded": servicesIncluded,
       "isActive": isActive,
     };
+    
+    // Add optional fields if provided
+    if (smallVehiclePrice != null && smallVehiclePrice.isNotEmpty) {
+      body["smallVehiclePrice"] = int.tryParse(smallVehiclePrice) ?? 0;
+    }
+    if (largeVehiclePrice != null && largeVehiclePrice.isNotEmpty) {
+      body["largeVehiclePrice"] = int.tryParse(largeVehiclePrice) ?? 0;
+    }
+    if (packageTier != null && packageTier.isNotEmpty) {
+      body["packageTier"] = packageTier;
+    }
+    if (isBestSeller != null) {
+      body["isBestSeller"] = isBestSeller;
+    }
+    if (customServices != null && customServices.isNotEmpty) {
+      body["customServices"] = customServices;
+    }
     
     var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
     return await http.patch(
@@ -123,6 +168,21 @@ class PackageDataManager {
     
     var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
     return await http.delete(
+      Uri.parse(url),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+    );
+  }
+
+  Future<http.Response> togglePackageStatus(BuildContext context, String packageId, bool isActive) async {
+    // Use the toggle endpoint - backend automatically toggles the status
+    var url = "${Constant.baseurl}${Constant.versionNumber}/packages/toggle-package/$packageId";
+    
+    var token = sharedPreferences!.getString(Constant.accessToken) ?? "";
+    return await http.patch(
       Uri.parse(url),
       headers: {
         "Authorization": "Bearer $token",

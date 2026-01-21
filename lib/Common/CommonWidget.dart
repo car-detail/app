@@ -80,11 +80,83 @@ class CommonWidget {
         ),
       );
     } catch (e) {
-      print("Navigation error: $e");
     }
   }
 
   /// Safe navigation pop - checks if context is mounted and can pop
+  // Consistent Back Button Widget
+  static Widget buildBackButton(BuildContext context, {
+    Color? backgroundColor,
+    Color? iconColor,
+    double? iconSize,
+    VoidCallback? onPressed,
+  }) {
+    return GestureDetector(
+      onTap: onPressed ?? () => safePop(context),
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: backgroundColor ?? Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.arrow_back_ios_new,
+          color: iconColor ?? Colors.black87,
+          size: iconSize ?? 20,
+        ),
+      ),
+    );
+  }
+
+  // Back Button for AppBar leading
+  static Widget buildAppBarBackButton(BuildContext context, {
+    Color? backgroundColor,
+    Color? iconColor,
+    double? iconSize,
+    VoidCallback? onPressed,
+  }) {
+    return buildBackButton(
+      context,
+      backgroundColor: backgroundColor,
+      iconColor: iconColor,
+      iconSize: iconSize,
+      onPressed: onPressed,
+    );
+  }
+
+  // Back Button for Custom Headers (circular with green background)
+  static Widget buildHeaderBackButton(BuildContext context, {
+    Color? backgroundColor,
+    Color? iconColor,
+    double? size,
+    VoidCallback? onPressed,
+  }) {
+    return GestureDetector(
+      onTap: onPressed ?? () => safePop(context),
+      child: Container(
+        width: size ?? 40,
+        height: size ?? 40,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? ColorClass.base_color.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.arrow_back_ios_new,
+          size: (size ?? 40) * 0.45,
+          color: iconColor ?? ColorClass.base_color,
+        ),
+      ),
+    );
+  }
+
   static void safePop(BuildContext context, {dynamic result}) {
     if (!context.mounted) return;
     try {
@@ -92,7 +164,6 @@ class CommonWidget {
         Navigator.of(context).pop(result);
       }
     } catch (e) {
-      print("Navigation pop error: $e");
     }
   }
 
@@ -104,7 +175,6 @@ class CommonWidget {
         MaterialPageRoute(builder: (context) => page),
       );
     } catch (e) {
-      print("Navigation error: $e");
     }
   }
 
@@ -114,7 +184,6 @@ class CommonWidget {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) => page), (route) => false);
     } catch (e) {
-      print("Navigation error: $e");
     }
   }
 
@@ -492,7 +561,7 @@ class CommonWidget {
                   height: 30,
                 ),
               )else
-                SizedBox(height: 30,width: 30,)
+                const SizedBox(height: 30,width: 30,)
               ,
               Expanded(
                 child: Container(
@@ -507,7 +576,7 @@ class CommonWidget {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
                 width: 30,
               )
@@ -564,10 +633,10 @@ class CommonWidget {
       bool isBack = true}) {
     return Stack(
       children: [
-        SizedBox(
+        const SizedBox(
           height: 120,
           width: double.infinity,
-          child: const Image(
+          child: Image(
             image: AssetImage("assets/images/top_bar_new.png"),
             fit: BoxFit.fill,
           ),
@@ -820,52 +889,52 @@ class CommonWidget {
   }
 
   static errorShowSnackBarFor(BuildContext context, String message) {
-/*
+    final mediaQuery = MediaQuery.of(context);
     final snackBar = SnackBar(
-        backgroundColor: Colors.red[100],
-        content: Container(
-            child: Text(
+      backgroundColor: Colors.red[100],
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.only(
+        bottom: mediaQuery.size.height - mediaQuery.padding.top - 100,
+        left: 16,
+        right: 16,
+      ),
+      content: Container(
+        child: Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.red, fontWeight: FontWeight.w500, fontSize: 16),
-        )));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-*/
-
-    final snackBar = SnackBar(
-        backgroundColor: Colors.red[100],
-        content: Container(
-            child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.red, fontWeight: FontWeight.w500, fontSize: 16),
-        )));
+          style: const TextStyle(
+            color: Colors.red, 
+            fontWeight: FontWeight.w500, 
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   static successShowSnackBarFor(BuildContext context, String message) {
-    /*final snackBar = SnackBar(
-        backgroundColor: Colors.green[100],
-        content: Container(
-            child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.green, fontWeight: FontWeight.w500, fontSize: 16),
-        )));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-
+    final mediaQuery = MediaQuery.of(context);
     final snackBar = SnackBar(
-        backgroundColor: Colors.green[100],
-        content: Container(
-            child: Text(
+      backgroundColor: Colors.green[100],
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.only(
+        bottom: mediaQuery.size.height - mediaQuery.padding.top - 100,
+        left: 16,
+        right: 16,
+      ),
+      content: Container(
+        child: Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Colors.green, fontWeight: FontWeight.w500, fontSize: 16),
-        )));
+          style: const TextStyle(
+            color: Colors.green, 
+            fontWeight: FontWeight.w500, 
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
@@ -1099,11 +1168,11 @@ class CommonWidget {
             height: 100,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.image, size: 100);
+              return const Icon(Icons.image, size: 100);
             },
           );
         } else {
-          return Icon(Icons.image, size: 100);
+          return const Icon(Icons.image, size: 100);
         }
       } else {
         return Image.file(
@@ -1220,7 +1289,6 @@ class CommonWidget {
     final box = context.findRenderObject() as RenderBox?;
 
     if (box == null) {
-      print("RenderBox is null");
       return;
     }
     await Share.shareXFiles(
@@ -1300,7 +1368,6 @@ class CommonWidget {
       txt =
           '<text removed due to base-64 data, displaying the text could cause the app to crash>';
     }
-    print("====================$txt");
     return txt;
   }
 

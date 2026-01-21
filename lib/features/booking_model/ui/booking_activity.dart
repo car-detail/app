@@ -70,15 +70,10 @@ class _BookingActivityState extends State<BookingActivity> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Image.asset(
-                          CommonWidget.getImagePath("backspace.png"),
-                          height: 40,
-                          width: 40,
-                        ),
+                      CommonWidget.buildBackButton(
+                        context,
+                        backgroundColor: Colors.white.withOpacity(0.9),
+                        iconColor: Colors.black87,
                       ),
                     ],
                   ),
@@ -190,7 +185,6 @@ class _BookingActivityState extends State<BookingActivity> {
                             CommonPopUp.showdateNewDialog(context, (date) {
                               String formattedDate =
                                   DateFormat('dd-MM-yyyy').format(date);
-                              print(formattedDate);
                               setState(() {
                                 dateController.text = formattedDate;
                                 dateString =

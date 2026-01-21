@@ -14,12 +14,13 @@ class ServicesDataManager {
 
   ApiFuntions apiFuntions = ApiFuntions();
 
-  postImage(List<File> file, BuildContext context) {
+  postImage(List<File> file, BuildContext context, {bool skipAutoNavigation = false}) {
     return apiFuntions.sendMultipartRequest(
       context,
       Constant.uploadFile,
       file,
       <String, dynamic>{},
+      skipAutoNavigation: skipAutoNavigation,
     );
   }
 
@@ -64,17 +65,6 @@ class ServicesDataManager {
       }
     };
     
-    print("🔧 API Payload being sent:");
-    print("🔧 serviceTitle: $title");
-    print("🔧 about: $about");
-    print("🔧 timeSlotCapacity: $timeSlot");
-    print("🔧 price: $price");
-    print("🔧 serviceDuration: $duration");
-    print("🔧 categoryName: $catName");
-    print("🔧 categoryId: $categoryId");
-    print("🔧 coverImage: $serviceImage");
-    print("🔧 mobile: $mobile");
-    print("🔧 Full payload: $payload");
     
     return apiFuntions.postdatauser(
       context,
@@ -108,9 +98,6 @@ class ServicesDataManager {
       "mobile": mobile,
     };
     
-    print("🔧 Update Service Payload:");
-    print("🔧 serviceId: $serviceId");
-    print("🔧 payload: $payload");
     
     return apiFuntions.putdatauser(
       context,

@@ -12,12 +12,13 @@ class OfferDataManager{
   OfferDataManager(this.sharedPreferences);
 
   ApiFuntions apiFuntions = ApiFuntions();
-  postImage(List<File> file, BuildContext context) {
+  postImage(List<File> file, BuildContext context, {bool skipAutoNavigation = false}) {
     return apiFuntions.sendMultipartRequest(
       context,
       Constant.uploadFile,
       file,
       <String, dynamic>{},
+      skipAutoNavigation: skipAutoNavigation,
     );
   }
   getServicesList(BuildContext context) {
@@ -25,8 +26,18 @@ class OfferDataManager{
         "${Constant.getServicesList}${sharedPreferences.getString(Constant.vendorId) ?? ""}");
   }
   getOfferList(BuildContext context) {
-    return apiFuntions.getdatauser(context,
-        "${Constant.getOffer}${sharedPreferences.getString(Constant.vendorId) ?? ""}");
+    var vendorId = sharedPreferences.getString(Constant.vendorId) ?? "";
+    var url = "${Constant.getOffer}$vendorId";
+    
+    
+    var response = apiFuntions.getdatauser(context, url);
+    
+    // Log response when it completes
+    response.then((res) {
+    }).catchError((e) {
+    });
+    
+    return response;
   }
   getOfferByServiceId(BuildContext context, String id) {
     return apiFuntions.getdatauser(context,
@@ -59,11 +70,11 @@ class OfferDataManager{
         "service": serviceId,
         "description": description,
         "image": image,
-        "discount": discount,
+        "discount": discount.isEmpty ? null : (double.tryParse(discount)),
         "validFrom": "${DateTime.now().year.toString().padLeft(4, '0')}-"
             "${DateTime.now().month.toString().padLeft(2, '0')}-"
             "${DateTime.now().day.toString().padLeft(2, '0')} 00:00:00.000",
-        "validUntil": validUntil,
+        "validUntil": validUntil.isEmpty ? null : validUntil,
         "location": {
           "name": sharedPreferences.getString(Constant.location) ?? "",
           "coordinates": {
@@ -74,6 +85,7 @@ class OfferDataManager{
         },
         "isActive": true,
       },
+      skipAutoNavigation: true,
     );
   }
 }

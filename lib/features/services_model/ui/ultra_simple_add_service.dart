@@ -60,7 +60,6 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
         });
       }
     } catch (e) {
-      print("Error loading categories: $e");
     }
   }
 
@@ -71,9 +70,9 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => CommonWidget.safePop(context),
+        leading: CommonWidget.buildAppBarBackButton(
+          context,
+          iconColor: Colors.black,
         ),
         title: const Text(
           "Add Service",
@@ -178,7 +177,7 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
             
             // Category (auto-selected, but can change)
             if (_categories.isNotEmpty) ...[
-              Text(
+              const Text(
                 "Service Type",
                 style: TextStyle(
                   fontSize: 16,

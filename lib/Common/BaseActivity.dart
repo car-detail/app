@@ -1,11 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'Color.dart';
 import 'CommonWidget.dart';
@@ -32,11 +29,8 @@ class BaseActivity {
     try {
       final pickedImage =
           await imagePicker.pickMultiImage(maxHeight: 1000, maxWidth: 1000);
-      print("file.name ${pickedImage[0].name}");
-      print("file.path ${pickedImage[0].path}");
       return pickedImage;
         } catch (e) {
-      print(e);
     }
     return null;
   }
@@ -68,7 +62,6 @@ class BaseActivity {
       }
       return file;
     } catch (e) {
-      print(e);
     }
     return null;
   }
@@ -85,7 +78,6 @@ class BaseActivity {
       }
       return file;
     } catch (e) {
-      print(e);
     }
     return null;
   }
@@ -102,7 +94,6 @@ class BaseActivity {
       }
       return file;
     } catch (e) {
-      print(e);
     }
   }*/
   static Future<List<File>?> pickImage(bool allowMultiple) async {
@@ -122,10 +113,8 @@ class BaseActivity {
           files.addAll(imagePicker.paths.map((path) => File(path!)).toList());
         }
       /*} else {
-        print("Permission not granted");
       }*/
     } catch (e) {
-      print("Error picking files: $e");
     }
     return files;
   }
@@ -156,7 +145,7 @@ class BaseActivity {
               borderRadius: BorderRadius.circular(15),
             ),
             content: SizedBox(
-              height: 156,
+              height: isOnlyPhoto ? 240 : 156,
               width: MediaQuery.of(context).size.width * 0.9,
               child: Stack(
                 children: [
@@ -167,11 +156,16 @@ class BaseActivity {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        padding: const EdgeInsets.only(top: 10, right: 10),
-                        child: const Image(
-                          image: AssetImage("assets/images/delete.png"),
-                          height: 25,
-                          width: 25,
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(top: 8, right: 8),
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 18,
                         ),
                       ),
                     ),
@@ -185,9 +179,15 @@ class BaseActivity {
                         Container(
                           margin: const EdgeInsets.only(left: 25, right: 25),
                           width: double.infinity,
-                          child: CommonWidget.getTextWidgetPopSemi(
-                              "Choose Option For Attachment",
-                              color: ColorClass.base_color),
+                          child: Text(
+                            isOnlyPhoto ? "Choose Photo" : "Choose Option For Attachment",
+                            style: TextStyle(
+                              color: ColorClass.base_color,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                         const SizedBox(
                           height: 10,
@@ -197,67 +197,103 @@ class BaseActivity {
                           color: ColorClass.light_gray_base,
                         ),
                         const SizedBox(
-                          height: 15,
+                          height: 10,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            if (isFile)
-                              GestureDetector(
-                                onTap: () async {
-                                  Navigator.pop(context);
-                                  var listInage = await pickmultipleFile(
-                                      allowedExtensions: allowedExtensions);
-                                  onTeacherSelected(listInage);
-                                },
-                                child: Column(children: [
-                                  Image.asset(
-                                    CommonWidget.getImagePath("gallery-1.png"),
-                                    height: 50,
-                                    width: 50,
-                                  ),
-                                  CommonWidget.getTextWidgetPopSemi("File",
-                                      size: 14)
-                                ]),
-                              ),
-                            if (isPhoto)
-                              GestureDetector(
+                        // If isOnlyPhoto is true, show only one centered Photo option with better UI
+                        if (isOnlyPhoto)
+                          Expanded(
+                            child: Center(
+                              child: _AnimatedPhotoButton(
                                 onTap: () async {
                                   Navigator.pop(context);
                                   var listInage =
                                       await pickmedia(allowMultipleImage);
                                   onTeacherSelected(listInage);
                                 },
-                                child: Column(children: [
-                                  Image.asset(
-                                    CommonWidget.getImagePath("gallery.png"),
-                                    height: 50,
-                                    width: 50,
-                                  ),
-                                  CommonWidget.getTextWidgetPopSemi("Photo",
-                                      size: 14)
-                                ]),
                               ),
-                            if (isOnlyPhoto)
-                              GestureDetector(
-                                onTap: () async {
-                                  Navigator.pop(context);
-                                  var listInage =
-                                      await pickmedia(allowMultipleImage);
-                                  onTeacherSelected(listInage);
-                                },
-                                child: Column(children: [
-                                  Image.asset(
-                                    CommonWidget.getImagePath("gallery.png"),
-                                    height: 50,
-                                    width: 50,
+                            ),
+                          )
+                        else
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              if (isFile)
+                                GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    var listInage = await pickmultipleFile(
+                                        allowedExtensions: allowedExtensions);
+                                    onTeacherSelected(listInage);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey[300]!),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Image.asset(
+                                          CommonWidget.getImagePath("gallery-1.png"),
+                                          height: 50,
+                                          width: 50,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        CommonWidget.getTextWidgetPopSemi("File", size: 14)
+                                      ],
+                                    ),
                                   ),
-                                  CommonWidget.getTextWidgetPopSemi("Photo",
-                                      size: 14)
-                                ]),
-                              ),
-                          ],
-                        )
+                                ),
+                              if (isPhoto && !isOnlyPhoto)
+                                GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    var listInage =
+                                        await pickmedia(allowMultipleImage);
+                                    onTeacherSelected(listInage);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                    decoration: BoxDecoration(
+                                      color: ColorClass.base_color.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: ColorClass.base_color,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: ColorClass.base_color,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.photo_library,
+                                            color: Colors.white,
+                                            size: 32,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "Photo",
+                                          style: TextStyle(
+                                            color: ColorClass.base_color,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          )
                       ],
                     ),
                   ),
@@ -266,5 +302,148 @@ class BaseActivity {
             ),
           );
         });
+  }
+}
+
+// Animated Photo Button Widget
+class _AnimatedPhotoButton extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _AnimatedPhotoButton({required this.onTap});
+
+  @override
+  State<_AnimatedPhotoButton> createState() => _AnimatedPhotoButtonState();
+}
+
+class _AnimatedPhotoButtonState extends State<_AnimatedPhotoButton>
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late AnimationController _tapController;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _tapScaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Pulse animation for continuous effect
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.08,
+    ).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Tap animation for feedback
+    _tapController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _tapScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(
+      CurvedAnimation(
+        parent: _tapController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Start continuous pulse animation
+    _pulseController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _tapController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    _tapController.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    _tapController.reverse().then((_) {
+      widget.onTap();
+    });
+  }
+
+  void _handleTapCancel() {
+    _tapController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_pulseController, _tapController]),
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _tapScaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+              decoration: BoxDecoration(
+                color: ColorClass.base_color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: ColorClass.base_color,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: ColorClass.base_color.withOpacity(0.2 * (1 - (_pulseAnimation.value - 1.0) / 0.08)),
+                    blurRadius: 12 * (_pulseAnimation.value - 1.0) / 0.08,
+                    spreadRadius: 1.5 * (_pulseAnimation.value - 1.0) / 0.08,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: ColorClass.base_color,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.photo_library,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Choose Photo",
+                    style: TextStyle(
+                      color: ColorClass.base_color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

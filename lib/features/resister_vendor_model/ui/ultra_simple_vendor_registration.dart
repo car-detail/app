@@ -11,7 +11,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 /// Ultra-simplified vendor registration - designed for layman users
 /// Only 2 steps: Basic Info + Location
@@ -36,7 +35,6 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
   String _selectedCategoryId = "";
   double _currentLat = 0.0;
   double _currentLng = 0.0;
-  String? _selectedPlaceId;
 
   // Data managers
   AddShopDataManager? addShopDataManager;
@@ -63,7 +61,6 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
     
     // Auto-fill shop name from user's name if available
     final firstName = sharedPreferences?.getString(Constant.firstName) ?? "";
-    final lastName = sharedPreferences?.getString(Constant.lastName) ?? "";
     if (firstName.isNotEmpty) {
       _shopNameController.text = "$firstName's Car Service";
     }
@@ -75,46 +72,163 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
     await _getCurrentLocation();
   }
 
+  bool _isLoadingCategories = false;
+  String? _categoryError;
+
   Future<void> _fetchCategories() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingCategories = true;
+      _categoryError = null;
+    });
+    
     try {
+      if (addShopDataManager == null) {
+        throw Exception("Unable to load business types. Please try again.");
+      }
+      
       var response = await addShopDataManager!.getcategory(context);
+      
       if (response.statusCode == 200) {
-        var data = CategoryModelData.fromJson(jsonDecode(response.body));
-        if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
-          setState(() {
-            _categories = data.data!;
-            _selectedCategory = _categories.first.categoryTitle ?? "Car Wash";
-            _selectedCategoryId = _categories.first.sId ?? "";
-          });
+        try {
+          var data = CategoryModelData.fromJson(jsonDecode(response.body));
+          if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
+            if (mounted) {
+              setState(() {
+                _categories = data.data!;
+                _selectedCategory = _categories.first.categoryTitle ?? "Car Wash";
+                _selectedCategoryId = _categories.first.sId ?? "";
+                _isLoadingCategories = false;
+              });
+            }
+          } else {
+            throw Exception("No business types available");
+          }
+        } catch (jsonError) {
+          if (mounted) {
+            setState(() {
+              _categoryError = "Unable to load business types. Please check your connection.";
+              _isLoadingCategories = false;
+            });
+          }
         }
+      } else {
+        throw Exception("Unable to load business types. Please try again.");
       }
     } catch (e) {
-      print("Error loading categories: $e");
+      if (mounted) {
+        setState(() {
+          _categoryError = "Unable to load business types. Please check your connection and try again.";
+          _isLoadingCategories = false;
+          // Set fallback categories
+          _categories = [
+            CategoryData(sId: "fallback1", categoryTitle: "Car Wash"),
+            CategoryData(sId: "fallback2", categoryTitle: "Car Detailing"),
+            CategoryData(sId: "fallback3", categoryTitle: "Auto Repair"),
+          ];
+          if (_categories.isNotEmpty) {
+            _selectedCategory = _categories.first.categoryTitle ?? "Car Wash";
+            _selectedCategoryId = _categories.first.sId ?? "";
+          }
+        });
+      }
     }
   }
 
-  Future<void> _getCurrentLocation() async {
+  bool _isGettingLocation = false;
+
+  Future<void> _getCurrentLocation({bool showError = true}) async {
+    if (!mounted || _isGettingLocation) return;
+    
+    setState(() {
+      _isGettingLocation = true;
+    });
+    
     try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted && showError && context.mounted) {
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Location services are disabled. Please enable them in your device settings to use this feature.",
+          );
+        }
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted && showError && context.mounted) {
+            UXHelperWidget.showFriendlyError(
+              context,
+              "Location permission is required to automatically fill your address. You can still type it manually.",
+            );
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted && showError && context.mounted) {
+          UXHelperWidget.showFriendlyError(
+            context,
+            "Location permission is permanently denied. Please enable it in settings, or type your address manually.",
+          );
+        }
+        return;
+      }
+
+      // Get current position
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.medium, // Changed to medium for faster response
+        timeLimit: const Duration(seconds: 10),
       );
-      setState(() {
-        _currentLat = position.latitude;
-        _currentLng = position.longitude;
-      });
+      
+      if (mounted) {
+        setState(() {
+          _currentLat = position.latitude;
+          _currentLng = position.longitude;
+        });
+      }
       
       // Get address from coordinates
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        final place = placemarks[0];
-        final address = "${place.street}, ${place.locality}, ${place.administrativeArea}";
-        _addressController.text = address;
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+        if (placemarks.isNotEmpty && mounted) {
+          final place = placemarks[0];
+          final street = place.street ?? "";
+          final locality = place.locality ?? "";
+          final area = place.administrativeArea ?? "";
+          final address = [street, locality, area].where((s) => s.isNotEmpty).join(", ");
+          if (address.isNotEmpty) {
+            setState(() {
+              _addressController.text = address;
+            });
+          }
+        }
+      } catch (e) {
+        // Location coordinates are set, user can type address manually
       }
     } catch (e) {
-      print("Error getting location: $e");
+      if (mounted && showError && context.mounted) {
+        UXHelperWidget.showFriendlyError(
+          context,
+          "Unable to get your location. Please type your address manually or try again.",
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
     }
   }
 
@@ -151,8 +265,9 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+          leading: CommonWidget.buildAppBarBackButton(
+            context,
+            iconColor: Colors.black,
             onPressed: () {
               if (_currentStep > 0) {
                 _goToStep(_currentStep - 1);
@@ -161,7 +276,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
               }
             },
           ),
-          title: Text(
+          title: const Text(
             "Register Your Business",
             style: TextStyle(
               color: Colors.black,
@@ -265,7 +380,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
           const SizedBox(height: 30),
           
           // Shop Name
-          Text(
+          const Text(
             "What's your business name?",
             style: TextStyle(
               fontSize: 18,
@@ -297,7 +412,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
           const SizedBox(height: 30),
           
           // Business Type - Visual selection
-          Text(
+          const Text(
             "What type of business?",
             style: TextStyle(
               fontSize: 18,
@@ -314,42 +429,109 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             ),
           ),
           const SizedBox(height: 16),
-          _categories.isEmpty
-              ? Center(child: CircularProgressIndicator())
-              : Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: _categories.take(6).map((category) {
-                    final isSelected = _selectedCategory == category.categoryTitle;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = category.categoryTitle ?? "";
-                          _selectedCategoryId = category.sId ?? "";
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: isSelected ? ColorClass.base_color : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? ColorClass.base_color : Colors.grey[300]!,
-                            width: isSelected ? 2 : 1,
-                          ),
+          _isLoadingCategories
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Loading business types...",
+                          style: TextStyle(color: Colors.grey[600]),
                         ),
-                        child: Text(
-                          category.categoryTitle ?? "",
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : _categoryError != null
+                  ? Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange[200]!),
                       ),
-                    );
-                  }).toList(),
-                ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _categoryError!,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.orange[900],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton.icon(
+                            onPressed: _fetchCategories,
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text("Try Again"),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.orange[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _categories.isEmpty
+                      ? Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            "No business types available. Please contact support.",
+                            style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: _categories.take(6).map((category) {
+                            final isSelected = _selectedCategory == category.categoryTitle;
+                            return InkWell(
+                              onTap: () {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedCategory = category.categoryTitle ?? "";
+                                    _selectedCategoryId = category.sId ?? "";
+                                  });
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? ColorClass.base_color : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected ? ColorClass.base_color : Colors.grey[300]!,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  category.categoryTitle ?? "",
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
           const SizedBox(height: 20),
           UXHelperWidget.buildInfoBanner(
             message: "💡 Don't worry! You can add more services and change settings later from your dashboard.",
@@ -368,7 +550,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Where is your business located?",
             style: TextStyle(
               fontSize: 18,
@@ -387,25 +569,34 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
           const SizedBox(height: 20),
           
           // Auto-location button
-          if (_currentLat == 0.0 || _currentLng == 0.0)
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: ElevatedButton.icon(
-                onPressed: _getCurrentLocation,
-                icon: Icon(Icons.my_location),
-                label: Text("Use My Current Location"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorClass.base_color,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: ElevatedButton.icon(
+              onPressed: _isGettingLocation ? null : () => _getCurrentLocation(showError: true),
+              icon: _isGettingLocation
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(_isGettingLocation ? "Getting Location..." : "Use My Current Location"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorClass.base_color,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                disabledBackgroundColor: Colors.grey[300],
               ),
             ),
+          ),
           
           // Address field with Google Places
-          Text(
+          const Text(
             "Business Address",
             style: TextStyle(
               fontSize: 16,
@@ -420,8 +611,6 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             onSuggestionClick: (place) {
               setState(() {
                 _addressController.text = place.formattedAddress ?? place.name ?? "";
-                // Note: Place model doesn't have placeId, using name as identifier if needed
-                _selectedPlaceId = place.name ?? place.formattedAddress;
                 if (place.lat != null && place.lng != null) {
                   _currentLat = place.lat!;
                   _currentLng = place.lng!;
@@ -617,28 +806,57 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
 
   void _completeRegistration() async {
     if (!_validateCurrentStep()) return;
+    if (!mounted || !context.mounted) return;
 
+    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              "Setting up your business...",
-              style: TextStyle(color: Colors.white),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(ColorClass.base_color),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Setting up your business...",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "This will only take a moment",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
 
     try {
+      if (!mounted || !context.mounted) return;
+      
       final userEmail = sharedPreferences?.getString(Constant.email) ?? "";
       final userMobile = sharedPreferences?.getString(Constant.mobile) ?? "";
+
+      if (addShopDataManager == null) {
+        throw Exception("Unable to register. Please try again.");
+      }
 
       // Call API to create vendor with service
       var response = await addShopDataManager!.captureVendor(
@@ -664,50 +882,86 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
         context,
       );
 
+      if (!mounted || !context.mounted) return;
+      
       if (context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context); // Close loading
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-        
-        if (responseData['status'] == 'success' && responseData['data'] != null) {
-          final vendorData = responseData['data'];
-          String? vendorId;
+        try {
+          final responseData = jsonDecode(response.body);
           
-          if (vendorData['newBusinessData'] != null) {
-            final businessData = vendorData['newBusinessData'];
-            vendorId = businessData['_id']?.toString() ?? 
-                      businessData['id']?.toString() ?? 
-                      businessData['vendorId']?.toString();
+          if (responseData['status'] == 'success' && responseData['data'] != null) {
+            final vendorData = responseData['data'];
+            String? vendorId;
+            
+            if (vendorData['newBusinessData'] != null) {
+              final businessData = vendorData['newBusinessData'];
+              vendorId = businessData['_id']?.toString() ?? 
+                        businessData['id']?.toString() ?? 
+                        businessData['vendorId']?.toString();
+            }
+            
+            if (vendorId != null && vendorId.isNotEmpty) {
+              await sharedPreferences?.setString(Constant.vendorId, vendorId);
+            } else {
+            }
           }
-          
-          if (vendorId != null && vendorId.isNotEmpty) {
-            await sharedPreferences?.setString(Constant.vendorId, vendorId);
+
+          if (mounted && context.mounted) {
+            UXHelperWidget.showSuccessMessage(
+              context,
+              "🎉 Success! Your business is now registered! You can start adding services and packages from your dashboard.",
+            );
+
+            // Small delay to show success message
+            await Future.delayed(const Duration(seconds: 1));
+
+            if (mounted && context.mounted) {
+              // Navigate to dashboard
+              CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+            }
+          }
+        } catch (jsonError) {
+          if (mounted && context.mounted) {
+            UXHelperWidget.showFriendlyError(
+              context,
+              "Registration completed but we couldn't verify it. Please check your dashboard.",
+            );
+            await Future.delayed(const Duration(seconds: 1));
+            if (mounted && context.mounted) {
+              CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+            }
           }
         }
-
-        UXHelperWidget.showSuccessMessage(
-          context,
-          "🎉 Success! Your business is now registered! You can start adding services and packages from your dashboard.",
-        );
-
-        // Navigate to dashboard
-        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
       } else {
-        UXHelperWidget.showFriendlyError(
-          context,
-          "Something went wrong. Please check your internet connection and try again.",
-        );
+        // Try to parse error message
+        String errorMessage = "Something went wrong. Please check your internet connection and try again.";
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'].toString();
+          }
+        } catch (e) {
+          // Use default error message
+        }
+        
+        if (mounted && context.mounted) {
+          UXHelperWidget.showFriendlyError(
+            context,
+            errorMessage,
+          );
+        }
       }
     } catch (e) {
-      if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-      if (context.mounted) {
+      if (mounted && context.mounted) {
+        if (Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
         UXHelperWidget.showFriendlyError(
           context,
-          "Error: ${e.toString()}. Please try again or contact support.",
+          "Unable to complete registration. Please check your internet connection and try again. If the problem continues, contact support.",
         );
       }
     }

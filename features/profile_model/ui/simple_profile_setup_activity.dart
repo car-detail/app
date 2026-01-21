@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
 import 'package:car_app/features/dashboard_module/model/vendor_details_main_bean.dart';
 import 'package:flutter/material.dart';
