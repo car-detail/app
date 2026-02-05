@@ -187,7 +187,7 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
                         // SMS verification message - Split into two lines as per design
                         RichText(
                           textAlign: TextAlign.center,
-                          text: const TextSpan(
+                          text: TextSpan(
                             text: "SMS verification code has been sent to your\n",
                             style: TextStyle(
                               fontSize: 15,
@@ -198,7 +198,7 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
                             ),
                         children: [
                               TextSpan(
-                                text: "Register Mobile No.",
+                                text: "${widget.mobileNo}",
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.black87,
@@ -440,11 +440,11 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
       var data = VerifyOtpModelBean.fromJson(jsonDecode(response.body));
       
       if (data.status == "success") {
-        sharedPreferences!
+        await sharedPreferences!
             .setString(Constant.accessToken, data.data!.accessToken ?? "");
-        sharedPreferences!
+        await sharedPreferences!
             .setString(Constant.refreshToken, data.data!.refreshToken ?? "");
-        sharedPreferences!.setString(Constant.refreshTokenExpireTime,
+        await sharedPreferences!.setString(Constant.refreshTokenExpireTime,
             data.data!.refreshTokenExpireTime.toString() ?? "");
         setState(() {
           _isVerifying = false;
@@ -502,6 +502,9 @@ class _OTPScreenActivityState extends State<OTPScreenActivity> {
           .setString(Constant.roleName, data.data?[0].roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data?[0].sId.toString() ?? "");
+      
+      // Sync FCM token with backend after login - backend stores only if not already present
+      loginDataManager!.syncFcmToken(context);
       
       // Debug vendor details
       bool hasVendorDetails = data.data?[0].vendorDetails != null && data.data![0].vendorDetails!.isNotEmpty;

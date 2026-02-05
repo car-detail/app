@@ -14,6 +14,8 @@ import '../Common/Constant.dart';
 import 'home_module/data_manager/home_data_manager.dart';
 import 'log_in/ui/LoginActivity.dart';
 import 'log_in/ui/modern_login_activity.dart';
+import 'log_in/data_manager/LoginDataManager.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SplashScreenActivity extends StatefulWidget {
   const SplashScreenActivity({super.key});
@@ -41,6 +43,55 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     appVersionCode = packageInfo.buildNumber;
     appVersionName = packageInfo.version;
+
+    // Initialize Firebase Messaging and get token
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      
+      // Request permission
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+      print('User granted permission: ${settings.authorizationStatus}');
+
+      // Get Token
+      String? token = await messaging.getToken();
+      print("FCM Token: $token");
+      
+      if (token != null) {
+        sharedPreferences!.setString(Constant.fbtoken, token);
+      }
+      
+      // Listen to token refresh
+      messaging.onTokenRefresh.listen((fcmToken) {
+        sharedPreferences!.setString(Constant.fbtoken, fcmToken);
+      }).onError((err) {
+        print("Error getting token refresh");
+      });
+
+      // Handle foreground messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('Got a message whilst in the foreground!');
+        print('Message data: ${message.data}');
+
+        if (message.notification != null) {
+          print('Message also contained a notification: ${message.notification}');
+          // You can show a custom snackbar or local notification here if needed
+          if (context.mounted) {
+            CommonWidget.successShowSnackBarFor(context, "${message.notification?.title}: ${message.notification?.body}");
+          }
+        }
+      });
+      
+    } catch (e) {
+      print("Error in Firebase Messaging init: $e");
+    }
     
     final userIdValue = sharedPreferences!.getString(Constant.id) ?? "";
     final vendorIdValue = sharedPreferences!.getString(Constant.vendorId) ?? "";
@@ -52,6 +103,14 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
     
     // Check if user is logged in - navigate immediately if yes
     if (userIdValue.isNotEmpty) {
+      // Sync FCM token with backend in background
+      try {
+        final loginDataManager = LoginDataManager(sharedPreferences!);
+        await loginDataManager.syncFcmToken(context);
+      } catch (e) {
+        print("Error syncing FCM token: $e");
+      }
+
       // Small delay for splash screen visibility, then navigate
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && context.mounted) {

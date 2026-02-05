@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
@@ -233,22 +234,57 @@ class _BookingListActivityState extends State<BookingListActivity> {
                     ],
                   ),
                 ),
-                // Status badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(data.orderStatus ?? "pending"),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    data.orderStatus ?? "Pending",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontFamily: "Pop500",
-                      fontWeight: FontWeight.w600,
+                // Status badge and Call button
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(data.orderStatus ?? "pending"),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        data.orderStatus ?? "Pending",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontFamily: "Pop500",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (data.createdByMobile != null && data.createdByMobile!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          final Uri launchUri = Uri(
+                            scheme: 'tel',
+                            path: data.createdByMobile,
+                          );
+                          if (await canLaunchUrl(launchUri)) {
+                            await launchUrl(launchUri);
+                          } else {
+                            if (context.mounted) {
+                              CommonWidget.errorShowSnackBarFor(context, "Could not launch dialer");
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: ColorClass.base_color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.call,
+                            color: ColorClass.base_color,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

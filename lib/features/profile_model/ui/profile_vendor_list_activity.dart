@@ -385,9 +385,12 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
                 _buildDetailRow("Shop Name", dataNew?.vendorDetails![0].displayName ?? ""),
                 _buildDetailRow("Email", dataNew?.vendorDetails![0].officialEmail ?? "N/A"),
                 _buildDetailRow("Mobile", dataNew?.vendorDetails![0].mobile ?? ""),
-                if (dataNew?.vendorDetails![0].openTime != "" && dataNew?.vendorDetails![0].openTime != null)
                   _buildDetailRow("Shop Hours", 
                       "${CommonWidget.convertToLocalTimeWithAMPM(dataNew?.vendorDetails![0].openTime ?? "")} - ${CommonWidget.convertToLocalTimeWithAMPM(dataNew?.vendorDetails![0].closeTime ?? "")}"),
+                if (dataNew?.vendorDetails![0].daysAvailable != null && 
+                    dataNew!.vendorDetails![0].daysAvailable!.isNotEmpty)
+                  _buildDetailRow("Days", 
+                      dataNew!.vendorDetails![0].daysAvailable!.join(", ")),
                 _buildDetailRow("Location", dataNew?.vendorDetails![0].location!.name ?? ""),
               ],
             ),

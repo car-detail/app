@@ -19,50 +19,71 @@ class _NotificationActivityState extends State<NotificationActivity> {
         children: [
           CommonWidget.gettopbar("Notification", context),
           const SizedBox(height: 10,),
-          Expanded(
-              child: ListView.builder(
-                padding:  EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: widget.notificationsList.length,
-                  itemBuilder: (context, index) {
-                  var data = widget.notificationsList[index];
-                    return Container(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 60,
-                              width: 60,
-                              decoration: BoxDecoration(
-                                  color:ColorClass.base_light_color,
+          if (widget.notificationsList.isNotEmpty)
+            Expanded(
+                child: ListView.builder(
+                  padding:  EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: widget.notificationsList.length,
+                    itemBuilder: (context, index) {
+                    var data = widget.notificationsList[index];
+                      return Container(
+                        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                    color:ColorClass.base_light_color,
 
-                                  borderRadius: const BorderRadius.all(Radius.circular(30))
-                              ),
-                              child: Center(child: Image.asset(CommonWidget.getImagePath("noti_icon.png"), height: 25,width: 25,))),
-                          const SizedBox(width: 5,),
-                          Expanded(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                                  CommonWidget.getTextWidget500(
-                                      data.title??"",
-                                      color: ColorClass.base_color,
-                                      textAlign: TextAlign.start,
-                                      size: 14),
-                              CommonWidget.getTextRich("",
-                                  data.body??"", textsize: 12,valuecolor: Colors.black)
-                            ],
-                          )),
-                          const SizedBox(width: 5,),
+                                    borderRadius: const BorderRadius.all(Radius.circular(30))
+                                ),
+                                child: Center(child: Image.asset(CommonWidget.getImagePath("noti_icon.png"), height: 25,width: 25,))),
+                            const SizedBox(width: 5,),
+                            Expanded(
+                                child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                    CommonWidget.getTextWidget500(
+                                        data.title??"",
+                                        color: ColorClass.base_color,
+                                        textAlign: TextAlign.start,
+                                        size: 14),
+                                CommonWidget.getTextRich("",
+                                    data.body??"", textsize: 12,valuecolor: Colors.black)
+                              ],
+                            )),
+                            const SizedBox(width: 5,),
 
-                          //CommonWidget.getTextWidget500("1h ago", size: 12)
-                        ],
-                      ),
-                    );
-                  }))
+                            //CommonWidget.getTextWidget500("1h ago", size: 12)
+                          ],
+                        ),
+                      );
+                    }))
+          else
+            Expanded(
+                child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.notifications_off_outlined,
+                      size: 60, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No new notifications yet",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontFamily: "Pop500",
+                    ),
+                  ),
+                ],
+              ),
+            ))
         ],
       ),
     );

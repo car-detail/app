@@ -118,6 +118,7 @@ class VendorDetails {
   String? createdAt;
   String? updatedAt;
   int? iV;
+  List<String>? daysAvailable;
 
   VendorDetails(
       {this.sId,
@@ -136,6 +137,7 @@ class VendorDetails {
         this.isVerified,
         this.createdAt,
         this.updatedAt,
+        this.daysAvailable,
         this.iV});
 
   VendorDetails.fromJson(Map<String, dynamic> json) {
@@ -158,6 +160,9 @@ class VendorDetails {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
+    if (json['daysAvailable'] != null) {
+      daysAvailable = json['daysAvailable'].cast<String>();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -181,6 +186,7 @@ class VendorDetails {
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
     data['__v'] = iV;
+    data['daysAvailable'] = daysAvailable;
     return data;
   }
 }

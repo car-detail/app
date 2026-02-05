@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -30,6 +32,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>app-1-282009131820-ios-ba518a66fe72e673e32a89</string>
+				<string>com.googleusercontent.apps.282009131820-2un6v9d8d9afum5q962p68lb0rlf177v</string>
 			</array>
 		</dict>
 		<dict/>

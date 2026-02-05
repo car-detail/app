@@ -28,21 +28,27 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final url = '${Constant.baseurl}$endpoint';
+        debugPrint('🔵 GET Request: $url');
+        debugPrint('🔑 Token: ${token.isNotEmpty ? "Provided (Configured)" : "Missing"}');
+        
         final response = await http
-            .get(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
+            .get(Uri.parse(url), headers: {
           "Authorization": "Bearer $token",
           "ngrok-skip-browser-warning": "true"
         });
-        debugPrint('Status Code: ${response.statusCode}');
-        debugPrint(response.body);
+        
+        debugPrint('🟢 GET Response: $url');
+        debugPrint('📊 Status: ${response.statusCode}');
+        debugPrint('📄 Body: ${response.body}');
+        
         if (response.statusCode == 200) {
           // Check if response is JSON before parsing
           try {
             Map<String, dynamic> message = (jsonDecode(response.body));
             return response;
           } catch (e) {
-            debugPrint("Error parsing JSON: $e");
-            debugPrint("Response body: ${response.body}");
+            debugPrint("⚠️ JSON Parse Error: $e");
             // Return the response even if it's not JSON (like HTML error pages)
             return response;
           }

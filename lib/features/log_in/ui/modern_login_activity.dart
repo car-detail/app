@@ -40,6 +40,13 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
   @override
   void initState() {
     super.initState();
+    // Set green status bar
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: ColorClass.base_color,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
     start();
   }
 
@@ -86,12 +93,15 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
+          top: false,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 // Modern Header with gradient
                 Container(
-                  height: 280,
+                  constraints: BoxConstraints(
+                    minHeight: 280 + MediaQuery.of(context).padding.top,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -106,6 +116,7 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                       bottomRight: Radius.circular(40),
                     ),
                   ),
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
                   child: Stack(
                     children: [
                       // Decorative circles
@@ -133,14 +144,13 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                           ),
                         ),
                       ),
-                      // Content
                       Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 40),
+                            const SizedBox(height: 20),
                             // Back button
                             IconButton(
                               icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -154,33 +164,33 @@ class _ModernLoginActivityState extends State<ModernLoginActivity> {
                                 }
                               },
                             ),
-                          const Spacer(),
-                          // Title
-                          const Text(
-                            "Get Started",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.5,
+                            const SizedBox(height: 60), // Fixed spacing instead of Spacer
+                            // Title
+                            const Text(
+                              "Get Started",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "Enter your mobile number to continue",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Enter your mobile number to continue",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               
               // Login Form
               Padding(

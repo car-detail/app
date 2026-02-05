@@ -341,6 +341,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       // Notification icon on the right
                       GestureDetector(
                         onTap: () {
+                          debugPrint('🔔 Vendor App: Opening notifications with ${notificationsList.length} items');
                           CommonWidget.navigateToScreen(
                               context, NotificationActivity(notificationsList));
                         },
@@ -1105,7 +1106,7 @@ class _HomeActivityState extends State<HomeActivity> {
           ),
         ],
       ),
-                child: Column(
+      child: Column(
         children: [
           Row(
             children: [
@@ -1153,73 +1154,109 @@ class _HomeActivityState extends State<HomeActivity> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(booking.orderStatus ?? "").withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  booking.orderStatus ?? "",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: _getStatusColor(booking.orderStatus ?? ""),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(booking.orderStatus ?? "").withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      booking.orderStatus ?? "",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _getStatusColor(booking.orderStatus ?? ""),
+                      ),
+                    ),
                   ),
-                ),
+                  if (booking.createdByMobile != null && booking.createdByMobile!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () async {
+                        final Uri launchUri = Uri(
+                          scheme: 'tel',
+                          path: booking.createdByMobile,
+                        );
+                        if (await canLaunchUrl(launchUri)) {
+                          await launchUrl(launchUri);
+                        } else {
+                          if (context.mounted) {
+                            CommonWidget.errorShowSnackBarFor(context, "Could not launch dialer");
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.call,
+                          color: ColorClass.base_color,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
           if (booking.orderStatus == "Pending") ...[
             const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
+            Row(
+              children: [
+                Expanded(
                   child: ElevatedButton(
                     onPressed: () {
                       putStatusCompleted(context, booking);
-                            },
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1CB273),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                              ),
-                              child: const Text(
-                        "Complete",
-                                style: TextStyle(
+                    ),
+                    child: const Text(
+                      "Complete",
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                        Expanded(
+                Expanded(
                   child: OutlinedButton(
                     onPressed: () {
                       _showCancelDialog(context, booking);
-                            },
+                    },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red, width: 1),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                              ),
-                              child: const Text(
-                        "Cancel",
-                                style: TextStyle(
+                    ),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ],
@@ -1718,22 +1755,58 @@ class _HomeActivityState extends State<HomeActivity> {
                   ],
                 ),
               ),
-              // Status badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingXS),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(booking.orderStatus ?? "pending"),
-                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
-                ),
-                child: Text(
-                  booking.orderStatus ?? "Pending",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontFamily: "PopSemi",
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              // Status badge and Call button
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: ModernDesignSystem.spacingM, vertical: ModernDesignSystem.spacingXS),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(booking.orderStatus ?? "pending"),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      booking.orderStatus ?? "Pending",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontFamily: "Pop500",
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
+                  if (booking.createdByMobile != null && booking.createdByMobile!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () async {
+                        final Uri launchUri = Uri(
+                          scheme: 'tel',
+                          path: booking.createdByMobile,
+                        );
+                        if (await canLaunchUrl(launchUri)) {
+                          await launchUrl(launchUri);
+                        } else {
+                          if (context.mounted) {
+                            CommonWidget.errorShowSnackBarFor(context, "Could not launch dialer");
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.call,
+                          color: ColorClass.base_color,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -1874,9 +1947,12 @@ class _HomeActivityState extends State<HomeActivity> {
 
   getBookingListFilter(BuildContext context) async {
     try {
+      debugPrint('📅 getBookingListFilter: Fetching Pending bookings...');
       var response = await dataManager!.getBookingListFilter(context, "Pending");
+      debugPrint('📅 getBookingListFilter: Status Code: ${response.statusCode}');
       
       if (response.statusCode == 404) {
+        debugPrint('📅 getBookingListFilter: 404 - Clearing records');
         setState(() {
           records.clear();
         });
@@ -1884,22 +1960,25 @@ class _HomeActivityState extends State<HomeActivity> {
       }
       
       var data = BookingListBean.fromJson(jsonDecode(response.body));
+      debugPrint('📅 getBookingListFilter: Response Status: ${data.status}');
       if (data.status == "success") {
+        debugPrint('📅 getBookingListFilter: Found ${data.data?.records?.length ?? 0} records');
         setState(() {
           records.clear();
           records.addAll(data.data!.records!);
         });
       } else {
+        debugPrint('📅 getBookingListFilter: Status not success - clearing records');
         setState(() {
           records.clear();
         });
-        // Don't show error snackbar here as it might be expected for new vendors
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('📅 getBookingListFilter Error: $e');
+      debugPrint('📅 StackTrace: $stackTrace');
       setState(() {
         records.clear();
       });
-      // Don't show error snackbar here as it might be expected for new vendors
     }
   }
 
@@ -1918,16 +1997,24 @@ class _HomeActivityState extends State<HomeActivity> {
   }
 
   getNotifications(BuildContext context) async {
-    var response = await dataManager!.getNotification(context);
-    var data = NotificationDataBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      setState(() {
-        notificationsList.clear();
-        notificationsList.addAll(data.data!.notifications!);
-      });
-      //CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    try {
+      debugPrint('🔔 Vendor App: Fetching notifications...');
+      var response = await dataManager!.getNotification(context);
+      debugPrint('🔔 Vendor App: Response status ${response.statusCode}');
+      var data = NotificationDataBean.fromJson(jsonDecode(response.body));
+      debugPrint('🔔 Vendor App: Parsed - status: ${data.status}, count: ${data.data?.notifications?.length ?? 0}');
+      if (data.status == "success") {
+        setState(() {
+          notificationsList.clear();
+          notificationsList.addAll(data.data!.notifications!);
+          debugPrint('🔔 Vendor App: State updated with ${notificationsList.length} notifications');
+        });
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ Vendor App: Error in getNotifications: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -1945,24 +2032,40 @@ class _HomeActivityState extends State<HomeActivity> {
   }
 
   putStatusCompleted(BuildContext context, Records data) async {
-    var response = await dataManager!.putStatusCompleted(context, data.sId.toString());
-    var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
-    if (responseData.status == "success") {
-      CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
-      getBookingListFilter(context);
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");
+    try {
+      debugPrint('📅 putStatusCompleted: Marking booking ${data.sId} as Completed');
+      var response = await dataManager!.putStatusCompleted(context, data.sId.toString());
+      var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
+      debugPrint('📅 putStatusCompleted: Status: ${responseData.status}');
+      if (responseData.status == "success") {
+        CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
+        debugPrint('📅 putStatusCompleted: Success - Refreshing list');
+        await getBookingListFilter(context);
+        debugPrint('📅 putStatusCompleted: List refresh triggered');
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");
+      }
+    } catch (e) {
+      debugPrint('📅 putStatusCompleted Error: $e');
     }
   }
 
   putStatusCancel(BuildContext context, String reason, String sId) async {
-    var response = await dataManager!.putStatusCancel(context, reason, sId);
-    var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
-    if (responseData.status == "success") {
-      CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
-      getBookingListFilter(context);
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");
+    try {
+      debugPrint('📅 putStatusCancel: Cancelling booking $sId. Reason: $reason');
+      var response = await dataManager!.putStatusCancel(context, reason, sId);
+      var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
+      debugPrint('📅 putStatusCancel: Status: ${responseData.status}');
+      if (responseData.status == "success") {
+        CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
+        debugPrint('📅 putStatusCancel: Success - Refreshing list');
+        await getBookingListFilter(context);
+        debugPrint('📅 putStatusCancel: List refresh triggered');
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");
+      }
+    } catch (e) {
+      debugPrint('📅 putStatusCancel Error: $e');
     }
   }
 
