@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import '../error_model.dart';
-import '../features/log_in/ui/modern_login_activity.dart';
+import '../features/log_in/ui/new_login_activity.dart';
 
 class ApiFuntions {
   Future<http.Response> getdatauser(BuildContext context, String endpoint,
@@ -30,7 +30,7 @@ class ApiFuntions {
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         final url = '${Constant.baseurl}$endpoint';
         debugPrint('🔵 GET Request: $url');
-        debugPrint('🔑 Token: ${token.isNotEmpty ? "Provided (Configured)" : "Missing"}');
+        debugPrint('🔑 Token: ${token.isNotEmpty ? "Provided" : "Missing"}');
         
         final response = await http
             .get(Uri.parse(url), headers: {
@@ -38,7 +38,7 @@ class ApiFuntions {
           "ngrok-skip-browser-warning": "true"
         });
         
-        debugPrint('🟢 GET Response: $url');
+        debugPrint('🟢 GET Response ($url)');
         debugPrint('📊 Status: ${response.statusCode}');
         debugPrint('📄 Body: ${response.body}');
         
@@ -60,7 +60,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
           return response;
         }
         else {
@@ -110,12 +110,18 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final url = '${Constant.baseurl}$endpoint';
+        debugPrint('🔴 DELETE Request: $url');
+        
         final response = await http
-            .delete(Uri.parse('${Constant.baseurl}$endpoint'), headers: {
-          "Authorization": "Bearer $token"
+            .delete(Uri.parse(url), headers: {
+          "Authorization": "Bearer $token",
+          "ngrok-skip-browser-warning": "true"
         });
-        debugPrint('Status Code: ${response.statusCode}');
-        debugPrint(response.body);
+        
+        debugPrint('🟢 DELETE Response ($url)');
+        debugPrint('📊 Status: ${response.statusCode}');
+        debugPrint('📄 Body: ${response.body}');
         if (response.statusCode == 200) {
           Map<String, dynamic> message = (jsonDecode(response.body));
           return response;
@@ -127,7 +133,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
           return response;
         }
         else {
@@ -180,9 +186,9 @@ class ApiFuntions {
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
         final fullUrl = '${Constant.baseurl}$endpoint';
-        debugPrint("🔗 Full API URL: $fullUrl");
-        debugPrint("📦 Base URL: ${Constant.baseurl}");
-        debugPrint("📋 Endpoint: $endpoint");
+        debugPrint('🟡 POST Request: $fullUrl');
+        debugPrint('📦 Body: ${jsonEncode(data)}');
+        
         final response = await http.post(
             Uri.parse(fullUrl),
             body: jsonEncode(data),
@@ -191,6 +197,8 @@ class ApiFuntions {
               "Authorization": "Bearer $token",
               "ngrok-skip-browser-warning": "true"
             });
+            
+        debugPrint('🟢 POST Response ($fullUrl)');
         debugPrint('📊 Status Code: ${response.statusCode}');
         debugPrint('📄 Response Body: ${response.body}');
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -199,17 +207,14 @@ class ApiFuntions {
           }
           return response;
         }else if(response.statusCode == 401){
-          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
-            CommonWidget.safePop(context);
+          if (!skipAutoNavigation) {
+            if (context.mounted && Navigator.canPop(context)) {
+              CommonWidget.safePop(context);
+            }
+            debugPrint(response.body);
+            sharedPreferences.clear();
+            CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
           }
-          /*CommonWidget.errorShowSnackBarFor(
-              context, "${response.statusCode.toString()} Error Code");*/
-          //var data = ErrorModel.fromJson(jsonDecode(response.body));
-          /*if(data.message!.length>0)
-            CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          debugPrint(response.body);
-          sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
           return response;
         }
 
@@ -282,17 +287,22 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final url = '${Constant.baseurl}$endpoint';
+        debugPrint('🟠 PUT Request: $url');
+        debugPrint('📦 Body: ${jsonEncode(data)}');
+        
         final response = await http.put(
-            Uri.parse('${Constant.baseurl}$endpoint'),
+            Uri.parse(url),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
               "Authorization": "Bearer $token",
               "ngrok-skip-browser-warning": "true"
             });
-        debugPrint("${Constant.baseurl}$endpoint");
-        debugPrint('Status Code: ${response.statusCode}');
-        debugPrint(response.body);
+            
+        debugPrint('🟢 PUT Response ($url)');
+        debugPrint('📊 Status Code: ${response.statusCode}');
+        debugPrint('📄 Response Body: ${response.body}');
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
@@ -309,7 +319,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
           return response;
         }else {
           if (context.mounted && Navigator.canPop(context)) {
@@ -594,23 +604,16 @@ class ApiFuntions {
       data.forEach((key, value) {
         request.fields[key] = value.toString();
       });
-      debugPrint('Request Body:');
-      debugPrint('URL: $url');
-      debugPrint('Headers: ${request.headers}');
-      debugPrint('Files:');
-      for (var file in request.files) {
-        debugPrint('  - ${file.filename}');
-      }
-      debugPrint('Fields:');
-      request.fields.forEach((key, value) {
-        debugPrint('  $key: $value');
-      });
+      debugPrint('🟣 MULTIPART Request: ${Constant.baseurl}$url');
+      debugPrint('Fields: ${request.fields}');
+      debugPrint('Files: ${request.files.map((f) => f.filename).toList()}');
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-      debugPrint('Response Request: ${streamedResponse.request}');
-      debugPrint('Response Body: ${response.body}');
-      debugPrint('Response: $response');
+      
+      debugPrint('🟢 MULTIPART Response (${Constant.baseurl}$url)');
+      debugPrint('📊 Status: ${response.statusCode}');
+      debugPrint('📄 Body: ${response.body}');
 
       // Handle the response
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -634,7 +637,7 @@ class ApiFuntions {
         // Only auto-navigate if skipAutoNavigation is false
         if (!skipAutoNavigation) {
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
         }
         return response;
       }
@@ -690,16 +693,22 @@ class ApiFuntions {
         result = await InternetAddress.lookup('google.com');
       }
       if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final url = '${Constant.baseurl}$endpoint';
+        debugPrint('🟣 PATCH Request: $url');
+        debugPrint('📦 Body: ${jsonEncode(data)}');
+        
         final response = await http.patch(
-            Uri.parse('${Constant.baseurl}$endpoint'),
+            Uri.parse(url),
             body: jsonEncode(data),
             headers: {
               "Content-Type": "application/json",
-              "Authorization": "Bearer $token"
+              "Authorization": "Bearer $token",
+              "ngrok-skip-browser-warning": "true"
             });
-        debugPrint("${Constant.baseurl}$endpoint");
-        debugPrint('Status Code: ${response.statusCode}');
-        debugPrint(response.body);
+            
+        debugPrint('🟢 PATCH Response ($url)');
+        debugPrint('📊 Status Code: ${response.statusCode}');
+        debugPrint('📄 Response Body: ${response.body}');
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
@@ -727,7 +736,7 @@ class ApiFuntions {
             CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
           debugPrint(response.body);
           sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
           return response;
         } else {
           if (context.mounted && Navigator.canPop(context)) {

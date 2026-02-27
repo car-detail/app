@@ -30,7 +30,6 @@ class DashboardActivity extends StatefulWidget {
 
 class _DashboardActivityState extends State<DashboardActivity> {
   int selectedpage = 0;
-  final List<Widget> _pageNo = [];
   HomeDataManager? dataManager;
   SharedPreferences? sharedPreferences;
   bool? tourShown; // This comes from database - tour_shown field
@@ -47,22 +46,6 @@ class _DashboardActivityState extends State<DashboardActivity> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    _pageNo.addAll([
-      HomeActivity(
-        (value) {
-        if (mounted) {
-          setState(() {
-            isValid = value;
-          });
-        }
-        },
-        shopStatusKey: _shopStatusKey,
-        quickAccessKey: _quickAccessKey,
-      ),
-      _buildBookingsPage(),
-      const ProfileVendorListActivity(),
-    ]);
     start();
     super.initState();
   }
@@ -314,7 +297,21 @@ class _DashboardActivityState extends State<DashboardActivity> {
             ? IndexedStack(
                 key: const ValueKey('main_stack'),
                 index: selectedpage,
-                children: _pageNo,
+                children: [
+                  HomeActivity(
+                    (value) {
+                      if (mounted) {
+                        setState(() {
+                          isValid = value;
+                        });
+                      }
+                    },
+                    shopStatusKey: _shopStatusKey,
+                    quickAccessKey: _quickAccessKey,
+                  ),
+                  _buildBookingsPage(),
+                  ProfileVendorListActivity(isActive: selectedpage == 2),
+                ],
               )
             : Scaffold(
                 backgroundColor: Colors.grey[50],

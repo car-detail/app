@@ -94,6 +94,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
           .setString(Constant.roleName, data.data?[0].roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data?[0].sId.toString() ?? "");
+      sharedPreferences!
+          .setString(Constant.UserID, data.data?[0].sId.toString() ?? "");
       if (data.data![0].vendorDetails!.isNotEmpty) {
         sharedPreferences!.setString(Constant.vendorId,
             data.data?[0].vendorDetails![0].sId.toString() ?? "");
@@ -212,6 +214,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
           .setString(Constant.roleName, data.data!.roleName ?? "");
       sharedPreferences!
           .setString(Constant.id, data.data!.sId.toString() ?? "");
+      sharedPreferences!
+          .setString(Constant.UserID, data.data!.sId.toString() ?? "");
       
       // Update location in SharedPreferences if location was updated
       if (locationName.isNotEmpty) {

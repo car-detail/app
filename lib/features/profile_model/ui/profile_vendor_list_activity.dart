@@ -5,7 +5,7 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ContainerDecoration.dart';
-import 'package:car_app/features/log_in/ui/modern_login_activity.dart';
+import 'package:car_app/features/log_in/ui/new_login_activity.dart';
 import 'package:car_app/features/resister_vendor_model/ui/edit_vendor_activity.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +18,7 @@ import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 import '../data_manager/profile_list_data_manager.dart';
 import '../../packages_model/ui/package_list_activity.dart';
 import '../../packages_model/data_manager/package_data_manager.dart';
+import '../../log_in/data_manager/LoginDataManager.dart';
 import '../../packages_model/model/package_model_data.dart';
 import '../../offer_model/ui/enhanced_offer_list_screen.dart';
 import '../../offer_model/data_manager/offer_data_manager.dart';
@@ -29,7 +30,8 @@ import '../../services_model/ui/modern_add_service_activity.dart';
 import '../../packages_model/ui/edit_package_activity.dart';
 
 class ProfileVendorListActivity extends StatefulWidget {
-  const ProfileVendorListActivity({super.key});
+  final bool isActive;
+  const ProfileVendorListActivity({this.isActive = false, super.key});
 
   @override
   State<ProfileVendorListActivity> createState() =>
@@ -43,6 +45,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
   final bool _isPasswordVisible = false;
   int maxLength = 10;
   VendorDetailData? dataNew;
+  LoginDataManager? loginDataManager;
   var venderId = "";
   PackageDataManager? packageDataManager;
   OfferDataManager? offerDataManager;
@@ -80,6 +83,34 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
     init();
   }
 
+  Future<void> _recoverVendorId() async {
+    if (loginDataManager == null || sharedPreferences == null) return;
+    
+    debugPrint('=== Profile: Attempting self-healing vendorId recovery ===');
+    try {
+      final vendorResponse = await loginDataManager!.getVendorDetails(context);
+      if (vendorResponse.statusCode == 200) {
+        final vendorData = jsonDecode(vendorResponse.body);
+        if (vendorData['status'] == 'success' && 
+            vendorData['data'] != null && 
+            vendorData['data'] is List && 
+            vendorData['data'].isNotEmpty) {
+          
+          String recoveredId = vendorData['data'][0]['_id'] ?? '';
+          if (recoveredId.isNotEmpty) {
+            await sharedPreferences!.setString(Constant.vendorId, recoveredId);
+            setState(() {
+              venderId = recoveredId;
+            });
+            debugPrint('=== Profile: vendorId recovered and stored: $venderId ===');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('=== Profile: Error during self-healing: $e ===');
+    }
+  }
+
   @override
   void dispose() {
     if (_tabListener != null && _tabController != null) {
@@ -99,6 +130,16 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       getPackages(context);
       getOffers(context);
       getServices(context);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfileVendorListActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh data if the screen becomes active
+    if (widget.isActive && !oldWidget.isActive) {
+      debugPrint('🔄 Profile tab became active - triggering refresh');
+      init();
     }
   }
 
@@ -122,30 +163,29 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       
       servicesDataManager = ServicesDataManager(sharedPreferences!);
       
-      venderId = sharedPreferences!.getString(Constant.vendorId) ?? "";
+      loginDataManager = LoginDataManager(sharedPreferences!);
+      
+      venderId = (sharedPreferences!.getString(Constant.vendorId) ?? "").trim();
+      debugPrint('=== Profile Screen: Current vendorId: $venderId ===');
       
       await getUser(context);
       
       // Update venderId after getUser completes
-      venderId = sharedPreferences!.getString(Constant.vendorId) ?? "";
+      venderId = (sharedPreferences!.getString(Constant.vendorId) ?? "").trim();
       
-      // Verify managers are still initialized
+      // Self-healing: If still missing, try explicit recovery
+      if (venderId.isEmpty) {
+        await _recoverVendorId();
+      }
       
       // Fetch packages, offers, and services if vendor exists
       if (venderId.isNotEmpty) {
-        if (packageDataManager != null) {
-          getPackages(context);
-        } else {
-        }
-        if (offerDataManager != null) {
-          getOffers(context);
-        } else {
-        }
-        if (servicesDataManager != null) {
-          getServices(context);
-        } else {
-        }
+        debugPrint('=== Profile: Starting data fetch for vendor: $venderId ===');
+        getPackages(context);
+        getOffers(context);
+        getServices(context);
       } else {
+        debugPrint('=== Profile: No valid vendorId found even after recovery attempt ===');
       }
     } catch (e) {
     }
@@ -243,25 +283,38 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Shop Details Card
-                    if (dataNew != null &&
-                        dataNew!.vendorDetails!.isNotEmpty &&
-                        dataNew!.vendorDetails![0].sId != "")
-                      _buildShopDetailsCard()
-                    else
-                      _buildAddShopCard(),
-                    const SizedBox(height: 20),
-                    // Services, Packages, and Offers Tabs - after Shop Details
-                    if (venderId.isNotEmpty) _buildTabsSection(),
-                    const SizedBox(height: 20),
-                    // Settings Card - after tabs
-                    _buildSettingsCard(),
-                    const SizedBox(height: 20),
-                  ],
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await getUser(context);
+                  if (venderId.isNotEmpty) {
+                    await Future.wait([
+                      getPackages(context),
+                      getOffers(context),
+                      getServices(context),
+                    ]);
+                  }
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Shop Details Card
+                      if (dataNew != null &&
+                          dataNew!.vendorDetails!.isNotEmpty &&
+                          dataNew!.vendorDetails![0].sId != "")
+                        _buildShopDetailsCard()
+                      else
+                        _buildAddShopCard(),
+                      const SizedBox(height: 20),
+                      // Services, Packages, and Offers Tabs - after Shop Details
+                      if (venderId.isNotEmpty) _buildTabsSection(),
+                      const SizedBox(height: 20),
+                      // Settings Card - after tabs
+                      _buildSettingsCard(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             )
@@ -718,7 +771,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
                 CommonWidget.safePop(context);
                 sharedPreferences!.clear();
                 CommonWidget.navigateToKillAllScreen(
-                    context, const ModernLoginActivity());
+                    context, const NewLoginActivity());
               },
               child: const Text("Logout"),
             ),
@@ -780,7 +833,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
     var data = CommonBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      CommonWidget.navigateToKillAllScreen(context, const ModernLoginActivity());
+      CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
     } else {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
@@ -808,7 +861,7 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
         sharedPreferences!
             .setString(Constant.id, data.data?[0].sId.toString() ?? "");
         if (data.data![0].vendorDetails!.isNotEmpty) {
-          String newVendorId = data.data?[0].vendorDetails![0].sId.toString() ?? "";
+          String newVendorId = (data.data?[0].vendorDetails![0].sId.toString() ?? "").trim();
           sharedPreferences!.setString(Constant.vendorId, newVendorId);
           // Update local venderId in setState
           setState(() {
@@ -839,8 +892,10 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       isLoadingPackages = true;
     });
     
+    debugPrint('=== Profile: Fetching Packages for Vendor: $venderId ===');
     try {
       var response = await packageDataManager!.getAllPackages(context);
+      debugPrint('🟢 [Profile] Packages API Status: ${response.statusCode} for Vendor: $venderId');
       
       if (!mounted) return;
       
@@ -851,44 +906,49 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
           
           if (data.status == "success" && data.data != null) {
             if (mounted) {
-              // Log all packages with their isActive status
-              for (var pkg in data.data!) {
-              }
               setState(() {
-                // Include ALL packages, regardless of isActive status - vendors need to see all their packages
+                // SUCCESS - replace data
                 packages = data.data!;
                 isLoadingPackages = false;
               });
-              final inactiveCount = packages.where((p) => p.isActive == false).length;
+              debugPrint('📦 [Profile] Successfully loaded ${packages.length} packages.');
             }
           } else {
+            debugPrint('⚠️ [Profile] Packages API success status but data issues: ${data.message}');
             if (mounted) {
               setState(() {
-                packages = [];
+                // If the response is clear success/empty, we can clear the list
+                // but let's be safe: only clear if message is not an error
+                if (data.status == "success") {
+                  packages = [];
+                }
                 isLoadingPackages = false;
               });
             }
           }
         } catch (parseError) {
+          debugPrint('❌ [Profile] Failed to parse packages JSON: $parseError');
           if (mounted) {
             setState(() {
-              packages = [];
+              // RETAIN OLD DATA on parsing error to avoid blank UI
               isLoadingPackages = false;
             });
           }
         }
       } else {
+        debugPrint('❌ [Profile] Packages API Error Status: ${response.statusCode}');
         if (mounted) {
           setState(() {
-            packages = [];
+            // RETAIN OLD DATA on server error
             isLoadingPackages = false;
           });
         }
       }
     } catch (e) {
+      debugPrint('❌ [Profile] Exception during getPackages: $e');
       if (mounted) {
         setState(() {
-          packages = [];
+          // RETAIN OLD DATA on exception
           isLoadingPackages = false;
         });
       }
@@ -907,51 +967,53 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       isLoadingServices = true;
     });
     
+    debugPrint('=== Profile: Fetching Services for Vendor: $venderId ===');
     try {
       var response = await servicesDataManager!.getServicesList(context);
+      debugPrint('🟢 [Profile] Services API Status: ${response.statusCode}');
       
       if (!mounted) return;
       
       if (response.statusCode == 200) {
         try {
-          var jsonData = jsonDecode(response.body);
-          var data = ServicesListBean.fromJson(jsonData);
-          
-          if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
+          var data = ServicesListBean.fromJson(jsonDecode(response.body));
+          if (data.status == "success" && data.data != null) {
             if (mounted) {
               setState(() {
                 services = data.data!;
                 isLoadingServices = false;
               });
+              debugPrint('🛠️ [Profile] Successfully loaded ${services.length} services.');
             }
           } else {
+            debugPrint('⚠️ [Profile] Services API issue: ${data.message}');
             if (mounted) {
               setState(() {
-                services = [];
+                if (data.status == "success") services = [];
                 isLoadingServices = false;
               });
             }
           }
-        } catch (parseError) {
+        } catch (e) {
+          debugPrint('❌ [Profile] Failed to parse services JSON: $e');
           if (mounted) {
             setState(() {
-              services = [];
               isLoadingServices = false;
             });
           }
         }
       } else {
+        debugPrint('❌ [Profile] Services API Error: ${response.statusCode}');
         if (mounted) {
           setState(() {
-            services = [];
             isLoadingServices = false;
           });
         }
       }
     } catch (e) {
+      debugPrint('❌ [Profile] Exception during getServices: $e');
       if (mounted) {
         setState(() {
-          services = [];
           isLoadingServices = false;
         });
       }
@@ -970,51 +1032,54 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       isLoadingOffers = true;
     });
     
+    debugPrint('=== Profile: Fetching Offers for Vendor: $venderId ===');
     try {
       var response = await offerDataManager!.getOfferList(context);
+      debugPrint('🟢 [Profile] Offers API Status: ${response.statusCode}');
       
       if (!mounted) return;
       
       if (response.statusCode == 200) {
         try {
-          var jsonData = jsonDecode(response.body);
-          var data = OfferListModelBean.fromJson(jsonData);
+          var data = OfferListModelBean.fromJson(jsonDecode(response.body));
           
-          if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
+          if (data.status == "success" && data.data != null) {
             if (mounted) {
               setState(() {
                 offers = data.data!;
                 isLoadingOffers = false;
               });
+              debugPrint('🏷️ [Profile] Successfully loaded ${offers.length} offers.');
             }
           } else {
+            debugPrint('⚠️ [Profile] Offers API issue: ${data.message}');
             if (mounted) {
               setState(() {
-                offers = [];
+                if (data.status == "success") offers = [];
                 isLoadingOffers = false;
               });
             }
           }
-        } catch (parseError) {
+        } catch (e) {
+          debugPrint('❌ [Profile] Failed to parse offers JSON: $e');
           if (mounted) {
             setState(() {
-              offers = [];
               isLoadingOffers = false;
             });
           }
         }
       } else {
+        debugPrint('❌ [Profile] Offers API Error: ${response.statusCode}');
         if (mounted) {
           setState(() {
-            offers = [];
             isLoadingOffers = false;
           });
         }
       }
     } catch (e) {
+      debugPrint('❌ [Profile] Exception during getOffers: $e');
       if (mounted) {
         setState(() {
-          offers = [];
           isLoadingOffers = false;
         });
       }
@@ -1088,13 +1153,14 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
                   ],
                 ),
               ),
-              // Tab Content - fixed height for scrollable content
-              SizedBox(
-                height: 500, // Fixed height for tab content
-                child: TabBarView(
-                  controller: _tabController,
-                  children: tabViews,
-                ),
+              // Tab Content - Dynamic list that expands to fit items
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _tabController!.index == 0
+                    ? _buildServicesTabContent()
+                    : _tabController!.index == 1
+                        ? _buildPackagesTabContent()
+                        : _buildOffersTabContent(),
               ),
             ],
           ),
@@ -1234,22 +1300,17 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       );
     }
     
-    return RefreshIndicator(
-      onRefresh: () async {
-        if (venderId.isNotEmpty) {
-          await getServices(context);
-        }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: services.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildFullServiceCard(services[index]),
+        );
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: services.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildFullServiceCard(services[index]),
-          );
-        },
-      ),
     );
   }
 
@@ -1291,22 +1352,17 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       );
     }
     
-    return RefreshIndicator(
-      onRefresh: () async {
-        if (venderId.isNotEmpty) {
-          await getPackages(context);
-        }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: packages.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _buildCompactPackageCard(packages[index]),
+        );
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: packages.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _buildCompactPackageCard(packages[index]),
-          );
-        },
-      ),
     );
   }
 
@@ -1348,22 +1404,17 @@ class _ProfileVendorListActivityState extends State<ProfileVendorListActivity> w
       );
     }
     
-    return RefreshIndicator(
-      onRefresh: () async {
-        if (venderId.isNotEmpty) {
-          await getOffers(context);
-        }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: offers.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _buildCompactOfferCard(offers[index]),
+        );
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: offers.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _buildCompactOfferCard(offers[index]),
-          );
-        },
-      ),
     );
   }
 

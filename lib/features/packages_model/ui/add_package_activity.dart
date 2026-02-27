@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
@@ -7,6 +8,7 @@ import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
+import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -39,6 +41,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   List<String> selectedServices = [];
   List<String> customServices = []; // For custom service names
   TextEditingController customServiceController = TextEditingController();
+  bool isLoadingServices = true;
   
   // Image
   XFile? selectedImage;
@@ -98,6 +101,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   ];
   
   PackageDataManager? dataManager;
+  LoginDataManager? loginDataManager;
   SharedPreferences? sharedPreferences;
 
   @override
@@ -109,6 +113,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
     dataManager = PackageDataManager(sharedPreferences!);
+    loginDataManager = LoginDataManager(sharedPreferences!);
     await getAvailableServices();
   }
 
@@ -134,32 +139,98 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   }
 
   Future<void> getAvailableServices() async {
-    var response = await dataManager!.getAllServices(context);
-    
+    setState(() {
+      isLoadingServices = true;
+    });
+
     try {
+      String? vId = sharedPreferences?.getString(Constant.vendorId);
+      debugPrint('=== Current vendorId: $vId ===');
+      
+      // Self-healing: If vendorId is missing, try to recover it from my-business API
+      if (vId == null || vId.isEmpty) {
+        debugPrint('=== vendorId missing, attempting recovery ===');
+        final vendorResponse = await loginDataManager!.getVendorDetails(context);
+        debugPrint('Vendor details API Status: ${vendorResponse.statusCode}');
+        debugPrint('Vendor details API Response: ${vendorResponse.body}');
+        
+        if (vendorResponse.statusCode == 200) {
+          final vendorData = jsonDecode(vendorResponse.body);
+          if (vendorData['status'] == 'success' &&
+              vendorData['data'] is List &&
+              (vendorData['data'] as List).isNotEmpty) {
+            vId = vendorData['data'][0]['_id'] ?? '';
+            if (vId != null && vId!.isNotEmpty) {
+              await sharedPreferences!.setString(Constant.vendorId, vId!);
+              debugPrint('=== vendorId recovered and stored: $vId ===');
+            }
+          } else {
+            debugPrint('=== Vendor data structure issue: ${vendorData}');
+          }
+        } else {
+          debugPrint('=== Failed to get vendor details: ${vendorResponse.statusCode}');
+        }
+      }
+
+      if (vId == null || vId.isEmpty) {
+        debugPrint('=== Cannot fetch services - no valid vendorId ===');
+        setState(() {
+          isLoadingServices = false;
+        });
+        return;
+      }
+
+      debugPrint('=== Fetching Services for Vendor: $vId ===');
+      var response = await dataManager!.getAllServices(context);
+      debugPrint('Services API Status Code: ${response.statusCode}');
+      debugPrint('Services API Response Body: ${response.body.substring(0, min(response.body.length, 500))}...');
+      
+      // Check for HTML error responses
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        debugPrint('=== Received HTML error response instead of JSON ===');
+        setState(() {
+          isLoadingServices = false;
+        });
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Backend connection issue. Please check your internet connection.");
+        }
+        return;
+      }
+      
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
       
       if (data.status == "success") {
         setState(() {
           availableServices.clear();
-          availableServices.addAll(data.data!);
+          if (data.data != null) {
+            availableServices.addAll(data.data!);
+          }
+          isLoadingServices = false;
         });
         
-        // Debug: Print details of each service
-        debugPrint('=== Available Services Debug (Add Package) ===');
-        debugPrint('Total services loaded: ${availableServices.length}');
+        debugPrint('=== Services loaded successfully: ${availableServices.length} services ===');
+        // Debug: Print service details
         for (int i = 0; i < availableServices.length; i++) {
           final service = availableServices[i];
-          debugPrint('Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
+          debugPrint('Service $i: ${service.serviceTitle} (ID: ${service.sId})');
         }
-        debugPrint('=== End Services Debug ===');
-        
-        // Debug: Print selected services
       } else {
-        debugPrint('Failed to load services: ${data.message}');
+        debugPrint('=== Failed to load services: ${data.message} ===');
+        setState(() {
+          isLoadingServices = false;
+        });
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to load services: ${data.message}");
+        }
       }
     } catch (e) {
-      debugPrint('Error loading services: $e');
+      debugPrint('=== Error loading services: $e ===');
+      setState(() {
+        isLoadingServices = false;
+      });
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading services: $e");
+      }
     }
   }
 
@@ -816,15 +887,18 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             ),
           ),
           
-          if (availableServices.isEmpty)
+          if (isLoadingServices)
             const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text("Loading services..."),
-                ],
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("Loading services..."),
+                  ],
+                ),
               ),
             )
           else

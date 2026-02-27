@@ -40,7 +40,7 @@ class OfferListModelData {
   String? title;
   String? description;
   String? image;
-  int? discount;
+  num? discount;
   String? vendor;
   Service? service;
   Location? location;
@@ -127,7 +127,7 @@ class Service {
   String? serviceTitle;
   String? about;
   String? timeSlotCapacity;
-  int? price;
+  num? price;
   String? serviceDuration;
   String? categoryName;
   String? categoryId;
@@ -137,8 +137,8 @@ class Service {
   Location? location;
   String? createdBy;
   VendorId? vendorId;
-  int? promotionPlanPrice;
-  int? promotionSerialNumber;
+  num? promotionSerialNumber;
+  num? promotionPlanPrice;
   bool? isActive;
   bool? isDeleted;
   List<TimeSlots>? timeSlots;
@@ -146,7 +146,7 @@ class Service {
   String? updatedAt;
   int? iV;
   num? averageRating;
-  int? totalReviews;
+  num? totalReviews;
   String? id;
 
   Service(
@@ -274,8 +274,8 @@ class Location {
 }
 
 class Coordinates {
-  double? lat;
-  double? long;
+  num? lat;
+  num? long;
 
   Coordinates({this.lat, this.long});
 

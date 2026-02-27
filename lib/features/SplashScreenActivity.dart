@@ -12,8 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import 'home_module/data_manager/home_data_manager.dart';
-import 'log_in/ui/LoginActivity.dart';
-import 'log_in/ui/modern_login_activity.dart';
+import 'log_in/ui/new_login_activity.dart';
 import 'log_in/data_manager/LoginDataManager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -95,6 +94,14 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
     
     final userIdValue = sharedPreferences!.getString(Constant.id) ?? "";
     final vendorIdValue = sharedPreferences!.getString(Constant.vendorId) ?? "";
+    final accessTokenValue = sharedPreferences!.getString(Constant.accessToken) ?? "";
+    
+    print("=== SPLASH SCREEN DEBUG ===");
+    print("User ID from storage: '$userIdValue'");
+    print("Vendor ID from storage: '$vendorIdValue'");
+    print("Access Token from storage: ${accessTokenValue.isNotEmpty ? '${accessTokenValue.substring(0, 20)}...' : 'empty'}");
+    print("User ID is empty: ${userIdValue.isEmpty}");
+    print("===========================");
     
     setState(() {
       userid = userIdValue;
@@ -175,7 +182,7 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (BuildContext context) => const ModernLoginActivity(),
+                        builder: (BuildContext context) => NewLoginActivity(),
                       ),
                           (route) => false,
                     );

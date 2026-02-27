@@ -35,7 +35,7 @@ class ServicesListData {
   String? serviceTitle;
   String? about;
   String? timeSlotCapacity;
-  int? price;
+  num? price;
   String? serviceDuration;
   String? categoryName;
   String? categoryId;
@@ -92,7 +92,7 @@ class ServicesListData {
     about = json['about'];
     // Handle fields safely with type checking
     timeSlotCapacity = json['timeSlotCapacity']?.toString();
-    price = json['price'] is int ? json['price'] : (json['price'] is String ? int.tryParse(json['price']) : 0);
+    price = json['price'] is num ? (json['price'] as num).toInt() : (json['price'] is String ? int.tryParse(json['price']) : 0);
     serviceDuration = json['serviceDuration']?.toString();
     categoryName = json['categoryName']?.toString();
     categoryId = json['categoryId']?.toString();
@@ -309,7 +309,7 @@ class Offers {
   String? title;
   String? description;
   String? image;
-  int? discount;
+  num? discount;
   String? service;
   String? validUntil;
 

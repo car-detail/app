@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
@@ -7,6 +8,7 @@ import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
+import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -205,32 +207,86 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
   }
 
   Future<void> getAvailableServices() async {
-    var response = await dataManager!.getAllServices(context);
-    
     try {
-    var data = ServicesModelData.fromJson(jsonDecode(response.body));
+      String? vId = sharedPreferences?.getString(Constant.vendorId);
+      debugPrint('=== Current vendorId in edit package: $vId ===');
       
-    if (data.status == "success") {
-      setState(() {
-        availableServices.clear();
-        availableServices.addAll(data.data!);
-      });
+      // Self-healing: If vendorId is missing, try to recover it from my-business API
+      if (vId == null || vId.isEmpty) {
+        debugPrint('=== vendorId missing in edit package, attempting recovery ===');
+        // Import LoginDataManager for vendor recovery
+        final loginDataManager = LoginDataManager(sharedPreferences!);
+        final vendorResponse = await loginDataManager.getVendorDetails(context);
+        debugPrint('Vendor details API Status: ${vendorResponse.statusCode}');
+        debugPrint('Vendor details API Response: ${vendorResponse.body}');
         
-        // Debug: Print details of each service
-        debugPrint('=== Available Services Debug ===');
-        debugPrint('Total services loaded: ${availableServices.length}');
+        if (vendorResponse.statusCode == 200) {
+          final vendorData = jsonDecode(vendorResponse.body);
+          if (vendorData['status'] == 'success' &&
+              vendorData['data'] is List &&
+              (vendorData['data'] as List).isNotEmpty) {
+            vId = vendorData['data'][0]['_id'] ?? '';
+            if (vId != null && vId!.isNotEmpty) {
+              await sharedPreferences!.setString(Constant.vendorId, vId!);
+              debugPrint('=== vendorId recovered and stored: $vId ===');
+            }
+          } else {
+            debugPrint('=== Vendor data structure issue: ${vendorData}');
+          }
+        } else {
+          debugPrint('=== Failed to get vendor details: ${vendorResponse.statusCode}');
+        }
+      }
+
+      if (vId == null || vId.isEmpty) {
+        debugPrint('=== Cannot fetch services - no valid vendorId in edit package ===');
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Cannot load services: Vendor information missing. Please try logging in again.");
+        }
+        return;
+      }
+
+      debugPrint('=== Fetching Services for Vendor in edit package: $vId ===');
+      var response = await dataManager!.getAllServices(context);
+      debugPrint('Services API Status Code: ${response.statusCode}');
+      debugPrint('Services API Response Body: ${response.body.substring(0, min(response.body.length, 500))}...');
+      
+      // Check for HTML error responses
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        debugPrint('=== Received HTML error response instead of JSON in edit package ===');
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Backend connection issue. Please check your internet connection.");
+        }
+        return;
+      }
+      
+      var data = ServicesModelData.fromJson(jsonDecode(response.body));
+      
+      if (data.status == "success") {
+        setState(() {
+          availableServices.clear();
+          if (data.data != null) {
+            availableServices.addAll(data.data!);
+          }
+        });
+        
+        debugPrint('=== Services loaded successfully in edit package: ${availableServices.length} services ===');
+        // Debug: Print service details
         for (int i = 0; i < availableServices.length; i++) {
           final service = availableServices[i];
-          debugPrint('Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
+          debugPrint('Service $i: ${service.serviceTitle} (ID: ${service.sId})');
         }
-        debugPrint('=== End Services Debug ===');
-        
-        // Debug: Print selected services
       } else {
-        debugPrint('Failed to load services: ${data.message}');
+        debugPrint('=== Failed to load services in edit package: ${data.message} ===');
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to load services: ${data.message}");
+        }
       }
     } catch (e) {
-      debugPrint('Error loading services: $e');
+      debugPrint('=== Error loading services in edit package: $e ===');
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading services: $e");
+      }
     }
   }
 
@@ -1068,91 +1124,219 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
           const SizedBox(height: 12),
             if (availableServices.isEmpty)
               const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text("Loading services..."),
-                ],
-              ),
-            )
-          else
-            Builder(
-              builder: (context) {
-                // Show all services (remove price filter - services can have price 0 or null)
-                // The price filter was too restrictive and hiding valid services
-                final filteredServices = availableServices.toList();
-                
-                // Debug: Print filtered services
-                debugPrint('=== Filtered Services Debug ===');
-                debugPrint('Total services after filter: ${filteredServices.length}');
-                for (int i = 0; i < filteredServices.length; i++) {
-                  final service = filteredServices[i];
-                  debugPrint('Filtered Service $i: ${service.serviceTitle}, Price: ${service.price}, ID: ${service.sId}');
-                }
-                debugPrint('=== End Filtered Services Debug ===');
-                
-                if (filteredServices.isEmpty) {
-                  return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.info_outline, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                        Text("No services available", style: TextStyle(fontSize: 18, color: Colors.grey)),
-                  SizedBox(height: 8),
-                        Text("Please create services first", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-                  );
-                }
-                
-                return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  itemCount: filteredServices.length,
-                itemBuilder: (context, index) {
-                    final service = filteredServices[index];
-                  final isSelected = selectedServices.contains(service.sId);
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("Loading services..."),
+                  ],
+                ),
+              )
+            else
+              Builder(
+                builder: (context) {
+                  // Show all services, don't filter by price
+                  final servicesToShow = availableServices.where((service) {
+                    // Only filter out services without an ID
+                    return service.sId != null && service.sId!.isNotEmpty;
+                  }).toList();
                   
-                  return Card(
-                      margin: EdgeInsets.only(bottom: index == filteredServices.length - 1 ? 0 : 10),
-                    child: CheckboxListTile(
-                      title: Text(
-                        service.serviceTitle ?? "Unknown Service",
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                  if (servicesToShow.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          Text(
+                            "No services available",
+                            style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Please add some services first",
+                            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                          ),
+                        ],
                       ),
-                      subtitle: Text(
-                        service.description ?? service.about ?? "No description",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      secondary: Text(
-                        "\$${service.price ?? 0}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ColorClass.base_color,
-                        ),
-                      ),
-                      value: isSelected,
-                      onChanged: (bool? value) {
+                    );
+                  }
+                  
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: servicesToShow.length,
+                    itemBuilder: (context, index) {
+                      final service = servicesToShow[index];
+                      final isSelected = selectedServices.contains(service.sId);
+                    
+                    return InkWell(
+                      onTap: () {
                         setState(() {
-                          if (value == true) {
-                            selectedServices.add(service.sId!);
-                          } else {
+                          if (isSelected) {
                             selectedServices.remove(service.sId!);
+                          } else {
+                            selectedServices.add(service.sId!);
                           }
                         });
                       },
-                    ),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? ColorClass.base_color.withOpacity(0.05) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? ColorClass.base_color : Colors.grey[300]!,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isSelected 
+                                  ? ColorClass.base_color.withOpacity(0.1)
+                                  : Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              // Checkbox
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isSelected ? ColorClass.base_color : Colors.transparent,
+                                  border: Border.all(
+                                    color: isSelected ? ColorClass.base_color : Colors.grey[400]!,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 16,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 14),
+                              // Service Image
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: service.coverImage != null && service.coverImage!.isNotEmpty
+                                    ? Image.network(
+                                        service.coverImage!,
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            width: 70,
+                                            height: 70,
+                                            color: Colors.grey[200],
+                                            child: Icon(
+                                              Icons.build_circle_rounded,
+                                              color: Colors.grey[400],
+                                              size: 30,
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Container(
+                                        width: 70,
+                                        height: 70,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(
+                                          Icons.build_circle_rounded,
+                                          color: Colors.grey[400],
+                                          size: 30,
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(width: 14),
+                              // Service Details
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      service.categoryName ?? service.serviceTitle ?? "Unknown Service",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                        fontFamily: "Pop600",
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (service.serviceTitle != null && service.serviceTitle != service.categoryName)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Text(
+                                          service.serviceTitle!,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time,
+                                          size: 16,
+                                          color: Colors.grey[500],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          "${service.serviceDuration ?? 'N/A'} min",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Icon(
+                                          Icons.attach_money,
+                                          size: 16,
+                                          color: Colors.grey[500],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          service.price != null ? "\$${service.price}" : "Price not set",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   },
-                  );
-                },
-              ),
+                );
+              },
+            ),
           ],
       ),
     );

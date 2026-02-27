@@ -8,7 +8,7 @@ import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
 import 'package:car_app/features/home_module/model/category_model_data.dart';
 import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
-import 'package:car_app/features/log_in/ui/modern_login_activity.dart';
+import 'package:car_app/features/log_in/ui/new_login_activity.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:car_app/Models/image_module_data.dart';
@@ -2581,7 +2581,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                   if (context.mounted) {
                     CommonWidget.navigateToKillAllScreen(
                       context,
-                      const ModernLoginActivity(),
+                      const NewLoginActivity(),
                     );
                   }
                 },
