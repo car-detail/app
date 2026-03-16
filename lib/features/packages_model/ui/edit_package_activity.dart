@@ -27,6 +27,7 @@ class EditPackageActivity extends StatefulWidget {
 class _EditPackageActivityState extends State<EditPackageActivity> {
   int currentStep = 0;
   final PageController _pageController = PageController();
+  bool _isInitialized = false; // Track if initial data load is done
   
   // Package Details
   TextEditingController packageNameController = TextEditingController();
@@ -108,6 +109,16 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
   @override
   void initState() {
     super.initState();
+    // Set status bar style once in initState, not in build()
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: ColorClass.base_color,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
     start();
   }
 
@@ -263,12 +274,12 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
       
       if (data.status == "success") {
-        setState(() {
-          availableServices.clear();
-          if (data.data != null) {
-            availableServices.addAll(data.data!);
-          }
-        });
+        availableServices.clear();
+        if (data.data != null) {
+          availableServices.addAll(data.data!);
+        }
+        _isInitialized = true;
+        if (mounted) setState(() {});
         
         debugPrint('=== Services loaded successfully in edit package: ${availableServices.length} services ===');
         // Debug: Print service details
@@ -292,19 +303,6 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
 
   @override
   Widget build(BuildContext context) {
-    // Set status bar style when this screen builds
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-          systemNavigationBarColor: ColorClass.base_color,
-          systemNavigationBarIconBrightness: Brightness.light,
-        ),
-      );
-    });
-    
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -746,7 +744,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
               border: Border.all(color: Colors.grey[300]!),
             ),
             child: DropdownButtonFormField<String>(
-              initialValue: selectedTier,
+              value: selectedTier,
               decoration: InputDecoration(
                 hintText: "Select package tier",
                 border: InputBorder.none,

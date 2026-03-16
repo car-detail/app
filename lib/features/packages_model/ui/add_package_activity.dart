@@ -24,6 +24,7 @@ class AddPackageActivity extends StatefulWidget {
 class _AddPackageActivityState extends State<AddPackageActivity> {
   int currentStep = 0;
   final PageController _pageController = PageController();
+  bool _isInitialized = false; // Track if initial data load is done
   
   // Package Details
   TextEditingController packageNameController = TextEditingController();
@@ -139,9 +140,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   }
 
   Future<void> getAvailableServices() async {
-    setState(() {
+    if (_isInitialized) {
+      // Don't call setState for loading if already initialized - it causes keyboard dismiss
       isLoadingServices = true;
-    });
+    } else {
+      setState(() {
+        isLoadingServices = true;
+      });
+    }
 
     try {
       String? vId = sharedPreferences?.getString(Constant.vendorId);
@@ -200,13 +206,13 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
       
       if (data.status == "success") {
-        setState(() {
-          availableServices.clear();
-          if (data.data != null) {
-            availableServices.addAll(data.data!);
-          }
-          isLoadingServices = false;
-        });
+        availableServices.clear();
+        if (data.data != null) {
+          availableServices.addAll(data.data!);
+        }
+        isLoadingServices = false;
+        _isInitialized = true;
+        if (mounted) setState(() {});
         
         debugPrint('=== Services loaded successfully: ${availableServices.length} services ===');
         // Debug: Print service details
@@ -671,7 +677,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            initialValue: selectedTier,
+            value: selectedTier,
             decoration: InputDecoration(
               hintText: "Select package tier",
               border: OutlineInputBorder(
