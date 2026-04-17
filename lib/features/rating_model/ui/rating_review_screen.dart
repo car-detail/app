@@ -86,7 +86,7 @@ class _RatingReviewScreenState extends State<RatingReviewScreen> {
                                     ),
                                     const SizedBox(width: 5,),
                                     CommonWidget.getTextWidgetPopReg(
-                                        DateFormat("dd MMM yyyy").format(
+                                        DateFormat("MM-dd-yyyy").format(
                                             DateTime.parse(data.createdAt ?? "")),
                                         color: Colors.grey[500]! , textsize: 12),
                                   ],

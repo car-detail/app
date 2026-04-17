@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../Common/Color.dart';
+import '../../../Common/Constant.dart';
 import '../../../Common/CommonPopUp.dart';
 import '../../../Common/CommonWidget.dart';
 import '../../home_module/model/services_model_data.dart';
@@ -184,11 +185,11 @@ class _BookingActivityState extends State<BookingActivity> {
                                   "Date", dateController, () {
                             CommonPopUp.showdateNewDialog(context, (date) {
                               String formattedDate =
-                                  DateFormat('dd-MM-yyyy').format(date);
+                                  DateFormat(Constant.dateFormatDigits).format(date);
                               setState(() {
                                 dateController.text = formattedDate;
                                 dateString =
-                                    DateFormat('dd-MM-yyyy').format(date);
+                                    DateFormat(Constant.dateFormatDigits).format(date);
                               });
                             }, DateTime.now(), DateTime.now(), DateTime(2050));
                           }, "clander"),

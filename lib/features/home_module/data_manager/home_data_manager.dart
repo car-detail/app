@@ -33,9 +33,15 @@ class HomeDataManager {
     return apiFuntions.getdatauser(context,
         "${Constant.getNotifications}${sharedPreferences.getString(Constant.id) ?? ""}");
   }
-  makeOffLine(BuildContext context) {
+  makeOffLine(BuildContext context, {required bool isShopOpen, String? offlineUntil}) {
+    Map<String, dynamic> body = {
+      "isShopOpen": isShopOpen.toString(),
+    };
+    if (offlineUntil != null) {
+      body["offlineUntil"] = offlineUntil;
+    }
     return apiFuntions.putdatauser(context,
-        "${Constant.makeOffLine}${sharedPreferences.getString(Constant.vendorId) ?? ""}", {});
+        "${Constant.makeOffLine}${sharedPreferences.getString(Constant.vendorId) ?? ""}", body);
   }
   getdetails(BuildContext context) {
     return apiFuntions.getdatauser(context,

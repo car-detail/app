@@ -1391,15 +1391,22 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         }
       }
     } catch (e) {
-      // Close any loading dialog on error
-      if (mounted && dialogContext != null && dialogContext.mounted) {
-        try {
-          Navigator.of(dialogContext).pop();
-        } catch (e2) {
-        }
-      }
+      // sendMultipartRequest already shows an error snackbar before re-throwing,
+      // so we avoid showing a duplicate. We only show a message here for the
+      // specific case where the server may have received the image but the
+      // response could not be read (network drop after upload).
       if (mounted && context.mounted) {
-        CommonWidget.errorShowSnackBarFor(context, "Error uploading image: ${e.toString()}");
+        final msg = e.toString();
+        if (!msg.contains('Failed to upload') &&
+            !msg.contains('File not found') &&
+            !msg.contains('File size exceeds') &&
+            !msg.contains('Unsupported file format') &&
+            !msg.contains('Error reading file')) {
+          // Unexpected error not already surfaced by sendMultipartRequest
+          CommonWidget.errorShowSnackBarFor(
+              context,
+              "Upload status unknown — please check your connection and verify the image before retrying.");
+        }
       }
     } finally {
       if (mounted) {

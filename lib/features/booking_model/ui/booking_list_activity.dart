@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Common/Color.dart';
+import '../../../Common/Constant.dart';
 import '../data_model/booking_data_manager.dart';
 import '../data_model/booking_list_bean.dart';
 import '../model/complete_model_bean.dart';
@@ -297,7 +298,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
               children: [
                 _buildDetailRow(Icons.access_time, "Time Slot", CommonWidget.convertToLocalTime(data.timeSlot ?? "")),
                 const SizedBox(height: 6),
-                _buildDetailRow(Icons.calendar_today, "Date", DateFormat('dd-MM-yyyy').format(DateTime.parse(data.date ?? ""))),
+                _buildDetailRow(Icons.calendar_today, "Date", DateFormat(Constant.dateFormatDigits).format(DateTime.parse(data.date ?? ""))),
                 const SizedBox(height: 6),
                 if (data.price != null && data.price! > 0)
                   _buildDetailRow(Icons.attach_money, "Price", "\$${data.price}"),

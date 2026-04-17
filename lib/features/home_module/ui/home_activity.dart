@@ -472,25 +472,29 @@ class _HomeActivityState extends State<HomeActivity> {
                             inactiveTrackColor: Colors.grey[200],
                             value: isShopOpen,
                             onChanged: (val) {
-                              CommonPopUp.showalertDialog(
-                                context,
-                                "",
-                                isShopOpen 
-                                  ? "Are you sure you want to make the store offline?"
-                                  : "Are you sure you want to make the store online?",
-                                "No",
-                                "Yes",
-                                "",
-                                () => CommonWidget.safePop(context),
-                                () async {
-                                  CommonWidget.safePop(context);
-                                  makeOffLine(context);
-                                },
-                                190,
-                                positivetitlecolorButton: ColorClass.red,
-                                navtextColorButton: ColorClass.green,
-                                isboldtitle: false,
-                              );
+                              if (isShopOpen) {
+                                // Instead of simple dialog, show duration selector when turning offline
+                                _showOfflineDurationSelector(context);
+                              } else {
+                                // Simple dialog when turning online
+                                CommonPopUp.showalertDialog(
+                                  context,
+                                  "",
+                                  "Are you sure you want to make the store online?",
+                                  "No",
+                                  "Yes",
+                                  "",
+                                  () => CommonWidget.safePop(context),
+                                  () async {
+                                    CommonWidget.safePop(context);
+                                    makeOffLine(context, targetStatus: true);
+                                  },
+                                  190,
+                                  positivetitlecolorButton: ColorClass.red,
+                                  navtextColorButton: ColorClass.green,
+                                  isboldtitle: false,
+                                );
+                              }
                             },
                           ),
                         ),
@@ -1145,7 +1149,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       ),
                     ),
                     Text(
-                      "Date: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(booking.date ?? ""))}",
+                      "Date: ${DateFormat(Constant.dateFormatDigits).format(DateTime.parse(booking.date ?? ""))}",
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -2018,8 +2022,174 @@ class _HomeActivityState extends State<HomeActivity> {
     }
   }
 
-  makeOffLine(BuildContext context) async {
-    var response = await dataManager!.makeOffLine(context);
+  void _showOfflineDurationSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
+          ),
+        ),
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25),
+            const Text(
+              "Go Offline",
+              style: TextStyle(
+                fontSize: 20,
+                fontFamily: "Pop600",
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Choose how long you'd like to stay offline. You can still accept future bookings.",
+              style: TextStyle(
+                fontSize: 14,
+                fontFamily: "Pop400",
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 25),
+            
+            _buildDurationOption(
+              icon: Icons.today,
+              title: "Just for Today",
+              subtitle: "Shop will automatically open tomorrow",
+              onTap: () {
+                final today = DateTime.now();
+                final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
+                CommonWidget.safePop(context);
+                makeOffLine(context, targetStatus: false, offlineUntil: endOfDay.toIso8601String());
+              },
+            ),
+            const SizedBox(height: 15),
+            
+            _buildDurationOption(
+              icon: Icons.calendar_month,
+              title: "Until a Specific Date",
+              subtitle: "Shop will stay offline until your chosen date",
+              onTap: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now().add(const Duration(days: 1)),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: ColorClass.base_color,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                
+                if (picked != null) {
+                  final endOfPickedDay = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+                  CommonWidget.safePop(context);
+                  makeOffLine(context, targetStatus: false, offlineUntil: endOfPickedDay.toIso8601String());
+                }
+              },
+            ),
+            const SizedBox(height: 15),
+            
+            _buildDurationOption(
+              icon: Icons.do_not_disturb_on,
+              title: "Until I Turn it Back On",
+              subtitle: "Manual control over your shop status",
+              onTap: () {
+                CommonWidget.safePop(context);
+                makeOffLine(context, targetStatus: false);
+              },
+              isLast: true,
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDurationOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: ColorClass.base_color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: ColorClass.base_color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontFamily: "Pop600",
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: "Pop400",
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  makeOffLine(BuildContext context, {bool? targetStatus, String? offlineUntil}) async {
+    bool nextStatus = targetStatus ?? !isShopOpen;
+    var response = await dataManager!.makeOffLine(
+      context, 
+      isShopOpen: nextStatus,
+      offlineUntil: offlineUntil
+    );
     var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       setState(() {

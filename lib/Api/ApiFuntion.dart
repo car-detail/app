@@ -15,7 +15,7 @@ import '../features/log_in/ui/new_login_activity.dart';
 class ApiFuntions {
   Future<http.Response> getdatauser(BuildContext context, String endpoint,
       {/*String token = ""*/ bool cycle = true}) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     
@@ -98,7 +98,7 @@ class ApiFuntions {
   }
   Future<http.Response> deletedatauser(BuildContext context, String endpoint,
       {/*String token = ""*/ bool cycle = true}) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     debugPrint('Context: $context');
@@ -173,7 +173,7 @@ class ApiFuntions {
   Future<http.Response> postdatauser(
       BuildContext context, String endpoint, dynamic data,
       {String token = "", bool skipAutoNavigation = false}) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     debugPrint('Context: $context');
@@ -275,7 +275,7 @@ class ApiFuntions {
   Future<http.Response> putdatauser(
       BuildContext context, String endpoint, dynamic data,
       {String token = ""}) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
     debugPrint('Context: $context');
@@ -358,7 +358,7 @@ class ApiFuntions {
       {String filekey = "file", bool skipAutoNavigation = false}) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     try {
       var request = http.MultipartRequest(
         'POST',
@@ -608,9 +608,22 @@ class ApiFuntions {
       debugPrint('Fields: ${request.fields}');
       debugPrint('Files: ${request.files.map((f) => f.filename).toList()}');
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-      
+      http.StreamedResponse streamedResponse;
+      http.Response response;
+      try {
+        streamedResponse = await request.send();
+        response = await http.Response.fromStream(streamedResponse);
+      } catch (sendError) {
+        // Network error AFTER bytes were sent — server may have already stored
+        // the file. Surface a specific message so the caller can inform the user.
+        if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+          CommonWidget.safePop(context);
+        }
+        const msg = 'Network error after upload — server may have received the file. Please verify before retrying.';
+        CommonWidget.errorShowSnackBarFor(context, msg);
+        throw Exception(msg);
+      }
+
       debugPrint('🟢 MULTIPART Response (${Constant.baseurl}$url)');
       debugPrint('📊 Status: ${response.statusCode}');
       debugPrint('📄 Body: ${response.body}');
@@ -682,7 +695,7 @@ class ApiFuntions {
   Future<http.Response> patchdatauser(
       BuildContext context, String endpoint, dynamic data,
       {String token = ""}) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+    
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken) ?? "";
     debugPrint('Context: $context');

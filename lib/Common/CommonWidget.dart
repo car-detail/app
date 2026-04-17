@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
 import 'Color.dart';
+import 'Constant.dart';
 
 class CommonWidget {
   static convertHtmlToString(String htmlString) {
@@ -1372,9 +1373,14 @@ class CommonWidget {
   }
 
 
-  static String getDateFormat(String date){
-    DateTime dateTime = DateTime.parse(date);
-    String formattedDate = DateFormat("dd MMM yyyy").format(dateTime);
-    return formattedDate;
+  static String getDateFormat(String date) {
+    if (date.isEmpty) return "";
+    try {
+      DateTime dateTime = DateTime.parse(date);
+      String formattedDate = DateFormat(Constant.dateFormatDigits).format(dateTime);
+      return formattedDate;
+    } catch (e) {
+      return date;
+    }
   }
 }

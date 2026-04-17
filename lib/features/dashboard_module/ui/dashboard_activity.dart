@@ -136,10 +136,10 @@ class _DashboardActivityState extends State<DashboardActivity> {
   makeItOffline() {
   }
 
-  makeOffLine(BuildContext context) async {
+  makeOffLine(BuildContext context, bool status) async {
     if (!mounted || !context.mounted) return;
     try {
-    var response = await dataManager!.makeOffLine(context);
+    var response = await dataManager!.makeOffLine(context, isShopOpen: status);
       
       if (response.statusCode != 200) {
         if (mounted && context.mounted) {
@@ -453,7 +453,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
                                           activeTrackColor: ColorClass.base_color.withOpacity(0.5),
                                           value: isValid,
                                           onChanged: (value) {
-                                            makeOffLine(context);
+                                            makeOffLine(context, value);
                                           },
                                         ),
                                       ),

@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776225661561,
+  "projectRoot": "/Users/macbook/Anuj/cahrz/app",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "lib",
+      "test"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "android": {
+      "path": "android",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1776225661528,
+      "keyFiles": [
+        "build.gradle.kts",
+        "gradle.properties",
+        "key.properties.template",
+        "local.properties",
+        "settings.gradle.kts"
+      ]
+    },
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 0,
+      "lastAccessed": 1776225661535,
+      "keyFiles": []
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1776225661535,
+      "keyFiles": [
+        "fa875cea96ff9eb23bebfb51f104f901.cache.dill.track.dill"
+      ]
+    },
+    "features": {
+      "path": "features",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776225661542,
+      "keyFiles": []
+    },
+    "fonts": {
+      "path": "fonts",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1776225661543,
+      "keyFiles": [
+        "Comfortaa-Bold.ttf",
+        "Inter-Bold.ttf",
+        "Poppins-Bold 700.ttf",
+        "Poppins-Bold.ttf",
+        "Poppins-Light 300.ttf"
+      ]
+    },
+    "ios": {
+      "path": "ios",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1776225661544,
+      "keyFiles": [
+        "Podfile",
+        "Podfile.lock",
+        "fix_app_framework_version.sh"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 6,
+      "lastAccessed": 1776225661544,
+      "keyFiles": [
+        "ZoomImageList.dart",
+        "demo_screen.dart",
+        "error_model.dart",
+        "firebase_options.dart",
+        "main.dart"
+      ]
+    },
+    "macos": {
+      "path": "macos",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1776225661545,
+      "keyFiles": [
+        "Podfile"
+      ]
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1776225661545,
+      "keyFiles": [
+        "widget_test.dart"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776225661546,
+      "keyFiles": [
+        "favicon.png",
+        "index.html",
+        "manifest.json"
+      ]
+    },
+    "android/app": {
+      "path": "android/app",
+      "purpose": "Application code",
+      "fileCount": 3,
+      "lastAccessed": 1776225661546,
+      "keyFiles": [
+        "build.gradle.kts",
+        "google-services.json",
+        "proguard-rules.pro"
+      ]
+    },
+    "lib/Api": {
+      "path": "lib/Api",
+      "purpose": "API routes",
+      "fileCount": 3,
+      "lastAccessed": 1776225661547,
+      "keyFiles": [
+        "ApiFuntion.dart",
+        "api_end_point.dart",
+        "data_manager.dart"
+      ]
+    },
+    "lib/Models": {
+      "path": "lib/Models",
+      "purpose": "Data models",
+      "fileCount": 2,
+      "lastAccessed": 1776225661547,
+      "keyFiles": [
+        "check_dialog_box.dart",
+        "image_module_data.dart"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "lib/features/home_module/data_manager/home_data_manager.dart",
+      "accessCount": 1,
+      "lastAccessed": 1776225671851,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/Constant.dart",
+      "accessCount": 1,
+      "lastAccessed": 1776225675235,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

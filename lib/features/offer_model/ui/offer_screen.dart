@@ -125,11 +125,11 @@ class _OfferScreenState extends State<OfferScreen> {
                         //           "Valid From", validFromController, () {
                         //     CommonPopUp.showdateNewDialog(context, (date) {
                         //       String formattedDate =
-                        //           DateFormat('dd-MM-yyyy').format(date);
+                        //           DateFormat(Constant.dateFormatDigits).format(date);
                         //                        //       setState(() {
                         //         validFromController.text = formattedDate;
                         //         /*fromDate =
-                        //               DateFormat('yyyy-MM-dd').format(date);*/
+                        //               DateFormat(Constant.dateFormatDigits).format(date);*/
                         //         fromDate = date.toString();
                         //                        //       });
                         //     }, DateTime.now(), DateTime.now(), DateTime(2050));
@@ -168,7 +168,7 @@ class _OfferScreenState extends State<OfferScreen> {
                                       "Select end date (optional)", validUntilController, () {
                                 CommonPopUp.showdateNewDialog(context, (date) {
                                   String formattedDate =
-                                      DateFormat('dd-MM-yyyy').format(date);
+                                      DateFormat(Constant.dateFormatDigits).format(date);
                                   setState(() {
                                     validUntilController.text = formattedDate;
                                     toDate = date.toString();

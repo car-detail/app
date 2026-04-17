@@ -7,6 +7,8 @@ import 'package:car_app/features/resister_vendor_model/model/edit_vendor_bean.da
 import 'package:flutter/material.dart';
 import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/BaseActivity.dart';
@@ -167,6 +169,83 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
   ApiFuntions apiFuntions = ApiFuntions();
   AddShopDataManager? dataManager;
   late SharedPreferences? sharedPreferences;
+  bool _isGettingLocation = false;
+
+  Future<void> _getCurrentLocation() async {
+    if (!mounted || _isGettingLocation) return;
+    
+    setState(() {
+      _isGettingLocation = true;
+    });
+    
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Location services are disabled.");
+        }
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Location permission denied.");
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Location permission permanently denied.");
+        }
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 10),
+      );
+      
+      if (mounted) {
+        setState(() {
+          late = position.latitude;
+          long = position.longitude;
+        });
+      }
+      
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+        if (placemarks.isNotEmpty && mounted) {
+          final place = placemarks[0];
+          final street = place.street ?? "";
+          final locality = place.locality ?? "";
+          final area = place.administrativeArea ?? "";
+          final address = [street, locality, area].where((s) => s.isNotEmpty).join(", ");
+          if (address.isNotEmpty) {
+            setState(() {
+              addressController.text = address;
+            });
+          }
+        }
+      } catch (e) {
+        // Handle geocoding error gracefully
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Unable to get your location. Please type your address manually.");
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -547,6 +626,19 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
                       color: Colors.grey[400],
                       fontSize: 16,
                       fontFamily: "Pop400",
+                    ),
+                    suffixIcon: IconButton(
+                      icon: _isGettingLocation
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              Icons.my_location,
+                              color: ColorClass.base_color,
+                            ),
+                      onPressed: _isGettingLocation ? null : _getCurrentLocation,
                     ),
                                         border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

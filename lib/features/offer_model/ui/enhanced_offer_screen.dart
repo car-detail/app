@@ -709,7 +709,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               if (date != null) {
                 setState(() {
                   validUntilDate = date;
-                  validUntilController.text = DateFormat('dd-MM-yyyy').format(date);
+                  validUntilController.text = DateFormat(Constant.dateFormatDigits).format(date);
                 });
               }
             },
