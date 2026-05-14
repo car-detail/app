@@ -6,7 +6,11 @@ class CommonBean {
 
   CommonBean.fromJson(Map<String, dynamic> json) {
     status = json['status'];
-    message = json['message'];
+    if (json['message'] is List) {
+      message = (json['message'] as List).join(", ");
+    } else {
+      message = json['message']?.toString();
+    }
   }
 
   Map<String, dynamic> toJson() {

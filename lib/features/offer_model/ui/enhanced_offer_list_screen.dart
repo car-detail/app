@@ -34,6 +34,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
 
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
     offerDataManager = OfferDataManager(sharedPreferences!);
     vendorId = sharedPreferences!.getString(Constant.vendorId);
     await getOffers();
@@ -131,28 +132,28 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF0FDF4),
       body: Column(
         children: [
           // Modern Header
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 20, right: 20, bottom: 20,
+            ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  ColorClass.base_color,
-                  ColorClass.base_color.withOpacity(0.9),
-                ],
+                colors: [Color(0xFF166534), Color(0xFF1CB273)],
               ),
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: ColorClass.base_color.withOpacity(0.3),
+                  color: const Color(0xFF1CB273).withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 5),
                 ),
@@ -282,9 +283,9 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(),
+                        CircularProgressIndicator(color: Color(0xFF1CB273)),
                         SizedBox(height: 16),
-                        Text("Loading offers..."),
+                        Text("Loading offers...", style: TextStyle(color: Color(0xFF1CB273), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   )
@@ -327,7 +328,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               await getOffers();
             }
           },
-          backgroundColor: ColorClass.base_color,
+          backgroundColor: const Color(0xFF166534),
           icon: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
           label: const Text(
             "Create Offer",
@@ -901,6 +902,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
   Future<void> _deleteOffer(String offerId) async {
     try {
       var response = await offerDataManager!.deleteOffer(context, offerId);
+      if (!mounted) return;
 
       var data = jsonDecode(response.body);
       if (data['status'] == "success") {
@@ -910,13 +912,16 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
         CommonWidget.errorShowSnackBarFor(context, data['message'] ?? "Failed to delete offer");
       }
     } catch (e) {
-      CommonWidget.errorShowSnackBarFor(context, "Error deleting offer: $e");
+      if (mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error deleting offer: $e");
+      }
     }
   }
 
   Future<void> _toggleOfferStatus(String offerId) async {
     try {
       var response = await offerDataManager!.postOfferUpdate(context, offerId);
+      if (!mounted) return;
 
       var data = jsonDecode(response.body);
       if (data['status'] == "success") {

@@ -437,6 +437,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
               categoryController.text,
               categoryId,
               serviceImage,
+              [], // detailImages
               mobileController.text);
     } else {
       // Create new service
@@ -450,6 +451,7 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
           categoryController.text,
           categoryId,
           serviceImage,
+          [], // detailImages
           mobileController.text);
     }
     

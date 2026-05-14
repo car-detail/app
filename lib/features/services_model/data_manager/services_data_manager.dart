@@ -43,6 +43,7 @@ class ServicesDataManager {
       String catName,
       String categoryId,
       String serviceImage,
+      List<String> detailImages,
       String mobile) {
     
     Map<String, dynamic> payload = {
@@ -54,7 +55,8 @@ class ServicesDataManager {
       "serviceDuration": duration,
       "categoryName": catName,
       "categoryId": categoryId,
-      "coverImage": serviceImage, // Use coverImage for backward compatibility
+      "coverImage": serviceImage,
+      "detailImages": detailImages,
       "mobile": mobile,
       "location": {
         "name": sharedPreferences.getString(Constant.location) ?? "",
@@ -84,6 +86,7 @@ class ServicesDataManager {
       String catName,
       String categoryId,
       String serviceImage,
+      List<String> detailImages,
       String mobile) {
     // Build payload with proper types
     Map<String, dynamic> payload = {
@@ -94,7 +97,8 @@ class ServicesDataManager {
       "serviceDuration": duration,
       "categoryName": catName,
       "categoryId": categoryId,
-      "coverImage": serviceImage, // Use coverImage for backward compatibility
+      "coverImage": serviceImage,
+      "detailImages": detailImages,
       "mobile": mobile,
     };
     

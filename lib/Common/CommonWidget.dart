@@ -37,7 +37,8 @@ class CommonWidget {
     return formattedTime;
   }
   static String convertToLocalTime(String timeRange, {String sourceTimeZone = "UTC"}) {
-    List<String> times = timeRange.split(" - ");
+    if (timeRange.isEmpty) return "";
+    List<String> times = timeRange.split("-").map((e) => e.trim()).toList();
     if (times.length != 2) {
       return "Invalid time range format";
     }
@@ -62,6 +63,30 @@ class CommonWidget {
     return "$formattedStart - $formattedEnd";
   }
 
+  static String formatTimeSlot(String timeRange) {
+    if (timeRange.isEmpty) return "";
+    List<String> times = timeRange.split("-").map((e) => e.trim()).toList();
+    if (times.length != 2) {
+      return timeRange; // Return as is if format is unexpected
+    }
+    try {
+      // Parse HH:mm without timezone shifting
+      final now = DateTime.now();
+      final datePart = now.toIso8601String().split('T')[0];
+      
+      // Parse as UTC and convert to device local time for display
+      DateTime start = DateTime.parse("${datePart}T${times[0]}:00Z").toLocal();
+      DateTime end = DateTime.parse("${datePart}T${times[1]}:00Z").toLocal();
+      
+      String formattedStart = DateFormat('hh:mm a').format(start);
+      String formattedEnd = DateFormat('hh:mm a').format(end);
+
+      return "$formattedStart - $formattedEnd";
+    } catch (e) {
+      return timeRange;
+    }
+  }
+
   static String getImagePath(String imageName) {
     return "assets/images/$imageName";
   }
@@ -81,6 +106,29 @@ class CommonWidget {
         ),
       );
     } catch (e) {
+    }
+  }
+
+  static String formatTimeAgo(String? dateTimeString) {
+    if (dateTimeString == null || dateTimeString.isEmpty) return "";
+    try {
+      DateTime dateTime = DateTime.parse(dateTimeString).toLocal();
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inSeconds < 60) {
+        return "Just now";
+      } else if (difference.inMinutes < 60) {
+        return "${difference.inMinutes}m ago";
+      } else if (difference.inHours < 24) {
+        return "${difference.inHours}h ago";
+      } else if (difference.inDays < 7) {
+        return "${difference.inDays}d ago";
+      } else {
+        return DateFormat('dd MMM yyyy').format(dateTime);
+      }
+    } catch (e) {
+      return "";
     }
   }
 
@@ -893,24 +941,24 @@ class CommonWidget {
     final mediaQuery = MediaQuery.of(context);
     final snackBar = SnackBar(
       backgroundColor: Colors.red[100],
+      duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
         bottom: mediaQuery.size.height - mediaQuery.padding.top - 100,
         left: 16,
         right: 16,
       ),
-      content: Container(
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.red, 
-            fontWeight: FontWeight.w500, 
-            fontSize: 16,
-          ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.red,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
         ),
       ),
     );
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
@@ -918,24 +966,24 @@ class CommonWidget {
     final mediaQuery = MediaQuery.of(context);
     final snackBar = SnackBar(
       backgroundColor: Colors.green[100],
+      duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
         bottom: mediaQuery.size.height - mediaQuery.padding.top - 100,
         left: 16,
         right: 16,
       ),
-      content: Container(
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.green, 
-            fontWeight: FontWeight.w500, 
-            fontSize: 16,
-          ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.green,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
         ),
       ),
     );
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 

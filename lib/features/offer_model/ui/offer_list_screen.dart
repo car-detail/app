@@ -560,13 +560,13 @@ class _OfferListScreenState extends State<OfferListScreen> {
   getCategory(BuildContext context) async {
     var response = await servicesDataManager!.getOfferList(context);
     var data = OfferListModelBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
+    if (mounted && data.status == "success") {
       setState(() {
         offerListData.clear();
         offerListData.addAll(data.data!);
       });
       //CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-    } else {
+    } else if (mounted) {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }
@@ -574,10 +574,10 @@ class _OfferListScreenState extends State<OfferListScreen> {
   postOfferUpdate(BuildContext context, String id) async {
     var response = await servicesDataManager!.postOfferUpdate(context, id);
     var data = CommonBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
+    if (mounted && data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
       getCategory(context);
-    } else {
+    } else if (mounted) {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }
@@ -585,10 +585,10 @@ class _OfferListScreenState extends State<OfferListScreen> {
   deleteOffer(BuildContext context, String id) async {
     var response = await servicesDataManager!.deleteOffer(context, id);
     var data = CommonBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
+    if (mounted && data.status == "success") {
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
       getCategory(context);
-    } else {
+    } else if (mounted) {
       CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
     }
   }

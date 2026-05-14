@@ -68,6 +68,8 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   // Image handling
   List<File> selectedFiles = [];
   String serviceImage = "";
+  List<String> detailImages = [];
+  List<File> selectedDetailFiles = [];
 
   final List<String> carWashStatements = [
     "Quick wash, lasting shine!",
@@ -108,10 +110,12 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
       
       // Set existing image
       serviceImage = widget.serviceToEdit!.coverImage ?? "";
+      detailImages = widget.serviceToEdit!.detailImages ?? [];
     } else {
       // Default values for new service
       _selectedServiceDuration = "0.5hr - 1hr";
       _selectedCapacity = "5";
+      _mobileController.text = sharedPreferences?.getString(Constant.mobile) ?? "";
       _setRandomText();
     }
     
@@ -128,7 +132,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     _priceController.clear();
     _mobileController.clear();
     serviceImage = "";
+    detailImages = [];
     selectedFiles.clear();
+    selectedDetailFiles.clear();
     categoryId = "";
     
     // Reset to first step
@@ -387,17 +393,6 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _buildDurationDropdown(),
             const SizedBox(height: 20),
             _buildCapacityDropdown(),
-            const SizedBox(height: 20),
-            UXHelperWidget.buildHelpfulInputField(
-              context: context,
-              controller: _mobileController,
-              label: "Mobile Number",
-              icon: Icons.phone,
-              helpText: "Optional: Enter a contact number for this service if it's different from your main number.",
-              hintText: "e.g., 9876543210",
-              keyboardType: TextInputType.phone,
-              isRequired: false,
-            ),
           ],
         ),
       ),
@@ -447,7 +442,6 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         ),
         const SizedBox(height: 8),
         _buildDropdownField(
-          label: "Service Duration",
           value: _selectedServiceDuration,
           options: _serviceDurations,
           onChanged: (value) {
@@ -504,7 +498,6 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         ),
         const SizedBox(height: 8),
         _buildDropdownField(
-          label: "Capacity per hour",
           value: _selectedCapacity,
           options: _capacityOptions,
           onChanged: (value) {
@@ -541,6 +534,21 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
                 });
               },
               existingImage: serviceImage,
+            ),
+            const SizedBox(height: 30),
+            _buildImageSection(
+              title: "Service Gallery (Optional)",
+              subtitle: "Upload multiple images showing your work",
+              maxImages: 10,
+              selectedFiles: selectedDetailFiles,
+              onFilesSelected: (files) {
+                setState(() {
+                  selectedDetailFiles = files;
+                });
+                _uploadSelectedImage(isDetailImage: true);
+              },
+              existingImages: detailImages,
+              isMultiple: true,
             ),
           ],
         ),
@@ -608,7 +616,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   }
 
   Widget _buildDropdownField({
-    required String label,
+    String? label,
     required String value,
     required List<String> options,
     required ValueChanged<String?> onChanged,
@@ -617,15 +625,17 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        if (label != null) ...[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
@@ -663,6 +673,8 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     required List<File> selectedFiles,
     required Function(List<File>) onFilesSelected,
     String? existingImage,
+    List<String>? existingImages,
+    bool isMultiple = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,7 +697,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         ),
         const SizedBox(height: 16),
         GestureDetector(
-          onTap: () => _pickAndUploadImage(maxImages, onFilesSelected),
+          onTap: () => _pickAndUploadImage(maxImages, onFilesSelected, isDetailImage: isMultiple),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
@@ -710,16 +722,20 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           ),
         ),
         const SizedBox(height: 16),
-        if (serviceImage.isNotEmpty || selectedFiles.isNotEmpty)
+        if (serviceImage.isNotEmpty || selectedFiles.isNotEmpty || detailImages.isNotEmpty || selectedDetailFiles.isNotEmpty)
           SizedBox(
             height: 120,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _getImageCountForDisplay(),
+              itemCount: isMultiple 
+                  ? detailImages.length + selectedDetailFiles.length
+                  : (serviceImage.isNotEmpty ? 1 : 0) + selectedFiles.length,
               itemBuilder: (context, index) {
                 return Container(
                   margin: const EdgeInsets.only(right: 12),
-                  child: _buildImagePreview(index, serviceImage, selectedFiles),
+                  child: isMultiple
+                      ? _buildDetailImagePreview(index)
+                      : _buildImagePreview(index, serviceImage, selectedFiles),
                 );
               },
             ),
@@ -795,6 +811,63 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     );
   }
 
+  Widget _buildDetailImagePreview(int index) {
+    bool isExisting = index < detailImages.length;
+    
+    return Stack(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: isExisting
+                ? Image.network(
+                    detailImages[index],
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+                  )
+                : CommonWidget.imageFromFile(
+                    selectedDetailFiles[index - detailImages.length], 
+                    fit: BoxFit.cover
+                  ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isExisting) {
+                  detailImages.removeAt(index);
+                } else {
+                  selectedDetailFiles.removeAt(index - detailImages.length);
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildImagePlaceholder() {
     return Container(
       color: Colors.grey[100],
@@ -821,7 +894,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     return count;
   }
 
-  void _pickAndUploadImage(int maxImages, Function(List<File>) onFilesSelected) async {
+  void _pickAndUploadImage(int maxImages, Function(List<File>) onFilesSelected, {bool isDetailImage = false}) async {
     // Show image picker dialog
     BaseActivity.showFilePicker(
       context,
@@ -830,13 +903,19 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           // Limit to maxImages
           List<File> selectedFilesList = files.take(maxImages).toList();
           
-          setState(() {
-            selectedFiles.clear();
-            selectedFiles.addAll(selectedFilesList);
-          });
-          
-          // Upload image immediately
-          await _uploadSelectedImage();
+          if (isDetailImage) {
+            setState(() {
+              selectedDetailFiles.clear();
+              selectedDetailFiles.addAll(selectedFilesList);
+            });
+            await _uploadSelectedImage(isDetailImage: true);
+          } else {
+            setState(() {
+              selectedFiles.clear();
+              selectedFiles.addAll(selectedFilesList);
+            });
+            await _uploadSelectedImage();
+          }
         }
       },
       isFile: false,
@@ -846,8 +925,10 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     );
   }
 
-  Future<void> _uploadSelectedImage() async {
-    if (selectedFiles.isEmpty) {
+  Future<void> _uploadSelectedImage({bool isDetailImage = false}) async {
+    List<File> filesToUpload = isDetailImage ? selectedDetailFiles : selectedFiles;
+
+    if (filesToUpload.isEmpty) {
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Please select an image first");
       }
@@ -883,35 +964,44 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         );
       }
       
-      // Upload the first image (cover image)
-      String uploadedUrl = await _postImage(context, [selectedFiles[0]]);
-      
-      // Close loading dialog using the dialog's context
-      if (mounted && dialogContext != null && dialogContext!.mounted) {
-        try {
-          Navigator.of(dialogContext!).pop();
-        } catch (e) {
-          // Fallback: try with main context if dialog context fails
-          if (mounted && context.mounted && Navigator.of(context).canPop()) {
-            try {
-              Navigator.of(context).pop();
-            } catch (e2) {
-            }
-          }
+      if (isDetailImage) {
+        // Upload multiple images
+        List<String> uploadedUrls = [];
+        for (var file in filesToUpload) {
+          String url = await _postImage(context, [file]);
+          if (url.isNotEmpty) uploadedUrls.add(url);
         }
-      }
-      
-      if (!mounted || !context.mounted) return;
-      
-      if (uploadedUrl.isNotEmpty) {
-        setState(() {
-          serviceImage = uploadedUrl;
-          // Clear selected files after successful upload since we now have the URL
-          selectedFiles.clear();
-        });
-        CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
+        
+        if (mounted && dialogContext != null && dialogContext!.mounted) {
+           Navigator.of(dialogContext!).pop();
+        }
+
+        if (uploadedUrls.isNotEmpty) {
+          setState(() {
+            detailImages.addAll(uploadedUrls);
+            selectedDetailFiles.clear();
+          });
+          CommonWidget.successShowSnackBarFor(context, "${uploadedUrls.length} image(s) uploaded successfully!");
+        } else {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to upload images");
+        }
       } else {
-        CommonWidget.errorShowSnackBarFor(context, "Failed to upload image");
+        // Upload single cover image
+        String uploadedUrl = await _postImage(context, [filesToUpload[0]]);
+        
+        if (mounted && dialogContext != null && dialogContext!.mounted) {
+           Navigator.of(dialogContext!).pop();
+        }
+
+        if (uploadedUrl.isNotEmpty) {
+          setState(() {
+            serviceImage = uploadedUrl;
+            selectedFiles.clear();
+          });
+          CommonWidget.successShowSnackBarFor(context, "Cover image uploaded successfully!");
+        } else {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to upload image");
+        }
       }
     } catch (e) {
       // Close loading dialog on error
@@ -1073,6 +1163,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _selectedCategory,
             categoryId,
             serviceImage,
+            detailImages,
             _mobileController.text);
       } else {
         // Create new service
@@ -1087,6 +1178,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _selectedCategory,
             categoryId,
             serviceImage,
+            detailImages,
             _mobileController.text);
       }
       
@@ -1192,6 +1284,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
 
   getCategory(BuildContext context) async {
     var response = await servicesDataManager!.getcategory(context);
+    
+    if (!mounted) return;
+    
     var data = CategoryModelData.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       setState(() {
@@ -1205,13 +1300,18 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
       // Filter categories after loading
       _filterCategories();
     } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      if (context.mounted) {
+        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      }
     }
   }
 
   Future<void> _fetchExistingServices(BuildContext context) async {
     try {
       var response = await servicesDataManager!.getServicesList(context);
+      
+      if (!mounted) return;
+      
       if (response.statusCode == 200 || response.statusCode == 201) {
         var data = ServicesListBean.fromJson(jsonDecode(response.body));
         if (data.status == "success" && data.data != null) {

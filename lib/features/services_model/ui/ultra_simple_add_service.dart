@@ -52,7 +52,7 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
     try {
       var response = await dataManager!.getcategory(context);
       var data = CategoryModelData.fromJson(jsonDecode(response.body));
-      if (data.status == "success" && data.data != null && data.data!.isNotEmpty) {
+      if (mounted && data.status == "success" && data.data != null && data.data!.isNotEmpty) {
         setState(() {
           _categories = data.data!;
           _selectedCategoryName = _categories.first.categoryTitle ?? "";
@@ -332,6 +332,7 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
         _selectedCategoryName, // catName
         _selectedCategoryId, // categoryId
         "", // serviceImage
+        [], // detailImages
         mobile, // mobile
       );
 
@@ -345,8 +346,8 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
             context,
             "Service added successfully! You can add more services anytime.",
           );
+          CommonWidget.safePop(context); // Go back
         }
-        CommonWidget.safePop(context); // Go back
       } else {
         if (context.mounted) {
           UXHelperWidget.showFriendlyError(
@@ -359,10 +360,12 @@ class _UltraSimpleAddServiceState extends State<UltraSimpleAddService> {
       if (context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
       }
-      UXHelperWidget.showFriendlyError(
-        context,
-        "Error: ${e.toString()}. Please try again.",
-      );
+      if (context.mounted) {
+        UXHelperWidget.showFriendlyError(
+          context,
+          "Error: ${e.toString()}. Please try again.",
+        );
+      }
     }
   }
 }

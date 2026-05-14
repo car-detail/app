@@ -21,13 +21,14 @@ class EnhancedOfferScreen extends StatefulWidget {
 class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   int currentStep = 0;
   final PageController _pageController = PageController();
-  
+  bool _hasAutoAdvancedFromDetails = false;
+
   // Form Controllers
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController discountController = TextEditingController();
   TextEditingController validUntilController = TextEditingController();
-  
+
   // Data
   List<ServicesData> availableServices = [];
   List<ServicesData> selectedServices = [];
@@ -36,12 +37,13 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   DateTime? validUntilDate;
   String? offerType;
   bool isActive = true;
-  
+  bool isLoadingServices = true;
+
   // Managers
   OfferDataManager? offerDataManager;
   SharedPreferences? sharedPreferences;
   String? vendorId;
-  
+
   // Offer Templates
   final List<OfferTemplate> offerTemplates = [
     OfferTemplate(
@@ -77,6 +79,10 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   @override
   void initState() {
     super.initState();
+    titleController.addListener(_maybeAutoAdvanceToPreview);
+    descriptionController.addListener(_maybeAutoAdvanceToPreview);
+    discountController.addListener(_maybeAutoAdvanceToPreview);
+    validUntilController.addListener(_maybeAutoAdvanceToPreview);
     start();
   }
 
@@ -89,11 +95,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
 
   Future<void> getAvailableServices() async {
     if (vendorId == null) return;
-    
+
     try {
       var response = await offerDataManager!.getServicesList(context);
       var data = ServicesModelData.fromJson(jsonDecode(response.body));
-      
+
       if (data.status == "success") {
         setState(() {
           availableServices.clear();
@@ -101,7 +107,27 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         });
       }
     } catch (e) {
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingServices = false;
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    titleController.removeListener(_maybeAutoAdvanceToPreview);
+    descriptionController.removeListener(_maybeAutoAdvanceToPreview);
+    discountController.removeListener(_maybeAutoAdvanceToPreview);
+    validUntilController.removeListener(_maybeAutoAdvanceToPreview);
+    titleController.dispose();
+    descriptionController.dispose();
+    discountController.dispose();
+    validUntilController.dispose();
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,8 +139,9 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           backgroundColor: Colors.white.withOpacity(0.2),
           iconColor: Colors.white,
         ),
-        title: const Text("Create Offer"),
-        backgroundColor: ColorClass.base_color,
+        title: const Text("Create Offer",
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        backgroundColor: const Color(0xFF166534),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -122,7 +149,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         children: [
           // Progress Indicator
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            color: const Color(0xFF166534),
             child: Row(
               children: [
                 _buildStepIndicator(0, "Service"),
@@ -133,7 +161,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               ],
             ),
           ),
-          
+
           // Content
           Expanded(
             child: PageView(
@@ -150,7 +178,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               ],
             ),
           ),
-          
+
           // Navigation Buttons
           Container(
             padding: const EdgeInsets.all(20),
@@ -200,7 +228,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: currentStep >= step ? ColorClass.base_color : Colors.grey[300],
+            color:
+                currentStep >= step ? ColorClass.base_color : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -218,7 +247,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           title,
           style: TextStyle(
             fontSize: 10,
-            color: currentStep >= step ? ColorClass.base_color : Colors.grey[600],
+            color:
+                currentStep >= step ? ColorClass.base_color : Colors.grey[600],
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -261,7 +291,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               ),
               if (selectedServices.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: ColorClass.base_color,
                     borderRadius: BorderRadius.circular(20),
@@ -278,8 +309,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ],
           ),
           const SizedBox(height: 30),
-          
-          if (availableServices.isEmpty)
+          if (isLoadingServices)
             const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -297,9 +327,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                 children: [
                   Icon(Icons.info_outline, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text("No services available", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                  Text("No services available",
+                      style: TextStyle(fontSize: 18, color: Colors.grey)),
                   SizedBox(height: 8),
-                  Text("Please add some services first", style: TextStyle(color: Colors.grey)),
+                  Text("Please add some services first",
+                      style: TextStyle(color: Colors.grey)),
                 ],
               ),
             )
@@ -310,16 +342,17 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               itemCount: availableServices.length,
               itemBuilder: (context, index) {
                 final service = availableServices[index];
-                final isSelected = selectedServices.any((s) => s.sId == service.sId);
-                
+                final isSelected =
+                    selectedServices.any((s) => s.sId == service.sId);
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   elevation: isSelected ? 4 : 1,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                      color: isSelected 
-                          ? ColorClass.base_color 
+                      color: isSelected
+                          ? ColorClass.base_color
                           : Colors.grey[300]!,
                       width: isSelected ? 2 : 1,
                     ),
@@ -328,7 +361,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                     onTap: () {
                       setState(() {
                         if (isSelected) {
-                          selectedServices.removeWhere((s) => s.sId == service.sId);
+                          selectedServices
+                              .removeWhere((s) => s.sId == service.sId);
                         } else {
                           selectedServices.add(service);
                         }
@@ -345,11 +379,13 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                             onChanged: (value) {
                               setState(() {
                                 if (value == true) {
-                                  if (!selectedServices.any((s) => s.sId == service.sId)) {
+                                  if (!selectedServices
+                                      .any((s) => s.sId == service.sId)) {
                                     selectedServices.add(service);
                                   }
                                 } else {
-                                  selectedServices.removeWhere((s) => s.sId == service.sId);
+                                  selectedServices
+                                      .removeWhere((s) => s.sId == service.sId);
                                 }
                               });
                             },
@@ -378,7 +414,9 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? ColorClass.base_color : Colors.black87,
+                                color: isSelected
+                                    ? ColorClass.base_color
+                                    : Colors.black87,
                               ),
                             ),
                           ),
@@ -417,7 +455,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
           ),
           const SizedBox(height: 30),
-          
+
           // Offer Type Selection
           const Text(
             "Offer Type",
@@ -440,30 +478,33 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             itemBuilder: (context, index) {
               final template = offerTemplates[index];
               final isSelected = offerType == template.type;
-              
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
                     offerType = template.type;
                   });
+                  _maybeAutoAdvanceToPreview();
                 },
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isSelected 
+                    color: isSelected
                         ? template.color.withOpacity(0.2)
                         : Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: isSelected 
+                    border: isSelected
                         ? Border.all(color: template.color, width: 3)
                         : Border.all(color: Colors.grey[300]!),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: template.color.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      )
-                    ] : null,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: template.color.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : null,
                   ),
                   child: Stack(
                     children: [
@@ -472,7 +513,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                         children: [
                           Icon(
                             template.icon,
-                            color: isSelected ? template.color : Colors.grey[600],
+                            color:
+                                isSelected ? template.color : Colors.grey[600],
                             size: 20, // Reduced icon size
                           ),
                           const SizedBox(height: 6),
@@ -524,16 +566,22 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             },
           ),
           const SizedBox(height: 15),
-          
+
           // Selected Offer Type Indicator
           if (offerType != null) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: offerTemplates.firstWhere((t) => t.type == offerType).color.withOpacity(0.1),
+                color: offerTemplates
+                    .firstWhere((t) => t.type == offerType)
+                    .color
+                    .withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: offerTemplates.firstWhere((t) => t.type == offerType).color.withOpacity(0.3),
+                  color: offerTemplates
+                      .firstWhere((t) => t.type == offerType)
+                      .color
+                      .withOpacity(0.3),
                 ),
               ),
               child: Row(
@@ -541,14 +589,18 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                 children: [
                   Icon(
                     offerTemplates.firstWhere((t) => t.type == offerType).icon,
-                    color: offerTemplates.firstWhere((t) => t.type == offerType).color,
+                    color: offerTemplates
+                        .firstWhere((t) => t.type == offerType)
+                        .color,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Selected: ${offerTemplates.firstWhere((t) => t.type == offerType).name}",
                     style: TextStyle(
-                      color: offerTemplates.firstWhere((t) => t.type == offerType).color,
+                      color: offerTemplates
+                          .firstWhere((t) => t.type == offerType)
+                          .color,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -558,7 +610,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
             const SizedBox(height: 15),
           ],
-          
+
           // Offer Title
           const Text(
             "Offer Title *",
@@ -579,10 +631,10 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
           ),
           const SizedBox(height: 15),
-          
+
           // Description
           const Text(
-            "Description *",
+            "Description",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -601,7 +653,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
           ),
           const SizedBox(height: 15),
-          
+
           // Discount Amount (Optional)
           Row(
             children: [
@@ -628,26 +680,30 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             controller: discountController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              hintText: offerType == "percentage" ? "20" : offerType == "fixed" ? "10" : "Enter discount amount",
-              labelText: offerType == "percentage" 
-                  ? "Percentage (%)" 
-                  : offerType == "fixed" 
-                      ? "Amount (\$)" 
+              hintText: offerType == "percentage"
+                  ? "20"
+                  : offerType == "fixed"
+                      ? "10"
+                      : "Enter discount amount",
+              labelText: offerType == "percentage"
+                  ? "Percentage (%)"
+                  : offerType == "fixed"
+                      ? "Amount (\$)"
                       : "Discount Amount",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
               prefixIcon: Icon(
-                offerType == "percentage" 
-                    ? Icons.percent 
-                    : offerType == "fixed" 
-                        ? Icons.attach_money 
+                offerType == "percentage"
+                    ? Icons.percent
+                    : offerType == "fixed"
+                        ? Icons.attach_money
                         : Icons.discount,
               ),
             ),
           ),
           const SizedBox(height: 15),
-          
+
           // Valid Until (Optional)
           Row(
             children: [
@@ -709,13 +765,14 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
               if (date != null) {
                 setState(() {
                   validUntilDate = date;
-                  validUntilController.text = DateFormat(Constant.dateFormatDigits).format(date);
+                  validUntilController.text =
+                      DateFormat(Constant.dateFormatDigits).format(date);
                 });
               }
             },
           ),
           const SizedBox(height: 20),
-          
+
           // Image Upload
           const Text(
             "Offer Image",
@@ -742,7 +799,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                     );
                   }
                 }
-              }, isFile: false, isPhoto: true, isOnlyPhoto: true, allowMultipleImage: false);
+              },
+                  isFile: false,
+                  isPhoto: true,
+                  isOnlyPhoto: true,
+                  allowMultipleImage: false);
             },
             child: Container(
               height: 200,
@@ -751,9 +812,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: selectedFiles.isNotEmpty && uploadedImageUrl.isNotEmpty
-                      ? ColorClass.base_color 
+                      ? ColorClass.base_color
                       : Colors.grey[300]!,
-                  width: selectedFiles.isNotEmpty && uploadedImageUrl.isNotEmpty ? 2 : 1,
+                  width: selectedFiles.isNotEmpty && uploadedImageUrl.isNotEmpty
+                      ? 2
+                      : 1,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -801,7 +864,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.green,
                                 borderRadius: BorderRadius.circular(8),
@@ -926,184 +990,168 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             ),
           ),
           const SizedBox(height: 30),
-          
+
           // Offer Preview Card
           Card(
-            elevation: 4,
+            elevation: 3,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        ColorClass.base_color,
-                        ColorClass.base_color.withOpacity(0.8),
-                      ],
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  child: Row(
+                  child: Stack(
                     children: [
                       if (selectedFiles.isNotEmpty)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CommonWidget.imageFromFile(
-                            selectedFiles[0],
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
+                        CommonWidget.imageFromFile(
+                          selectedFiles[0],
+                          width: double.infinity,
+                          height: 240,
+                          fit: BoxFit.cover,
                         )
                       else
                         Container(
-                          width: 60,
-                          height: 60,
+                          width: double.infinity,
+                          height: 240,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(
+                              colors: [
+                                ColorClass.base_color,
+                                ColorClass.base_color.withOpacity(0.8),
+                              ],
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.local_offer,
-                            color: Colors.white,
-                            size: 30,
+                          child: const Center(
+                            child: Icon(
+                              Icons.local_offer,
+                              color: Colors.white,
+                              size: 64,
+                            ),
                           ),
                         ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              titleController.text.isNotEmpty 
-                                  ? titleController.text 
-                                  : "Offer Title",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                      Positioned(
+                        left: 14,
+                        right: 14,
+                        bottom: 14,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.42),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                titleController.text.isNotEmpty
+                                    ? titleController.text
+                                    : "Offer Title",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              selectedServices.isNotEmpty
-                                  ? selectedServices.length == 1
-                                      ? selectedServices[0].categoryName ?? "Category"
-                                      : "${selectedServices.length} categories selected"
-                                  : "Category",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 14,
+                              const SizedBox(height: 2),
+                              Text(
+                                selectedServices.isNotEmpty
+                                    ? selectedServices.length == 1
+                                        ? selectedServices[0].categoryName ??
+                                            "Category"
+                                        : "${selectedServices.length} categories"
+                                    : "Category",
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                
-                // Content
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Discount Badge
-                      if (discountController.text.isNotEmpty) ...[
+                      if (discountController.text.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.red.withOpacity(0.5), width: 1.5),
+                            color: Colors.red.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: Colors.red.withOpacity(0.35), width: 1),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.local_offer, color: Colors.red, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                offerType == "percentage" 
-                                    ? "${discountController.text}% OFF"
-                                    : "\$${discountController.text} OFF",
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            offerType == "percentage"
+                                ? "${discountController.text}% OFF"
+                                : "\$${discountController.text} OFF",
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                      if (descriptionController.text.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          descriptionController.text,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
-                      
-                      // Description
-                      Text(
-                        descriptionController.text.isNotEmpty 
-                            ? descriptionController.text 
-                            : "Offer description",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          height: 1.4,
-                        ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            validUntilController.text.isNotEmpty
+                                ? Icons.calendar_today
+                                : Icons.all_inclusive,
+                            size: 14,
+                            color: validUntilController.text.isNotEmpty
+                                ? Colors.grey[600]
+                                : Colors.green[700],
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              validUntilController.text.isNotEmpty
+                                  ? "Valid until ${validUntilController.text}"
+                                  : "No expiry",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: validUntilController.text.isNotEmpty
+                                    ? Colors.grey[600]
+                                    : Colors.green[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Validity
-                      if (validUntilController.text.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Valid until: ${validUntilController.text}",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ] else ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.green[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.all_inclusive, size: 16, color: Colors.green[700]),
-                              const SizedBox(width: 8),
-                              Text(
-                                "No expiration date - offer never expires",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -1119,12 +1167,12 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
     if (selectedFiles.isEmpty) {
       return;
     }
-    
+
     if (!mounted) return;
-    
+
     // Store dialog context to prevent navigation issues
     BuildContext? dialogContext;
-    
+
     try {
       // Show loading indicator
       if (mounted && context.mounted) {
@@ -1139,10 +1187,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           },
         );
       }
-      
+
       List<File> image = [selectedFiles[0]];
-      var response = await offerDataManager!.postImage(image, context, skipAutoNavigation: true);
-      
+      var response = await offerDataManager!
+          .postImage(image, context, skipAutoNavigation: true);
+
       // Close loading indicator using the dialog's context
       if (mounted && dialogContext != null && dialogContext!.mounted) {
         try {
@@ -1152,28 +1201,30 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           if (mounted && context.mounted && Navigator.of(context).canPop()) {
             try {
               Navigator.of(context).pop();
-            } catch (e2) {
-            }
+            } catch (e2) {}
           }
         }
       }
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
           var data = ImageModuleData.fromJson(jsonDecode(response.body));
-          
+
           if (data.status == "success") {
             if (mounted) {
               setState(() {
                 uploadedImageUrl = data.data?.url ?? "";
               });
             }
+            _maybeAutoAdvanceToPreview();
             if (mounted && context.mounted) {
-              CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
+              CommonWidget.successShowSnackBarFor(
+                  context, "Image uploaded successfully!");
             }
           } else {
             if (mounted && context.mounted) {
-              CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
+              CommonWidget.errorShowSnackBarFor(
+                  context, data.message ?? "Failed to upload image");
             }
             // Remove the selected file if upload failed
             if (mounted) {
@@ -1184,7 +1235,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           }
         } catch (parseError) {
           if (mounted && context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, "Error processing upload response");
+            CommonWidget.errorShowSnackBarFor(
+                context, "Error processing upload response");
           }
           if (mounted) {
             setState(() {
@@ -1195,7 +1247,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
       } else if (response.statusCode == 401) {
         // Handle 401 without redirecting
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Session expired. Please login again.");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Session expired. Please login again.");
         }
         if (mounted) {
           setState(() {
@@ -1204,7 +1257,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         }
       } else {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Failed to upload image. Please try again.");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Failed to upload image. Please try again.");
         }
         if (mounted) {
           setState(() {
@@ -1213,7 +1267,6 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         }
       }
     } catch (e) {
-      
       // Close loading indicator if still open
       if (mounted && dialogContext != null && dialogContext!.mounted) {
         try {
@@ -1222,12 +1275,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           if (mounted && context.mounted && Navigator.of(context).canPop()) {
             try {
               Navigator.of(context).pop();
-            } catch (e2) {
-            }
+            } catch (e2) {}
           }
         }
       }
-      
+
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error uploading image: $e");
       }
@@ -1244,108 +1296,92 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
       // Step 0: Service Selection
       if (selectedServices.isEmpty) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Please select at least one service");
         }
         return false;
       }
       return true;
     } else if (step == 1) {
       // Step 1: Offer Details
-      
+
       // Validate Title
       if (titleController.text.trim().isEmpty) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please enter offer title");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Please enter offer title");
         }
         return false;
       }
       if (titleController.text.trim().length < 3) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Offer title must be at least 3 characters");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Offer title must be at least 3 characters");
         }
         return false;
       }
       if (titleController.text.trim().length > 100) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Offer title must be less than 100 characters");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Offer title must be less than 100 characters");
         }
         return false;
       }
-      
-      // Validate Description
-      if (descriptionController.text.trim().isEmpty) {
-        if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please enter offer description");
-        }
-        return false;
-      }
-      if (descriptionController.text.trim().length < 10) {
-        if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Offer description must be at least 10 characters");
-        }
-        return false;
-      }
-      if (descriptionController.text.trim().length > 500) {
-        if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Offer description must be less than 500 characters");
-        }
-        return false;
-      }
-      
+
       // Validate Discount (if provided)
       if (discountController.text.trim().isNotEmpty) {
         final discountValue = double.tryParse(discountController.text.trim());
         if (discountValue == null) {
           if (mounted && context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, "Please enter a valid discount amount");
+            CommonWidget.errorShowSnackBarFor(
+                context, "Please enter a valid discount amount");
           }
           return false;
         }
         if (discountValue < 0) {
           if (mounted && context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, "Discount amount cannot be negative");
+            CommonWidget.errorShowSnackBarFor(
+                context, "Discount amount cannot be negative");
           }
           return false;
         }
         if (offerType == "percentage" && discountValue > 100) {
           if (mounted && context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, "Percentage discount cannot exceed 100%");
+            CommonWidget.errorShowSnackBarFor(
+                context, "Percentage discount cannot exceed 100%");
           }
           return false;
         }
       }
-      
+
       // Validate Valid Until Date (if provided)
       if (validUntilDate != null) {
         if (validUntilDate!.isBefore(DateTime.now())) {
           if (mounted && context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, "Valid until date must be in the future");
+            CommonWidget.errorShowSnackBarFor(
+                context, "Valid until date must be in the future");
           }
           return false;
         }
       }
-      
-      // Validate Image
-      if (selectedFiles.isEmpty) {
+
+      // Validate Image - only required if user is uploading
+      if (selectedFiles.isNotEmpty && uploadedImageUrl.isEmpty) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please select an offer image");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Please wait for the image to finish uploading");
         }
         return false;
       }
-      if (uploadedImageUrl.isEmpty) {
-        if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please wait for the image to finish uploading");
-        }
-        return false;
-      }
-      
+
       return true;
     } else if (step == 2) {
       // Step 2: Preview - Validate all previous steps silently
       // First check services
       if (selectedServices.isEmpty) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Please select at least one service");
+          CommonWidget.errorShowSnackBarFor(
+              context, "Please select at least one service");
         }
         return false;
       }
@@ -1355,11 +1391,31 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
     return true;
   }
 
+  void _maybeAutoAdvanceToPreview() {
+    if (!mounted || currentStep != 1 || _hasAutoAdvancedFromDetails) {
+      return;
+    }
+    if (!_pageController.hasClients) {
+      return;
+    }
+    if (_validateStep(1)) {
+      _hasAutoAdvancedFromDetails = true;
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   void _nextStep() {
     if (!_validateStep(currentStep)) {
       return;
     }
-    
+
+    if (currentStep == 0) {
+      _hasAutoAdvancedFromDetails = false;
+    }
+
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -1371,11 +1427,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
     if (!_validateStep(0) || !_validateStep(1)) {
       return;
     }
-    
+
     if (!mounted || !context.mounted) return;
-    
+
     BuildContext? dialogContext;
-    
+
     try {
       // Show loading dialog
       if (mounted && context.mounted) {
@@ -1390,14 +1446,14 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           },
         );
       }
-      
+
       int successCount = 0;
       int failCount = 0;
-      
+
       // Create an offer for each selected service
       for (var service in selectedServices) {
         if (!mounted) break;
-        
+
         try {
           var response = await offerDataManager!.addOffer(
             context,
@@ -1409,7 +1465,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             service.sId!,
             uploadedImageUrl,
           );
-          
+
           if (response.statusCode == 200 || response.statusCode == 201) {
             try {
               var data = jsonDecode(response.body);
@@ -1428,7 +1484,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           failCount++;
         }
       }
-      
+
       // Close loading dialog safely
       if (mounted) {
         if (dialogContext != null && dialogContext!.mounted) {
@@ -1441,21 +1497,19 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             if (context.mounted && Navigator.of(context).canPop()) {
               try {
                 Navigator.of(context).pop();
-              } catch (e2) {
-              }
+              } catch (e2) {}
             }
           }
         } else if (context.mounted && Navigator.of(context).canPop()) {
           // Try to pop from main context if dialog context is not available
           try {
             Navigator.of(context).pop();
-          } catch (e) {
-          }
+          } catch (e) {}
         }
       }
-      
+
       if (!mounted || !context.mounted) return;
-      
+
       // Show result and navigate
       if (successCount > 0) {
         String message = successCount == selectedServices.length
@@ -1465,10 +1519,10 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           message += " $failCount offer(s) failed.";
         }
         CommonWidget.successShowSnackBarFor(context, message);
-        
+
         // Add delay to allow snackbar to show before navigating
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted && context.mounted) {
           // Check if we can pop before navigating back
           if (Navigator.of(context).canPop()) {
@@ -1479,10 +1533,10 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           }
         }
       } else {
-        CommonWidget.errorShowSnackBarFor(context, "Failed to create offers. Please try again.");
+        CommonWidget.errorShowSnackBarFor(
+            context, "Failed to create offers. Please try again.");
       }
     } catch (e) {
-      
       // Close loading dialog if still open
       if (mounted) {
         if (dialogContext != null && dialogContext!.mounted) {
@@ -1494,18 +1548,16 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             if (context.mounted && Navigator.of(context).canPop()) {
               try {
                 Navigator.of(context).pop();
-              } catch (e2) {
-              }
+              } catch (e2) {}
             }
           }
         } else if (context.mounted && Navigator.of(context).canPop()) {
           try {
             Navigator.of(context).pop();
-          } catch (e2) {
-          }
+          } catch (e2) {}
         }
       }
-      
+
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error creating offer: $e");
       }
@@ -1528,4 +1580,3 @@ class OfferTemplate {
     required this.type,
   });
 }
-    

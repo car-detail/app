@@ -176,7 +176,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
       );
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
+      if (mounted && !serviceEnabled) {
         Navigator.pop(context);
         CommonWidget.errorShowSnackBarFor(
             context, 'Location services are disabled. Please enable them.');
@@ -186,7 +186,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
+        if (mounted && permission == LocationPermission.denied) {
           Navigator.pop(context);
           CommonWidget.errorShowSnackBarFor(
               context, 'Location permissions are denied');
@@ -194,7 +194,7 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
         }
       }
 
-      if (permission == LocationPermission.deniedForever) {
+      if (mounted && permission == LocationPermission.deniedForever) {
         Navigator.pop(context);
         CommonWidget.errorShowSnackBarFor(
             context, 'Location permissions are permanently denied');
@@ -227,13 +227,17 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
       sharedPreferences!.setString(Constant.lat, position.latitude.toString());
       sharedPreferences!.setString(Constant.long, position.longitude.toString());
 
-      Navigator.pop(context);
-      CommonWidget.successShowSnackBarFor(
-          context, 'Location updated successfully!');
+      if (mounted) {
+        Navigator.pop(context);
+        CommonWidget.successShowSnackBarFor(
+            context, 'Location updated successfully!');
+      }
     } catch (e) {
-      if (Navigator.canPop(context)) Navigator.pop(context);
-      CommonWidget.errorShowSnackBarFor(
-          context, 'Error getting location: ${e.toString()}');
+      if (mounted) {
+        if (Navigator.canPop(context)) Navigator.pop(context);
+        CommonWidget.errorShowSnackBarFor(
+            context, 'Error getting location: ${e.toString()}');
+      }
     }
   }
 
@@ -807,10 +811,27 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
           label,
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
-            fontFamily: "Pop500",
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+                fontFamily: "Pop500",
+              ),
+            ),
+            if (isOptional)
+              Text(
+                " (Optional)",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                  fontFamily: "PopReg",
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Container(

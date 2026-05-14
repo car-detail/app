@@ -15,7 +15,8 @@ import '../data_model/booking_list_bean.dart';
 import '../model/complete_model_bean.dart';
 
 class BookingListActivity extends StatefulWidget {
-  const BookingListActivity({super.key});
+  final bool isTab;
+  const BookingListActivity({this.isTab = false, super.key});
 
   @override
   State<BookingListActivity> createState() => _BookingListActivityState();
@@ -47,32 +48,38 @@ class _BookingListActivityState extends State<BookingListActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF0FDF4),
       body: Column(
         children: [
           // Modern Header
           Container(
-            padding: const EdgeInsets.only(top: 45, bottom: 20, left: 20, right: 20),
-            decoration: BoxDecoration(
-              color: ColorClass.base_color,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
+            padding: const EdgeInsets.only(top: 55, bottom: 28, left: 20, right: 20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
             ),
             child: Row(
               children: [
-                CommonWidget.buildBackButton(
-                  context,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  iconColor: Colors.white,
-                  onPressed: () {
-                    if (mounted && context.mounted) {
-                      CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
-                    }
-                  },
-                ),
-                const SizedBox(width: 16),
+                if (!widget.isTab) ...[
+                  CommonWidget.buildBackButton(
+                    context,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    iconColor: Colors.white,
+                    onPressed: () {
+                      if (mounted && context.mounted) {
+                        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                ],
                 const Text(
                   "Bookings",
                   style: TextStyle(
@@ -85,14 +92,14 @@ class _BookingListActivityState extends State<BookingListActivity> {
               ],
             ),
           ),
-          
+
           // Filter Tabs
           Container(
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF166534).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(50),
             ),
             child: Row(
               children: [
@@ -145,8 +152,15 @@ class _BookingListActivityState extends State<BookingListActivity> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? ColorClass.base_color : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          gradient: isSelected
+              ? const LinearGradient(
+                  colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+              : null,
+          color: isSelected ? null : Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
         ),
         child: Text(
           title,
@@ -163,17 +177,20 @@ class _BookingListActivityState extends State<BookingListActivity> {
   }
 
   Widget _buildBookingCard(Records data) {
+    final Color statusColor = _getStatusColor(data.orderStatus ?? "pending");
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border(
+          left: BorderSide(color: statusColor, width: 4),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -181,23 +198,27 @@ class _BookingListActivityState extends State<BookingListActivity> {
         children: [
           // Header with customer info
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Customer Avatar with proper error handling
+                // Customer Avatar with gradient background
                 Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     shape: BoxShape.circle,
-                    color: Colors.grey[200],
                   ),
                   child: data.createdByImage != null && data.createdByImage!.isNotEmpty
                       ? ClipOval(
                           child: Image.network(
                             data.createdByImage!,
-                            width: 40,
-                            height: 40,
+                            width: 44,
+                            height: 44,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildDefaultAvatar();
@@ -206,32 +227,36 @@ class _BookingListActivityState extends State<BookingListActivity> {
                         )
                       : _buildDefaultAvatar(),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 // Customer details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}".trim().isEmpty
-                            ? "Customer"
-                            : "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}".trim(),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontFamily: "Pop600",
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
+                        Text(
+                          "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}".trim().isEmpty
+                              ? "Customer"
+                              : "${data.createdByFirstName ?? ""} ${data.createdByLastName ?? ""}".trim(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontFamily: "Pop600",
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 2),
-                      Text(
-                        data.createdByMobile ?? "No contact",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: "Pop400",
-                          color: Colors.grey[600],
+                        Text(
+                          data.createdByMobile ?? "No contact",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: "Pop400",
+                            color: Colors.grey[600],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -240,20 +265,22 @@ class _BookingListActivityState extends State<BookingListActivity> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(data.orderStatus ?? "pending"),
-                        borderRadius: BorderRadius.circular(6),
+                        gradient: _getStatusGradient(data.orderStatus ?? "pending"),
+                        borderRadius: BorderRadius.circular(50),
                       ),
-                      child: Text(
-                        data.orderStatus ?? "Pending",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontFamily: "Pop500",
-                          fontWeight: FontWeight.w600,
+                        child: Text(
+                          data.orderStatus ?? "Pending",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontFamily: "Pop500",
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                     ),
                     if (data.createdByMobile != null && data.createdByMobile!.isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -272,14 +299,19 @@ class _BookingListActivityState extends State<BookingListActivity> {
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: ColorClass.base_color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                          width: 36,
+                          height: 36,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.call,
-                            color: ColorClass.base_color,
+                            color: Colors.white,
                             size: 18,
                           ),
                         ),
@@ -290,51 +322,89 @@ class _BookingListActivityState extends State<BookingListActivity> {
               ],
             ),
           ),
-          
+
           // Booking details
           Container(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               children: [
-                _buildDetailRow(Icons.access_time, "Time Slot", CommonWidget.convertToLocalTime(data.timeSlot ?? "")),
+                _buildDetailRow(Icons.access_time, "Time Slot", CommonWidget.formatTimeSlot(data.timeSlot ?? "")),
                 const SizedBox(height: 6),
                 _buildDetailRow(Icons.calendar_today, "Date", DateFormat(Constant.dateFormatDigits).format(DateTime.parse(data.date ?? ""))),
                 const SizedBox(height: 6),
                 if (data.price != null && data.price! > 0)
                   _buildDetailRow(Icons.attach_money, "Price", "\$${data.price}"),
-                
+
                 // Action buttons for pending bookings
                 if (data.orderStatus == "Pending") ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => putStatusCompleted(context, data),
-                          icon: const Icon(Icons.check, size: 16),
-                          label: const Text("Complete", style: TextStyle(fontSize: 13)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
+                        child: GestureDetector(
+                          onTap: () => putStatusCompleted(context, data),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.check, size: 15, color: Colors.white),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    "Complete",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontFamily: "Pop500",
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => showDetailPopUp(context, data),
-                          icon: const Icon(Icons.close, size: 16),
-                          label: const Text("Cancel", style: TextStyle(fontSize: 13)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
+                        child: GestureDetector(
+                          onTap: () => showDetailPopUp(context, data),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            decoration: BoxDecoration(
+                              color: Colors.red[400],
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.close, size: 15, color: Colors.white),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    "Cancel",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontFamily: "Pop500",
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -342,7 +412,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
                     ],
                   ),
                 ],
-                
+
                 // Cancellation details
                 if (data.orderStatus == "Cancelled") ...[
                   const SizedBox(height: 8),
@@ -381,6 +451,8 @@ class _BookingListActivityState extends State<BookingListActivity> {
         Expanded(
           child: Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               fontFamily: "Pop400",
@@ -393,10 +465,10 @@ class _BookingListActivityState extends State<BookingListActivity> {
   }
 
   Widget _buildDefaultAvatar() {
-    return Icon(
+    return const Icon(
       Icons.person,
-      size: 20,
-      color: Colors.grey[600],
+      size: 22,
+      color: Colors.white,
     );
   }
 
@@ -405,18 +477,27 @@ class _BookingListActivityState extends State<BookingListActivity> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            size: 80,
-            color: Colors.grey[400],
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1CB273).withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.calendar_today_outlined,
+              size: 48,
+              color: Color(0xFF1CB273),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             "No Bookings Found",
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontFamily: "Pop600",
-              color: Colors.grey[600],
+              color: Color(0xFF166534),
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
@@ -446,8 +527,38 @@ class _BookingListActivityState extends State<BookingListActivity> {
     }
   }
 
+  LinearGradient _getStatusGradient(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return const LinearGradient(
+          colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        );
+      case 'completed':
+        return const LinearGradient(
+          colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        );
+      case 'cancelled':
+        return const LinearGradient(
+          colors: [Color(0xFFE53935), Color(0xFFEF9A9A)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        );
+      default:
+        return const LinearGradient(
+          colors: [Color(0xFF9E9E9E), Color(0xFFBDBDBD)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        );
+    }
+  }
+
   getBookingList(BuildContext context) async {
     var response = await dataManager!.getBookingList(context);
+    if (!mounted) return;
     var data = BookingListBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       setState(() {
@@ -504,7 +615,14 @@ class _BookingListActivityState extends State<BookingListActivity> {
           if (mounted) {
             setState(() {
               records.clear();
-              records.addAll(data.data!.records!);
+              List<Records> fetchedRecords = data.data!.records!;
+              // Sort records by date and timeSlot (descending - most recent first)
+              fetchedRecords.sort((a, b) {
+                int dateCompare = (b.date ?? "").compareTo(a.date ?? "");
+                if (dateCompare != 0) return dateCompare;
+                return (b.timeSlot ?? "").compareTo(a.timeSlot ?? "");
+              });
+              records.addAll(fetchedRecords);
               show = true;
             });
           }

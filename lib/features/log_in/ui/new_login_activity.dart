@@ -38,14 +38,15 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
   Timer? _resendTimer;
   int _resendCountdown = 60;
   int? _resendToken;
+  String _enteredPhone = ''; // Store the phone number for resending
 
   @override
   void initState() {
     super.initState();
     // Set green status bar
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: ColorClass.base_color,
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
     );
@@ -105,20 +106,17 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                   constraints: BoxConstraints(
                     minHeight: 280 + MediaQuery.of(context).padding.top,
                   ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        ColorClass.base_color,
-                        ColorClass.base_color.withOpacity(0.8),
-                      ],
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF166534),
+                          Color(0xFF1CB273),
+                          Color(0xFF26D17A),
+                        ],
+                      ),
                     ),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(40),
-                      bottomRight: Radius.circular(40),
-                    ),
-                  ),
                   padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
                   child: Stack(
                     children: [
@@ -127,11 +125,11 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                         top: -50,
                         right: -50,
                         child: Container(
-                          width: 200,
-                          height: 200,
+                          width: 300,
+                          height: 300,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withOpacity(0.12),
                           ),
                         ),
                       ),
@@ -164,24 +162,24 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                                   });
                                 },
                               ),
-                            const SizedBox(height: 60),
+                            const SizedBox(height: 40),
                             // Title
                             const Text(
                               "Get Started",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
+                                fontSize: 38,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.0,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              _isOTPSent 
-                                ? "Enter the verification code" 
+                              _isOTPSent
+                                ? "Enter the verification code"
                                 : "Enter your mobile number to continue",
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -215,13 +213,14 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : (_isOTPSent ? _verifyOTP : _sendOTP),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorClass.base_color,
+                          backgroundColor: const Color(0xFF1CB273),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          elevation: 2,
+                          elevation: 6,
+                          shadowColor: const Color(0xFF1CB273),
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -236,7 +235,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                                 _isOTPSent ? "Verify OTP" : "Send OTP",
                                 style: const TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -261,9 +260,9 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                             child: Text(
                               "Resend OTP",
                               style: TextStyle(
-                                color: _isLoading ? Colors.grey : ColorClass.base_color,
+                                color: _isLoading ? Colors.grey : const Color(0xFF1CB273),
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 decoration: TextDecoration.underline,
                               ),
                             ),
@@ -281,14 +280,33 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
   }
 
   Widget _buildMobileInput() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Mobile Number",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1CB273),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
       children: [
         // Country Code Picker
         Container(
           decoration: BoxDecoration(
             color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey[200]!),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Color(0xFF1CB273).withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1CB273).withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: CountryCodePicker(
             onChanged: (CountryCode countryCode) {
@@ -328,8 +346,15 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey[200]!),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF1CB273).withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1CB273).withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: TextField(
               controller: mobileController,
@@ -347,9 +372,9 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                   color: Colors.grey[400],
                   fontSize: 16,
                 ),
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.phone_android,
-                  color: ColorClass.base_color,
+                  color: Color(0xFF1CB273),
                   size: 24,
                 ),
                 border: InputBorder.none,
@@ -362,15 +387,29 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           ),
         ),
       ],
+        ),
+      ],
     );
   }
 
   Widget _buildOTPInput() {
-    return Container(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Verification Code",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1CB273),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        color: const Color(0xFF1CB273).withOpacity(0.04),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1CB273).withOpacity(0.3)),
       ),
       child: TextField(
         controller: mobileController,
@@ -389,9 +428,9 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
             color: Colors.grey[400],
             fontSize: 16,
           ),
-          prefixIcon: Icon(
+          prefixIcon: const Icon(
             Icons.lock,
-            color: ColorClass.base_color,
+            color: Color(0xFF1CB273),
             size: 24,
           ),
           border: InputBorder.none,
@@ -407,16 +446,26 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           }
         },
       ),
+        ),
+      ],
     );
   }
 
   void _sendOTP() async {
+    // If we're resending, the controller might be empty or have an OTP
+    // so we use the stored phone number
+    if (_isOTPSent && _enteredPhone.isNotEmpty) {
+      mobileController.text = _enteredPhone;
+    }
+
     if (BaseActivity.checkEmptyField(
         editingController: mobileController,
         message: "Please Enter Mobile Number",
         context: context)) {
       return;
     }
+
+    _enteredPhone = mobileController.text.trim();
     
     // Validate phone number based on country
     Map<String, int> validationRules = _getPhoneValidationRules(selectedCountryIsoCode);
@@ -456,19 +505,23 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification completed
-          await _signInWithCredential(credential, "");
+          if (mounted) {
+            await _signInWithCredential(credential, "");
+          }
         },
         verificationFailed: (FirebaseAuthException e) {
-          setState(() {
-            _isLoading = false;
-          });
-          String errorMessage = "Failed to send OTP. ";
-          if (e.code == 'invalid-phone-number') {
-            errorMessage += "The phone number is invalid.";
-          } else {
-            errorMessage += e.message ?? "Please try again.";
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+            String errorMessage = "Failed to send OTP. ";
+            if (e.code == 'invalid-phone-number') {
+              errorMessage += "The phone number is invalid.";
+            } else {
+              errorMessage += e.message ?? "Please try again.";
+            }
+            CommonWidget.errorShowSnackBarFor(context, errorMessage);
           }
-          CommonWidget.errorShowSnackBarFor(context, errorMessage);
         },
         codeSent: (String verificationId, int? resendToken) {
           setState(() {
@@ -490,9 +543,11 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           // Auto-retrieval timed out
-          setState(() {
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
         },
       );
     } catch (e) {
@@ -554,21 +609,23 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
   }
 
   void _resendOTP() {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    // Clear the input field
-    mobileController.clear();
-    
-    // Resend OTP using the same phone number
-    _sendOTP();
+    // Re-populate controller with stored phone number before resending
+    if (_enteredPhone.isNotEmpty) {
+      mobileController.text = _enteredPhone;
+      _sendOTP();
+    } else {
+      setState(() {
+        _isOTPSent = false;
+      });
+      CommonWidget.errorShowSnackBarFor(context, "Please enter your mobile number again");
+    }
   }
   
   Future<void> _signInWithCredential(PhoneAuthCredential credential, String otp) async {
     try {
       // 1. Sign in with Firebase Auth
       UserCredential userCredential = await _auth.signInWithCredential(credential);
+      if (!mounted) return;
       
       if (userCredential.user != null) {
         // 2. Clear mobile controller (as sign-in succeeded)
@@ -577,6 +634,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         // 3. Exchange Firebase token for Backend token
         // Get ID token first to avoid redundant sign-in in postOTP
         String? idToken = await userCredential.user!.getIdToken();
+        if (!mounted) return;
 
         // We call postOTP in LoginDataManager which sends to /auth/otp-verify-vendor
         final response = await loginDataManager!.postOTP(
@@ -586,6 +644,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           context,
           firebaseIdToken: idToken,
         );
+        if (!mounted) return;
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           final resData = jsonDecode(response.body);
@@ -600,6 +659,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
             
             // 5. Fetch Backend User Details to get the correct UserID/id
             final userDetailsResponse = await loginDataManager!.getUserDetails(context);
+            if (!mounted) return;
             if (userDetailsResponse.statusCode == 200) {
               final userDetailsData = jsonDecode(userDetailsResponse.body);
               if (userDetailsData['status'] == 'success' && 
@@ -628,12 +688,14 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
             
             // Persist all data
             await sharedPreferences!.reload();
+            if (!mounted) return;
             
             // 8. Check if vendor profile exists
             bool hasVendorProfile = false;
             bool hasServices = false;
             try {
               final vendorResponse = await loginDataManager!.getVendorDetails(context);
+              if (!mounted) return;
               if (vendorResponse.statusCode == 200) {
                 final vendorData = jsonDecode(vendorResponse.body);
                 if (vendorData['status'] == 'success' && 
@@ -647,6 +709,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                   // 8a. Check if vendor has at least one service
                   if (vId.isNotEmpty) {
                     final servicesResponse = await loginDataManager!.getVendorServices(context, vId);
+                    if (!mounted) return;
                     if (servicesResponse.statusCode == 200) {
                       final servicesData = jsonDecode(servicesResponse.body);
                       if (servicesData['status'] == 'success' && 
@@ -662,9 +725,11 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
               // Fail-safe: if check fails, we'll try to go to dashboard
             }
 
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
             
             // 9. Navigate to dashboard or shop setup
             if (context.mounted) {
@@ -683,18 +748,20 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      String errorMessage = "Authentication failed. ";
-      if (e is FirebaseAuthException) {
-        errorMessage += e.message ?? "Please try again.";
-      } else {
-        errorMessage += e.toString();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        String errorMessage = "Authentication failed. ";
+        if (e is FirebaseAuthException) {
+          errorMessage += e.message ?? "Please try again.";
+        } else {
+          errorMessage += e.toString();
+        }
+        
+        CommonWidget.errorShowSnackBarFor(context, errorMessage);
       }
-      
-      CommonWidget.errorShowSnackBarFor(context, errorMessage);
     }
   }
 

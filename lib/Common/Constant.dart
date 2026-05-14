@@ -1,8 +1,8 @@
 class Constant {
   // Updated base URL with /api prefix - requires full app restart (not hot reload)
-  static var baseurl = "http://localhost:7007/api/"; //dev
-  // static var baseurl = "https://l3ww2hjs-7007.inc1.devtunnels.ms/";
-  // static var baseurl = "https://api.cahrz.com/api/"; //dev
+  // static var baseurl = "http://localhost:7007/api/"; //dev
+  // static var baseurl = "https://lvpwhs37-7007.inc1.devtunnels.ms/api/";
+  static var baseurl = "https://api.cahrz.com/api/"; //dev
   //static var baseurl = "https://cp6zsf8t-7007.inc1.devtunnels.ms/"; //dev
   // static var baseurl = "https://cf5f40e34c76.ngrok-free.app/"; //ngrok tunnel
   static var versionNumber = "v1";
@@ -79,4 +79,5 @@ class Constant {
   static String long = "long";
   static String lat = "lat";
   static const String dateFormatDigits = "MM-dd-yyyy";
+  static String lastReadNotificationsAt = "lastReadNotificationsAt";
 }

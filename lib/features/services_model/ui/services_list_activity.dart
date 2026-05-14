@@ -31,6 +31,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
   List<ServicesListData> servicesData = [];
   List<CategoryData> allCategories = [];
   bool allCategoriesHaveServices = false;
+  bool isLoading = true;
   var venderId = "";
 
   @override
@@ -54,12 +55,13 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
       await _fetchAllCategories();
       _checkIfAllCategoriesHaveServices();
     }
+    if (mounted) setState(() { isLoading = false; });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: const Color(0xFFF0FDF4),
         bottomNavigationBar: _buildBottomNavigationBar(),
         body: Column(
           children: [
@@ -67,19 +69,19 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    ColorClass.base_color,
-                    ColorClass.base_color.withOpacity(0.85),
-                    ColorClass.base_color.withOpacity(0.9),
+                    Color(0xFF166534),
+                    Color(0xFF1CB273),
+                    Color(0xFF26D17A),
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: [0.0, 0.5, 1.0],
                 ),
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(35),
-                  bottomRight: Radius.circular(35),
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -221,7 +223,13 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
             ),
             if (venderId != "")
               Expanded(
-                child: servicesData.isNotEmpty
+                child: isLoading
+                    ? ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: 6,
+                        itemBuilder: (_, __) => ShimmerLoader.buildServiceCardShimmer(),
+                      )
+                    : servicesData.isNotEmpty
                     ? RefreshIndicator(
                         onRefresh: () async {
                           if (mounted && context.mounted) {
@@ -244,48 +252,31 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               _buildNoVendorState()
           ],
         ),
-        floatingActionButton: venderId != "" && !allCategoriesHaveServices
-            ? FloatingActionButton(
-                onPressed: () {
-                  if (mounted && context.mounted) {
-                    Navigator.of(context)
-                        .push(
-                      MaterialPageRoute(
-                        builder: (context) => const ModernAddServiceActivity(),
-                      ),
-                    )
-                        .then((onValue) async {
-                      if (mounted && context.mounted && onValue == true && venderId != "") {
-                        await getCategory(context);
-                        await _fetchAllCategories();
-                        _checkIfAllCategoriesHaveServices();
-                      }
-                    });
-                  }
-                },
-                backgroundColor: ColorClass.base_color,
-                tooltip: "Add Service",
-                child: const Icon(Icons.add, color: Colors.white),
-              )
-            : null);
+        floatingActionButton: null);
   }
 
   Widget _buildServiceCard(ServicesListData data, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border(
+          left: BorderSide(
+            width: 4,
+            color: const Color(0xFF1CB273),
+          ),
+        ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           color: Colors.white,
           child: Padding(
@@ -333,8 +324,8 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                     child: Text(
                                       data.categoryName ?? data.serviceTitle ?? "Untitled Service",
                                       style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
                                         color: Colors.black87,
                                         fontFamily: "Pop600",
                                       ),
@@ -373,10 +364,12 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                   const SizedBox(width: 6),
                                   // Status Badge
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(6),
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -425,21 +418,21 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                       child: Row(
                         children: [
                           // Price Card
-                          Expanded(
-                            child: _buildFancyInfoCard(
-                              Icons.attach_money_rounded,
-                              data.price != null && data.price! > 0 
-                                  ? "\$${data.price}" 
-                                  : "Free",
-                              "Price",
-                              Colors.green,
+                          if (data.price != null && data.price! > 0) ...[
+                            Expanded(
+                              child: _buildFancyInfoCard(
+                                Icons.attach_money_rounded,
+                                "\$${data.price}",
+                                "Price",
+                                Colors.green,
+                              ),
                             ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 30,
-                            color: Colors.grey[200],
-                          ),
+                            Container(
+                              width: 1,
+                              height: 30,
+                              color: Colors.grey[200],
+                            ),
+                          ],
                           // Duration Card
                           Expanded(
                             child: _buildFancyInfoCard(
@@ -810,15 +803,19 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: ColorClass.base_color.withOpacity(0.1),
+              padding: const EdgeInsets.all(28),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.design_services,
                 size: 64,
-                color: ColorClass.base_color,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 24),
@@ -826,8 +823,9 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               "No Services Yet",
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: Colors.black87,
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 12),
@@ -835,8 +833,8 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               "Start by adding your first service to attract customers and grow your business.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontSize: 15,
+                color: Colors.grey[500],
                 height: 1.5,
               ),
             ),
@@ -1261,21 +1259,21 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
 
   Widget _buildBottomNavigationBar() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+      decoration: const BoxDecoration(
+        color: Color(0xFF166534),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            color: Colors.black26,
+            blurRadius: 12,
+            offset: Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          height: 64,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -1283,29 +1281,71 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                 icon: Icons.home_rounded,
                 label: 'Home',
                 onTap: () {
-                  // Navigate back to dashboard home
                   Navigator.of(context).popUntil((route) {
                     return route.isFirst || route.settings.name == '/dashboard';
                   });
                 },
                 isSelected: false,
               ),
-              _buildNavItem(
-                icon: Icons.calendar_today_rounded,
-                label: 'Bookings',
-                onTap: () {
-                  // Navigate back to dashboard and show bookings
-                  Navigator.of(context).popUntil((route) {
-                    return route.isFirst || route.settings.name == '/dashboard';
-                  });
-                },
-                isSelected: false,
-              ),
+              // Centre pill gradient add button
+              if (venderId != "" && !allCategoriesHaveServices)
+                GestureDetector(
+                  onTap: () {
+                    if (mounted && context.mounted) {
+                      Navigator.of(context)
+                          .push(
+                        MaterialPageRoute(
+                          builder: (context) => const ModernAddServiceActivity(),
+                        ),
+                      )
+                          .then((onValue) async {
+                        if (mounted && context.mounted && onValue == true && venderId != "") {
+                          await getCategory(context);
+                          await _fetchAllCategories();
+                          _checkIfAllCategoriesHaveServices();
+                        }
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1CB273).withOpacity(0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                        SizedBox(width: 6),
+                        Text(
+                          "Add Service",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            fontFamily: "Pop600",
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(width: 8),
               _buildNavItem(
                 icon: Icons.person_rounded,
                 label: 'Profile',
                 onTap: () {
-                  // Navigate back to dashboard and show profile
                   Navigator.of(context).popUntil((route) {
                     return route.isFirst || route.settings.name == '/dashboard';
                   });
@@ -1334,7 +1374,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
+              color: isSelected ? const Color(0xFF00E676) : Colors.white60,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -1343,7 +1383,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
+                color: isSelected ? const Color(0xFF00E676) : Colors.white60,
                 fontFamily: isSelected ? "Pop600" : "Pop400",
               ),
               textAlign: TextAlign.center,

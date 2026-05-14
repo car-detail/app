@@ -10,6 +10,8 @@ import '../../../Common/CommonWidget.dart';
 import '../../../ZoomImageList.dart';
 import '../../booking_model/ui/booking_activity.dart';
 import '../../rating_model/ui/rating_review_screen.dart';
+import '../../rating_model/data_manager/RatingReviewDataManager.dart';
+import '../../rating_model/model/rate_review_model_bean.dart';
 import '../../categories_module/data_manager/categories_list_data_manager.dart';
 import '../../home_module/model/services_model_data.dart';
 import '../data_manager/specialists_data_manager.dart';
@@ -40,6 +42,8 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
   bool _isLoadingDetails = true;
   String? _packagesError;
   String? _lastFetchedVendorId;
+  RatingReviewDataManager? _reviewDataManager;
+  List<Reviews> _previewReviews = [];
   String selectedTab = "About";
 
   @override
@@ -70,6 +74,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     sharedPreferences = await SharedPreferences.getInstance();
     dataManager = SpecialistsDataManager(sharedPreferences!);
     bookmarkDataManager = CategoriesListDataManager(sharedPreferences!);
+    _reviewDataManager = RatingReviewDataManager(sharedPreferences!);
     
     // Check if widget is still mounted before using context
     if (!mounted) return;
@@ -85,12 +90,26 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     });
   }
 
+  Future<void> _loadPreviewReviews() async {
+    if (_reviewDataManager == null || servicesDetailsData.sId == null) return;
+    try {
+      final response = await _reviewDataManager!.getReviewRateList(context, servicesDetailsData.sId!);
+      if (!mounted) return;
+      final data = RateReviewModelBean.fromJson(jsonDecode(response.body));
+      if (data.status == "success" && data.data != null) {
+        setState(() {
+          _previewReviews = data.data!.reviews.take(3).toList();
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     // Show loading indicator while fetching initial data
     if (_isLoadingDetails && servicesDetailsData.serviceTitle == null) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF0FDF4),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -114,7 +133,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     }
     
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF0FDF4),
       body: RefreshIndicator(
         onRefresh: () async {
           if (mounted && context.mounted) {
@@ -127,52 +146,43 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           _buildCollapsibleHeader(context),
           // Content
           SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Service Info Card
-                  _buildServiceInfoCard(context),
-                  const SizedBox(height: 12),
-                  // Separator
-                  Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-                  // Quick Info Cards
-                  _buildQuickInfoCards(context),
-                  const SizedBox(height: 12),
-                  // Separator
-                  Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-                  // Navigation Tabs
-                  _buildNavigationTabs(context),
-                  const SizedBox(height: 12),
-                  // Separator
-                  Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-                  // About Section
-                  _buildAboutSection(context),
-                  const SizedBox(height: 10),
-                  // Vendor Info Card
-                  _buildVendorInfoCard(context),
-                  const SizedBox(height: 10),
-                  // Services Section
-                  _buildServicesSection(context),
-                  const SizedBox(height: 10),
-                  // Packages Section - always show (with empty state if no packages)
-                  _buildPackagesSection(context),
-                  const SizedBox(height: 10),
-                  // Gallery Section
-                  if (detailImages.isNotEmpty) _buildGallerySection(context),
-                  if (detailImages.isNotEmpty) const SizedBox(height: 10),
-                  // Offers Section - always show (with empty state if no offers)
-                  _buildOffersSection(context),
-                  const SizedBox(height: 10),
-                  // Reviews Section - always show (with empty state if no reviews)
-                  _buildReviewsSection(context),
-                  const SizedBox(height: 100), // Space for bottom button
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatsStrip(context),
+                const SizedBox(height: 16),
+                _buildAboutSection(context),
+                const SizedBox(height: 16),
+                _buildVendorInfoCard(context),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildServicesSection(context),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildPackagesSection(context),
+                ),
+                const SizedBox(height: 16),
+                if (detailImages.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildGallerySection(context),
+                  ),
+                  const SizedBox(height: 16),
                 ],
-              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildOffersSection(context),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildReviewsSection(context),
+                ),
+                const SizedBox(height: 80),
+              ],
             ),
           ),
         ],
@@ -629,229 +639,43 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     );
   }
 
-  Widget _buildServiceInfoCard(BuildContext context) {
+  Widget _buildStatsStrip(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          if (servicesDetailsData.averageRating != null && servicesDetailsData.averageRating != 0)
+            _buildStatChip(Icons.star_rounded, "${servicesDetailsData.averageRating?.toStringAsFixed(1)}", "Rating", Colors.amber),
+          if (servicesDetailsData.totalReviews != null && servicesDetailsData.totalReviews! > 0)
+            _buildStatChip(Icons.people_rounded, "${servicesDetailsData.totalReviews}", "Reviews", Colors.blue),
+          if (servicesDetailsData.price != null && servicesDetailsData.price! > 0)
+            _buildStatChip(Icons.currency_rupee_rounded, "${servicesDetailsData.price}", "Price", ColorClass.base_color),
+          if (servicesDetailsData.serviceDuration != null)
+            _buildStatChip(Icons.access_time_rounded, servicesDetailsData.serviceDuration!, "Duration", Colors.purple),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String value, String label, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header with light grey background
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: ColorClass.base_color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.info_rounded, color: ColorClass.base_color, size: 18),
-                ),
-                const SizedBox(width: 10),
-          const Text(
-            "Service Details",
-            style: TextStyle(
-                    fontSize: 16,
-              fontFamily: "Pop600",
-              color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (servicesDetailsData.averageRating != 0) ...[
-          Row(
-            children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.star_rounded, color: Colors.amber.shade700, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-              Text(
-                        "${servicesDetailsData.averageRating?.toStringAsFixed(1) ?? '0.0'} Rating",
-                style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: "Pop600",
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "Based on reviews",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: "Pop400",
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                ),
-              ),
-              const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.people_rounded, color: Colors.blue.shade700, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-              Text(
-                        servicesDetailsData.totalReviews.toString(),
-                style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: "Pop600",
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "Reviews",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: "Pop400",
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    Colors.grey[300]!,
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-          if (servicesDetailsData.price != null && servicesDetailsData.price! > 0) ...[
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        ColorClass.base_color,
-                        ColorClass.base_color.withOpacity(0.8),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ColorClass.base_color.withOpacity(0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.attach_money_rounded, color: Colors.white, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Starting from",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: "Pop400",
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "\$${servicesDetailsData.price}",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontFamily: "Pop600",
-                          color: ColorClass.base_color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    Colors.grey[300]!,
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-                if (servicesDetailsData.serviceDuration != null) ...[
-                  Row(
-                    children: [
-                      Icon(Icons.access_time_rounded, color: Colors.grey[600], size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Duration: ${servicesDetailsData.serviceDuration ?? "N/A"}",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: "Pop400",
-                  color: Colors.grey[700],
-                ),
-              ),
-            ],
-          ),
-                ],
-        ],
-      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 6),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+          Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        ]),
+      ]),
     );
   }
 
@@ -891,20 +715,31 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     required String subtitle,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: ColorClass.base_color.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
+        ],
+        border: Border.all(color: ColorClass.base_color.withOpacity(0.15), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: ColorClass.base_color, size: 20),
-          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: ColorClass.base_color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: ColorClass.base_color, size: 20),
+          ),
+          const SizedBox(height: 8),
           Text(
             title,
             style: const TextStyle(
@@ -920,7 +755,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
             style: TextStyle(
               fontSize: 10,
               fontFamily: "Pop400",
-              color: Colors.grey[600],
+              color: Colors.grey[500],
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -932,29 +767,21 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
   }
 
   Widget _buildNavigationTabs(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 3))],
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTabButton("About", Icons.info_rounded, selectedTab == "About"),
-          ),
+        child: Row(children: [
+          Expanded(child: _buildTabButton("About", Icons.info_rounded, selectedTab == "About")),
           if (servicesDetailsData.offers.isNotEmpty)
-            Expanded(
-              child: _buildTabButton("Offers", Icons.local_offer_rounded, selectedTab == "Offers"),
-            ),
-          Expanded(
-            child: _buildTabButton("Reviews", Icons.star_rounded, selectedTab == "Reviews"),
-          ),
-        ],
+            Expanded(child: _buildTabButton("Offers", Icons.local_offer_rounded, selectedTab == "Offers")),
+          Expanded(child: _buildTabButton("Reviews", Icons.star_rounded, selectedTab == "Reviews")),
+        ]),
       ),
     );
   }
@@ -965,281 +792,167 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
         setState(() {
           selectedTab = title;
         });
-        // Handle tab selection
         if (title == "Offers") {
-          CommonWidget.navigateToScreen(
-            context,
-            OfferListWidget(servicesDetailsData.offers ?? [])
-          );
+          CommonWidget.navigateToScreen(context, OfferListWidget(servicesDetailsData.offers ?? []));
         } else if (title == "Reviews") {
-          CommonWidget.navigateToScreen(
-            context,
-            RatingReviewScreen(servicesDetailsData)
-          );
+          CommonWidget.navigateToScreen(context, RatingReviewScreen(servicesDetailsData));
         }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? ColorClass.base_color : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          gradient: isSelected
+              ? const LinearGradient(colors: [Color(0xFF166534), Color(0xFF1CB273)])
+              : null,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, color: isSelected ? Colors.white : Colors.grey[500], size: 16),
+          const SizedBox(width: 5),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected ? Colors.white : Colors.grey[600],
-              size: 20,
             ),
-            const SizedBox(height: 4),
-            Text(
-          title,
-          style: TextStyle(
-                fontSize: 12,
-                fontFamily: isSelected ? "Pop600" : "Pop500",
-            color: isSelected ? Colors.white : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
-            ),
-          ],
-        ),
+        ]),
       ),
     );
   }
 
   Widget _buildAboutSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-          ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header with light grey background
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-            children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: ColorClass.base_color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(Icons.description, color: ColorClass.base_color, size: 16),
-                ),
-              const SizedBox(width: 8),
-              const Text(
-                  "About",
-                style: TextStyle(
-                    fontSize: 15,
-                  fontFamily: "Pop600",
-                  color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+            width: 3,
+            height: 18,
+            decoration: BoxDecoration(color: ColorClass.base_color, borderRadius: BorderRadius.circular(2)),
           ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            servicesDetailsData.about ?? "No description available for this service.",
-            style: TextStyle(
-              fontSize: 13,
-              fontFamily: "Pop400",
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
+          const SizedBox(width: 8),
+          const Text("About", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black87)),
+        ]),
+        const SizedBox(height: 10),
+        Text(
+          servicesDetailsData.about ?? "No description available for this service.",
+          style: TextStyle(fontSize: 14, color: Colors.grey[700], height: 1.55),
+        ),
+      ]),
     );
   }
 
   Widget _buildVendorInfoCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-          ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 16, offset: const Offset(0, 4))],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: ColorClass.base_color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(Icons.business, color: ColorClass.base_color, size: 16),
-              ),
-              const SizedBox(width: 8),
-          const Text(
-            "Service Provider",
-            style: TextStyle(
-                  fontSize: 15,
-              fontFamily: "Pop600",
-              color: Colors.black87,
-                  fontWeight: FontWeight.bold,
+      child: Column(children: [
+        // green top strip
+        Container(
+          height: 6,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF166534), Color(0xFF1CB273), Color(0xFF26D17A)],
             ),
-              ),
-            ],
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              // Vendor Image
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.grey[100],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: servicesDetailsData.vendorId?.displayPicture != null &&
-                          servicesDetailsData.vendorId!.displayPicture!.isNotEmpty
-                      ? Image.network(
-                          servicesDetailsData.vendorId!.displayPicture!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                            Icons.local_car_wash,
-                            color: Colors.grey[600],
-                            size: 30,
-                            );
-                          },
-                        )
-                      : Icon(
-                            Icons.local_car_wash,
-                            color: Colors.grey[600],
-                            size: 30,
-                        ),
-                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(children: [
+            // avatar
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: ColorClass.base_color.withOpacity(0.1),
               ),
-              const SizedBox(width: 16),
-              // Vendor Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      servicesDetailsData.vendorId?.displayName ?? "Service Provider",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: "Pop600",
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Professional Car Service",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: "Pop400",
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: servicesDetailsData.vendorId?.displayPicture != null &&
+                        servicesDetailsData.vendorId!.displayPicture!.isNotEmpty
+                    ? Image.network(
+                        servicesDetailsData.vendorId!.displayPicture!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.store_rounded, color: ColorClass.base_color, size: 28),
+                      )
+                    : Icon(Icons.store_rounded, color: ColorClass.base_color, size: 28),
               ),
-              // Action Buttons
-              Row(
-                children: [
-              GestureDetector(
-                onTap: () {
-                      try {
-                        final Uri phoneUri = Uri(
-                          scheme: 'tel',
-                          path: servicesDetailsData.vendorId?.mobile,
-                        );
-                        launchUrl(phoneUri);
-                      } catch (e) {
-                      }
-                },
-                child: Container(
-                      padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.phone,
-                        color: Colors.grey[700],
-                    size: 20,
-                  ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(
+                  servicesDetailsData.vendorId?.displayName ?? "Service Provider",
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.black87),
                 ),
-                  ),
-                  // Removed message/chat icon per requirement
-                ],
+                const SizedBox(height: 3),
+                Text("Professional Car Service", style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              ]),
+            ),
+            // phone button
+            GestureDetector(
+              onTap: () {
+                try {
+                  launchUrl(Uri(scheme: 'tel', path: servicesDetailsData.vendorId?.mobile));
+                } catch (e) {}
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(colors: [Color(0xFF1CB273), Color(0xFF26D17A)]),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                child: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 
   Widget _buildServicesSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
+        border: Border(left: BorderSide(color: ColorClass.base_color, width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [ColorClass.base_color.withOpacity(0.08), Colors.transparent],
+                begin: Alignment.centerLeft, end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(16)),
+            ),
+            child: Row(children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: ColorClass.base_color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
+                decoration: BoxDecoration(color: ColorClass.base_color.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
                 child: Icon(Icons.build_circle_rounded, color: ColorClass.base_color, size: 16),
               ),
               const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  "Available Services",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: "Pop600",
-                    color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+              const Expanded(child: Text("Available Services", style: TextStyle(fontSize: 15, fontFamily: "Pop600", color: Colors.black87, fontWeight: FontWeight.bold))),
+            ]),
           ),
-          const SizedBox(height: 16),
+          Padding(padding: const EdgeInsets.fromLTRB(14, 4, 14, 14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SizedBox(height: 8),
           // Service Details Card with Image
           Container(
       decoration: BoxDecoration(
@@ -1342,17 +1055,18 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[100],
+                                    color: ColorClass.base_color,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     servicesDetailsData.categoryName ?? "Car Wash",
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 13,
-                                      fontFamily: "Pop500",
-                                      color: Colors.grey[700],
+                                      fontFamily: "Pop600",
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -1492,6 +1206,8 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
                 ),
               ),
             ],
+          ),
+          ]),
           ),
         ],
       ),
@@ -1686,47 +1402,6 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
             const SizedBox(height: 12),
           if (hasPackages) ...[
             ...servicesDetailsData.packages.map((package) => _buildVendorPackageCard(package)),
-            const SizedBox(height: 16),
-            GestureDetector(
-            onTap: () {
-              CommonWidget.navigateToScreen(
-                context,
-                AllPackagesScreen(
-                  vendorId: servicesDetailsData.vendorId?.sId ?? '',
-                  vendorName: servicesDetailsData.vendorId?.displayName ?? 'Vendor',
-                  initialPackages: List<Map<String, dynamic>>.from(servicesDetailsData.packages),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.grey[300]!,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inventory_2, color: Colors.grey[700], size: 16),
-                  const SizedBox(width: 6),
-                  const Text(
-                    "View All Packages",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: "Pop500",
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 14),
-                ],
-              ),
-            ),
-            ),
           ] else ...[
             // No packages available - show empty state
             Container(
@@ -1768,102 +1443,169 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     }
 
   Widget _buildVendorPackageCard(Map<String, dynamic> package) {
+    final bool isBestSeller = package['isBestSeller'] == true;
+    final bool isActive = package['isActive'] == true;
+    final String? smallPrice = package['smallVehiclePrice']?.toString();
+    final String? largePrice = package['largeVehiclePrice']?.toString();
+    final String? duration = package['packageDuration']?.toString() ?? package['duration']?.toString();
+    final String? tier = package['packageTier']?.toString();
+    final List<dynamic> customServices = package['customServices'] is List ? package['customServices'] : [];
+    final List<dynamic> features = package['features'] is List ? package['features'] : [];
+    final List<dynamic> rawServices = package['servicesIncluded'] is List ? package['servicesIncluded'] : [];
+    // Count services: prefer customServices count, else servicesIncluded count
+    final int servicesCount = customServices.isNotEmpty ? customServices.length : rawServices.length;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: ColorClass.base_color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.inventory_2_rounded, color: ColorClass.base_color, size: 18),
-                ),
-                const SizedBox(width: 10),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: Name + Badges
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-              Text(
-                        package['title'] ?? 'Service Package',
-                style: const TextStyle(
-                          fontSize: 15,
-                  fontFamily: "Pop600",
-                  color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                ),
-              ),
-                      const SizedBox(height: 4),
                       Text(
-                        package['description'] ?? 'Package description',
-                  style: TextStyle(
-                    fontSize: 12,
-                          fontFamily: "Pop400",
-                          color: Colors.grey[600],
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        package['packageName']?.toString() ?? package['title']?.toString() ?? 'Package',
+                        style: const TextStyle(fontSize: 17, fontFamily: "Pop600", color: Colors.black87, fontWeight: FontWeight.bold),
                       ),
+                      if (package['description'] != null && package['description'].toString().isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          package['description'].toString(),
+                          style: TextStyle(fontSize: 12, fontFamily: "Pop400", color: Colors.grey[600]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      package['price'] != null ? "\$${package['price']}" : "TBD",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: "Pop600",
-                        color: ColorClass.base_color,
-                        fontWeight: FontWeight.bold,
+                    if (isBestSeller) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: ColorClass.base_color,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text("Best Seller", style: TextStyle(fontSize: 11, fontFamily: "Pop600", color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isActive ? ColorClass.base_color.withOpacity(0.08) : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: isActive ? ColorClass.base_color.withOpacity(0.4) : Colors.grey[300]!, width: 1),
+                      ),
+                      child: Text(
+                        isActive ? "Active" : "Inactive",
+                        style: TextStyle(fontSize: 11, fontFamily: "Pop600", color: isActive ? ColorClass.base_color : Colors.grey[600], fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.access_time_rounded, color: Colors.grey[600], size: 12),
-                        const SizedBox(width: 4),
-                        Text(
-                          package['duration'] ?? "TBD",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontFamily: "Pop400",
-                            color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
                   ],
                 ),
               ],
             ),
-            if (package['features'] != null && package['features'] is List) ...[
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: (package['features'] as List).map((feature) => _buildFeatureChip(feature.toString())).toList(),
+            const SizedBox(height: 14),
+            // Price Grid
+            if (smallPrice != null || largePrice != null || (duration != null && duration.isNotEmpty) || servicesCount > 0) ...[
+              Container(
+                decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10)),
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      if (smallPrice != null && smallPrice.isNotEmpty) ...[
+                        Expanded(child: _buildPriceCell("\$$smallPrice", "Small")),
+                        VerticalDivider(width: 1, thickness: 1, color: Colors.grey[300]),
+                      ],
+                      if (largePrice != null && largePrice.isNotEmpty) ...[
+                        Expanded(child: _buildPriceCell("\$$largePrice", "Large")),
+                        VerticalDivider(width: 1, thickness: 1, color: Colors.grey[300]),
+                      ],
+                      if (duration != null && duration.isNotEmpty) ...[
+                        Expanded(child: _buildPriceCell(duration, "Duration")),
+                        if (servicesCount > 0) VerticalDivider(width: 1, thickness: 1, color: Colors.grey[300]),
+                      ],
+                      if (servicesCount > 0)
+                        Expanded(child: _buildPriceCell("$servicesCount", "Services")),
+                    ],
+                  ),
+                ),
               ),
+              const SizedBox(height: 12),
             ],
-        ],
+            // Service/Feature chips
+            if (customServices.isNotEmpty || features.isNotEmpty) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ...customServices.map((s) => _buildServiceChip(s.toString())),
+                  ...features.map((f) => _buildServiceChip(f.toString())),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            // Tier badge
+            if (tier != null && tier.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.diamond_outlined, size: 14, color: Colors.grey[700]),
+                    const SizedBox(width: 5),
+                    Text(tier, style: TextStyle(fontSize: 12, fontFamily: "Pop600", color: Colors.grey[700], fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceCell(String value, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(value, style: const TextStyle(fontSize: 16, fontFamily: "Pop600", color: Colors.black87, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 3),
+          Text(label, style: TextStyle(fontSize: 11, fontFamily: "Pop400", color: Colors.grey[500])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 12, fontFamily: "Pop400", color: Colors.grey[800])),
     );
   }
 
@@ -2118,74 +1860,9 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           ],
         ),
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  "${servicesDetailsData.offers.length}",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontFamily: "Pop600",
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 12),
           if ((servicesDetailsData.offers ?? []).isNotEmpty) ...[
-            // Show first few offers as preview
-            ...(servicesDetailsData.offers ?? []).where((offer) => offer != null).take(2).map((offer) => _buildOfferPreviewCard(offer)),
-            if ((servicesDetailsData.offers ?? []).length > 2) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () {
-                CommonWidget.navigateToScreen(
-                  context,
-                    AllOffersScreen(
-                      vendorId: servicesDetailsData.vendorId?.sId ?? '',
-                      vendorName: servicesDetailsData.vendorId?.displayName ?? 'Vendor',
-                      offers: (servicesDetailsData.offers ?? []).cast<Map<String, dynamic>>(),
-                    ),
-                );
-              },
-              child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: Colors.grey[300]!,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                      Icon(Icons.local_offer, color: Colors.grey[700], size: 16),
-                      const SizedBox(width: 6),
-                    Text(
-                      "View All ${servicesDetailsData.offers.length} Offers",
-                      style: const TextStyle(
-                          fontSize: 13,
-                        fontFamily: "Pop500",
-                          color: Colors.black87,
-                      ),
-                    ),
-                      const SizedBox(width: 6),
-                      Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 14),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ...(servicesDetailsData.offers ?? []).where((offer) => offer != null).map((offer) => _buildOfferPreviewCard(offer)),
           ] else ...[
             // No offers available
             Container(
@@ -2331,130 +2008,70 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
   }
 
   Widget _buildReviewsSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
-          ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Header with light grey background
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: ColorClass.base_color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(Icons.star_rounded, color: ColorClass.base_color, size: 16),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    "Customer Reviews",
-            style: TextStyle(
-                      fontSize: 15,
-              fontFamily: "Pop600",
-              color: Colors.black87,
-                      fontWeight: FontWeight.bold,
-            ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
+          // Header row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Row(children: [
+                Container(width: 3, height: 18, decoration: BoxDecoration(color: ColorClass.base_color, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(width: 8),
+                const Text("Reviews", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black87)),
+                if (servicesDetailsData.totalReviews != null && servicesDetailsData.totalReviews! > 0) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: ColorClass.base_color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                    child: Text("${servicesDetailsData.totalReviews}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: ColorClass.base_color)),
+                  ),
+                ],
+              ]),
               if (servicesDetailsData.totalReviews != null && servicesDetailsData.totalReviews! > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    "${servicesDetailsData.totalReviews}",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontFamily: "Pop600",
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                GestureDetector(
+                  onTap: () => CommonWidget.navigateToScreen(context, RatingReviewScreen(servicesDetailsData)),
+                  child: Text("View all", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColorClass.base_color)),
                 ),
             ],
           ),
           const SizedBox(height: 12),
-          if (servicesDetailsData.totalReviews != null && servicesDetailsData.totalReviews! > 0) ...[
+          if (_previewReviews.isNotEmpty) ...[
+            ..._previewReviews.map((review) => _buildReviewCard(review)),
+            const SizedBox(height: 4),
             GestureDetector(
-              onTap: () {
-                CommonWidget.navigateToScreen(
-                  context,
-                  RatingReviewScreen(servicesDetailsData),
-                );
-              },
+              onTap: () => CommonWidget.navigateToScreen(context, RatingReviewScreen(servicesDetailsData)),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.grey[300]!,
-                    width: 1,
-                  ),
+                  border: Border.all(color: ColorClass.base_color.withOpacity(0.3), width: 1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: ColorClass.base_color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(Icons.star, color: ColorClass.base_color, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-          const Text(
-                            "Read Reviews",
-            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: "Pop500",
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "${servicesDetailsData.totalReviews} reviews",
-                            style: TextStyle(
-                              fontSize: 11,
-              fontFamily: "Pop400",
-                              color: Colors.grey[600],
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.star_rounded, color: ColorClass.base_color, size: 16),
+                  const SizedBox(width: 6),
+                  Text("View All Reviews", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColorClass.base_color)),
+                ]),
+              ),
             ),
-          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 14),
-                  ],
+          ] else if (servicesDetailsData.totalReviews != null && servicesDetailsData.totalReviews! > 0) ...[
+            GestureDetector(
+              onTap: () => CommonWidget.navigateToScreen(context, RatingReviewScreen(servicesDetailsData)),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: ColorClass.base_color.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.star_rounded, color: ColorClass.base_color, size: 16),
+                  const SizedBox(width: 6),
+                  Text("View ${servicesDetailsData.totalReviews} Reviews", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColorClass.base_color)),
+                ]),
               ),
             ),
           ] else ...[
@@ -2494,6 +2111,44 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildReviewCard(Reviews review) {
+    final stars = (review.rating ?? 0).toInt();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: ColorClass.base_color.withOpacity(0.12),
+            child: Text(
+              (review.userId?.email ?? "U").substring(0, 1).toUpperCase(),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ColorClass.base_color),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(review.userId?.email ?? "Customer",
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+            Row(children: List.generate(5, (i) => Icon(
+              i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
+              size: 13, color: Colors.amber,
+            ))),
+          ])),
+        ]),
+        if (review.reviewText != null && review.reviewText!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(review.reviewText!, style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4)),
+        ],
+      ]),
     );
   }
 
@@ -2645,7 +2300,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           } else {
             errorMessage = "Unable to load vendor details. Please try again.";
           }
-          CommonWidget.errorShowSnackBarFor(context, errorMessage);
+          if (mounted) CommonWidget.errorShowSnackBarFor(context, errorMessage);
         }
         return;
       }
@@ -2678,7 +2333,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
             
           } else {
             if (mounted) {
-              CommonWidget.errorShowSnackBarFor(context, "No services found for this vendor");
+              if (mounted) CommonWidget.errorShowSnackBarFor(context, "No services found for this vendor");
             }
             return;
           }
@@ -2705,7 +2360,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
       }
     } else {
         if (mounted) {
-          CommonWidget.errorShowSnackBarFor(context, jsonData['message'] ?? "Failed to load service details");
+          if (mounted) CommonWidget.errorShowSnackBarFor(context, jsonData['message'] ?? "Failed to load service details");
           _fetchVendorPackages(null);
     }
   }
@@ -2715,15 +2370,16 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
         setState(() {
           _isLoadingDetails = false;
         });
+        _loadPreviewReviews();
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingDetails = false;
         });
-        if (e is TimeoutException) {
+        if (mounted && e is TimeoutException) {
           CommonWidget.errorShowSnackBarFor(context, "Request timed out. Please check your connection and try again.");
-        } else {
+        } else if (mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Error loading service details: ${e.toString()}");
         }
       }

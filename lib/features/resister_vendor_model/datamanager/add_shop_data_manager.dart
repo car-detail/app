@@ -103,6 +103,7 @@ class AddShopDataManager {
       double long,
       double lat,
       String name,
+      String about,
       BuildContext context) async {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     return apiFuntions
@@ -110,6 +111,7 @@ class AddShopDataManager {
       "displayName": displayName,
       "officialEmail": email,
       "mobile": mobile,
+      "about": about,
       "displayPicture": profileImage,
       "location": {
         "name": name,

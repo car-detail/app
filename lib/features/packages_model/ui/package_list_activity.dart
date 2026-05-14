@@ -22,6 +22,15 @@ class _PackageListActivityState extends State<PackageListActivity> {
   SharedPreferences? sharedPreferences;
   bool isLoading = true;
 
+  // ── design tokens ───────────────────────────────────────────────
+  static const _bg          = Color(0xFFF0FDF4);
+  static const _card        = Colors.white;
+  static const _borderAccent = Color(0xFF1CB273);
+  static const _surface     = Color(0xFFF3F4F6);
+  static const _textPrimary  = Color(0xFF1A1A1A);
+  static const _textSecondary = Color(0xFF6B7280);
+  static const _red          = Color(0xFFEF4444);
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +39,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
 
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
     dataManager = PackageDataManager(sharedPreferences!);
     await getPackages();
   }
@@ -38,646 +48,51 @@ class _PackageListActivityState extends State<PackageListActivity> {
     setState(() {
       isLoading = true;
     });
-    
+
     try {
       var response = await dataManager!.getAllPackages(context);
+      if (!mounted) return;
       var data = PackageModelData.fromJson(jsonDecode(response.body));
-      
-      if (data.status == "success") {
+
+    if (mounted && data.status == "success") {
         setState(() {
           packages.clear();
           packages.addAll(data.data!);
         });
-      } else {
+      } else if (mounted) {
         CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to load packages");
       }
     } catch (e) {
-      CommonWidget.errorShowSnackBarFor(context, "Error loading packages: $e");
+      if (mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error loading packages: $e");
+      }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> deletePackage(String packageId) async {
     try {
       var response = await dataManager!.deletePackage(context, packageId);
+      if (!mounted) return;
       var data = PackageModelData.fromJson(jsonDecode(response.body));
-      
-      if (data.status == "success") {
+
+    if (mounted && data.status == "success") {
         CommonWidget.successShowSnackBarFor(context, "Package deleted successfully");
-        getPackages(); // Refresh the list
-      } else {
+        if (mounted) getPackages();
+      } else if (mounted) {
         CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to delete package");
       }
     } catch (e) {
-      CommonWidget.errorShowSnackBarFor(context, "Error deleting package: $e");
+      if (mounted) {
+        CommonWidget.errorShowSnackBarFor(context, "Error deleting package: $e");
+      }
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: ColorClass.base_color,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        body: Stack(
-          children: [
-            // Green status bar background
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: MediaQuery.of(context).padding.top,
-                color: ColorClass.base_color,
-                width: double.infinity,
-              ),
-            ),
-            // Main content
-            Column(
-          children: [
-            // Enhanced Header with Back Button
-            Container(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 16,
-                    left: 20,
-                    right: 20,
-                    bottom: 20,
-                  ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    ColorClass.base_color,
-                    ColorClass.base_color.withOpacity(0.8),
-                  ],
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Back Button
-                  CommonWidget.buildBackButton(
-                    context,
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    iconColor: Colors.white,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "My Packages",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "${packages.length} packages available",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (packages.isNotEmpty)
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    getPackages();
-                  },
-                  child: _buildPackagesList(),
-                ),
-              ),
-            if (packages.isEmpty && !isLoading)
-              Expanded(
-                child: _buildEmptyState(),
-              ),
-            if (isLoading)
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: ColorClass.base_color),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Loading packages...",
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddPackageActivity(),
-              ),
-            ).then((_) => getPackages());
-          },
-          backgroundColor: ColorClass.base_color,
-          tooltip: "Add Package",
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
-        ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "No Packages Yet",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Create your first package to start offering bundled services to customers",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[500],
-              ),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddPackageActivity(),
-                  ),
-                ).then((_) => getPackages());
-              },
-              icon: const Icon(Icons.add),
-              label: const Text("Create Package"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorClass.base_color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPackagesList() {
-    return RefreshIndicator(
-      onRefresh: getPackages,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: packages.length,
-        itemBuilder: (context, index) {
-          final package = packages[index];
-          return _buildPackageCard(package);
-        },
-      ),
-    );
-  }
-
-  Widget _buildPackageCard(PackageData package) {
-    final isBestSeller = package.isBestSeller ?? false;
-    final smallPrice = double.tryParse(package.smallVehiclePrice ?? package.packagePrice ?? "0") ?? 0;
-    final largePrice = double.tryParse(package.largeVehiclePrice ?? package.packagePrice ?? "0") ?? 0;
-    final duration = double.tryParse(package.packageDuration ?? "0") ?? 0;
-    final servicesCount = package.servicesIncluded?.length ?? 0;
-    final isActive = package.isActive ?? true;
-    final primaryColor = ColorClass.base_color;
-    
-    // Get service names from serviceDetails, customServices, or fallback to IDs
-    List<String> serviceNames = [];
-    
-    // First, add custom services (these are always service names)
-    if (package.customServices != null && package.customServices!.isNotEmpty) {
-      serviceNames.addAll(package.customServices!);
-    }
-    
-    // Then, add service names from populated service objects
-    if (package.serviceDetails != null && package.serviceDetails!.isNotEmpty) {
-      final serviceDetailNames = package.serviceDetails!
-          .map((s) => s['name']?.toString() ?? '')
-          .where((name) => name.isNotEmpty && !name.startsWith('Service '))
-          .toList();
-      serviceNames.addAll(serviceDetailNames);
-    } else if (package.servicesIncluded != null && package.customServices == null) {
-      // If no custom services and no service details, show IDs as fallback
-      debugPrint('Package: ${package.packageName} - No serviceDetails or customServices, servicesIncluded: ${package.servicesIncluded}');
-      serviceNames.addAll(package.servicesIncluded!.map((id) => 'Service $id').toList());
-    }
-    
-    // Remove duplicates while preserving order
-    serviceNames = serviceNames.toSet().toList();
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditPackageActivity(packageData: package),
-              ),
-            ).then((_) => getPackages());
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header: Title, Status, Best Seller
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      package.packageName ?? "Unknown Package",
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF111827),
-                                        letterSpacing: -0.3,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isBestSeller) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                                        ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.star, size: 12, color: Colors.white),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "BEST",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                package.packageDescription ?? "No description",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
-                                  height: 1.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Status Badge - Minimal
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isActive 
-                                ? const Color(0xFF10B981).withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: isActive 
-                                      ? const Color(0xFF10B981)
-                                      : Colors.grey[600],
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isActive ? "Active" : "Inactive",
-                                style: TextStyle(
-                                  color: isActive 
-                                      ? const Color(0xFF10B981)
-                                      : Colors.grey[700],
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Pricing Row - Compact
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildCompactPrice(
-                            icon: Icons.directions_car_rounded,
-                            price: smallPrice,
-                            color: primaryColor,
-                          ),
-                        ),
-                        Container(width: 1, height: 30, color: Colors.grey[200]),
-                        Expanded(
-                          child: _buildCompactPrice(
-                            icon: Icons.directions_car_filled,
-                            price: largePrice,
-                            color: primaryColor,
-                            iconSize: 20, // Slightly larger for SUV
-                          ),
-                        ),
-                        Container(width: 1, height: 30, color: Colors.grey[200]),
-                        Expanded(
-                          child: _buildCompactInfo(
-                            icon: Icons.access_time_rounded,
-                            text: "${duration.toStringAsFixed(0)}h",
-                          ),
-                        ),
-                        Container(width: 1, height: 30, color: Colors.grey[200]),
-                        Expanded(
-                          child: _buildCompactInfo(
-                            icon: Icons.build_rounded,
-                            text: "$servicesCount",
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Service Tags - Chip Style (like Quick Add Common Services)
-                    if (serviceNames.isNotEmpty) ...[
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: serviceNames.map((serviceName) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFF3B82F6).withOpacity(0.3),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF3B82F6).withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              serviceName.length > 25 ? '${serviceName.substring(0, 25)}...' : serviceName,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF3B82F6),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    
-                    // Package Tier
-                    if (package.packageTier != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.category, size: 14, color: Colors.grey[700]),
-                            const SizedBox(width: 6),
-                            Text(
-                              package.packageTier!,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    
-                    // Action Buttons - Compact
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildCompactButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditPackageActivity(packageData: package),
-                                ),
-                              ).then((_) => getPackages());
-                            },
-                            label: "Edit",
-                            icon: Icons.edit_rounded,
-                            color: primaryColor,
-                            isPrimary: true,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildCompactButton(
-                            onPressed: () => _showDeleteDialog(package),
-                            label: "Delete",
-                            icon: Icons.delete_outline_rounded,
-                            color: const Color(0xFFEF4444),
-                            isPrimary: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompactPrice({
-    required IconData icon,
-    required double price,
-    required Color color,
-    double iconSize = 18,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, size: iconSize, color: color),
-        const SizedBox(height: 4),
-        Text(
-          "\$${price.toStringAsFixed(0)}",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactInfo({
-    required IconData icon,
-    required String text,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey[600]),
-        const SizedBox(height: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactButton({
-    required VoidCallback onPressed,
-    required String label,
-    required IconData icon,
-    required Color color,
-    required bool isPrimary,
-  }) {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: isPrimary ? color : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: isPrimary ? null : Border.all(color: color.withOpacity(0.3), width: 1.5),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: isPrimary ? Colors.white : color),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isPrimary ? Colors.white : color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
 
   void _showDeleteDialog(PackageData package) {
     showDialog(
@@ -699,6 +114,604 @@ class _PackageListActivityState extends State<PackageListActivity> {
             child: const Text("Delete"),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── build ────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: _bg,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: _bg,
+        body: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: isLoading
+                  ? _buildLoading()
+                  : packages.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: getPackages,
+                          color: ColorClass.base_color,
+                          backgroundColor: _card,
+                          child: _buildPackagesList(),
+                        ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomBar(context),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top;
+    return Container(
+      padding: EdgeInsets.only(
+        top: topPad + 12,
+        left: 20,
+        right: 20,
+        bottom: 24,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF166534), Color(0xFF1CB273), Color(0xFF26D17A)],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1CB273).withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  size: 18, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              "My Packages",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          if (!isLoading)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Text(
+                "${packages.length}",
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: CircularProgressIndicator(
+        color: ColorClass.base_color,
+        strokeWidth: 2.5,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(
+                color: _surface,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.inventory_2_outlined,
+                  size: 36, color: _textSecondary),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "No packages yet",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: _textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "Create your first package to start offering bundled services to customers.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: _textSecondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddPackageActivity(),
+                  ),
+                ).then((_) => getPackages());
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                decoration: BoxDecoration(
+                  color: ColorClass.base_color,
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: const Text(
+                  "Create package",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPackagesList() {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+      itemCount: packages.length,
+      itemBuilder: (context, index) => _buildPackageCard(packages[index]),
+    );
+  }
+
+  Widget _buildPackageCard(PackageData package) {
+    final isBestSeller = package.isBestSeller ?? false;
+    final smallPrice = double.tryParse(
+            package.smallVehiclePrice ?? package.packagePrice ?? "0") ??
+        0;
+    final largePrice = double.tryParse(
+            package.largeVehiclePrice ?? package.packagePrice ?? "0") ??
+        0;
+    final duration =
+        double.tryParse(package.packageDuration ?? "0") ?? 0;
+    final servicesCount = package.servicesIncluded?.length ?? 0;
+    final isActive = package.isActive ?? true;
+
+    // build service names list
+    List<String> serviceNames = [];
+    if (package.customServices != null &&
+        package.customServices!.isNotEmpty) {
+      serviceNames.addAll(package.customServices!);
+    }
+    if (package.serviceDetails != null &&
+        package.serviceDetails!.isNotEmpty) {
+      final names = package.serviceDetails!
+          .map((s) => s['name']?.toString() ?? '')
+          .where((n) => n.isNotEmpty && !n.startsWith('Service '))
+          .toList();
+      serviceNames.addAll(names);
+    } else if (package.servicesIncluded != null &&
+        package.customServices == null) {
+      debugPrint(
+          'Package: ${package.packageName} - No serviceDetails or customServices, servicesIncluded: ${package.servicesIncluded}');
+      serviceNames.addAll(
+          package.servicesIncluded!.map((id) => 'Service $id').toList());
+    }
+    serviceNames = serviceNames.toSet().toList();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: _card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _borderAccent.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // thin top accent strip
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    ColorClass.base_color.withValues(alpha: 0.9),
+                    ColorClass.base_color.withValues(alpha: 0.3),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── row 1: name + badges ──────────────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              package.packageName ?? "Unknown Package",
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: _textPrimary,
+                                letterSpacing: -0.4,
+                                height: 1.15,
+                              ),
+                            ),
+                            if (package.packageDescription != null &&
+                                package.packageDescription!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                package.packageDescription!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                  color: _textSecondary,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // best seller badge
+                          if (isBestSeller)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    ColorClass.base_color,
+                                    ColorClass.base_color
+                                        .withValues(alpha: 0.7),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: const Text(
+                                "Best Seller",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                          if (isBestSeller) const SizedBox(height: 6),
+                          // status badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? ColorClass.base_color.withValues(alpha: 0.12)
+                                  : _surface,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Text(
+                              isActive ? "Active" : "Inactive",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isActive
+                                    ? ColorClass.base_color
+                                    : _textSecondary,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── row 2: price + stats ──────────────────
+                  Row(
+                    children: [
+                      _buildStatCell(
+                        label: "Small",
+                        value: "\$${smallPrice.toStringAsFixed(0)}",
+                        valueColor: _textPrimary,
+                      ),
+                      _buildDivider(),
+                      _buildStatCell(
+                        label: "Large",
+                        value: "\$${largePrice.toStringAsFixed(0)}",
+                        valueColor: _textPrimary,
+                      ),
+                      _buildDivider(),
+                      _buildStatCell(
+                        label: "Duration",
+                        value: "${duration.toStringAsFixed(0)}h",
+                        valueColor: _textPrimary,
+                      ),
+                      _buildDivider(),
+                      _buildStatCell(
+                        label: "Services",
+                        value: "$servicesCount",
+                        valueColor: _textPrimary,
+                      ),
+                    ],
+                  ),
+
+                  // ── row 3: service tags ───────────────────
+                  if (serviceNames.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      children: serviceNames.map((name) {
+                        final label = name.length > 25
+                            ? '${name.substring(0, 25)}...'
+                            : name;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 11, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _surface,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _textPrimary,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+
+                  // ── package tier ──────────────────────────
+                  if (package.packageTier != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.category,
+                              size: 13, color: _textSecondary),
+                          const SizedBox(width: 5),
+                          Text(
+                            package.packageTier!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  // ── row 4: actions ────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditPackageActivity(packageData: package),
+                              ),
+                            ).then((_) => getPackages());
+                          },
+                          child: Container(
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: ColorClass.base_color,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              "Edit",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // ghost delete icon button
+                      GestureDetector(
+                        onTap: () => _showDeleteDialog(package),
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: _red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.delete_outline_rounded,
+                              size: 20, color: _red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCell({
+    required String label,
+    required String value,
+    required Color valueColor,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: valueColor,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              color: _textSecondary,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 28,
+      color: _surface,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return Container(
+      color: _bg,
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddPackageActivity(),
+            ),
+          ).then((_) => getPackages());
+        },
+        child: Container(
+          height: 52,
+          decoration: BoxDecoration(
+            color: ColorClass.base_color,
+            borderRadius: BorderRadius.circular(50),
+          ),
+          alignment: Alignment.center,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, size: 20, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                "Add Package",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

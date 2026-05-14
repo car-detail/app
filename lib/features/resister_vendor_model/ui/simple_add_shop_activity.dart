@@ -67,6 +67,12 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   final TextEditingController _shopAddressController = TextEditingController();
   // Mobile number is not needed in UI - it comes from OTP verification (SharedPreferences)
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _serviceAboutController = TextEditingController();
+
+  // Service images (Multi-image support)
+  final List<String> _detailImages = [];
+  final List<File> _selectedDetailFiles = [];
+  bool _isUploadingDetailImages = false;
 
   // Location data
   double _currentLat = 0.0;
@@ -247,7 +253,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
 
       var data = CategoryModelData.fromJson(jsonDecode(response.body));
 
-      if (data.status == "success" && data.data != null) {
+      if (mounted && data.status == "success" && data.data != null) {
         setState(() {
           _categories = data.data!;
           for (var cat in _categories) {
@@ -488,7 +494,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
   }
 
   Widget _buildBusinessTypeStep() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,44 +542,71 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           ),
           const SizedBox(height: 24),
           if (_isLoadingCategories)
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text("Loading business types..."),
-                  ],
-                ),
+            const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text("Loading business types..."),
+                ],
               ),
             )
           else if (_categories.isEmpty)
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text("No categories available"),
-                    SizedBox(height: 8),
-                    Text("Please check your internet connection", style: TextStyle(fontSize: 12)),
-                  ],
-                ),
+            const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text("No categories available"),
+                  SizedBox(height: 8),
+                  Text("Please check your internet connection", style: TextStyle(fontSize: 12)),
+                ],
               ),
             )
           else
-            Expanded(
-              child: ListView.separated(
-                itemCount: _categories.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  return _buildCategoryCard(category);
-                },
-              ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _categories.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final category = _categories[index];
+                return _buildCategoryCard(category);
+              },
             ),
+          const SizedBox(height: 24),
+          // Service Gallery (Multi-image)
+          const Text(
+            "Service Gallery Photos (Optional)",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Add up to 5 photos of your previous work",
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildDetailImageUploadArea(),
+          const SizedBox(height: 20),
+
+          _buildInputField(
+            controller: _serviceAboutController,
+            label: "Service Description",
+            icon: Icons.description_outlined,
+            hint: "Describe your main service...",
+            maxLines: 2,
+            isRequired: false,
+          ),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -1140,6 +1173,177 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         ),
       ],
     );
+  }
+
+  Widget _buildDetailImageUploadArea() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _isUploadingDetailImages ? null : _pickDetailImages,
+          child: Container(
+            width: double.infinity,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: ColorClass.base_color.withOpacity(0.3),
+                style: BorderStyle.solid,
+                width: 1.5,
+              ),
+            ),
+            child: _isUploadingDetailImages
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: ColorClass.base_color, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Tap to select images",
+                        style: TextStyle(
+                          color: ColorClass.base_color,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        if (_detailImages.isNotEmpty || _selectedDetailFiles.isNotEmpty)
+          Container(
+            height: 110,
+            margin: const EdgeInsets.only(top: 16),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _detailImages.length + _selectedDetailFiles.length,
+              itemBuilder: (context, index) {
+                if (index < _detailImages.length) {
+                  return _buildDetailImagePreview(index, true, _detailImages[index]);
+                } else {
+                  int fileIndex = index - _detailImages.length;
+                  return _buildDetailImagePreview(index, false, "", _selectedDetailFiles[fileIndex]);
+                }
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDetailImagePreview(int index, bool isUploaded, String url, [File? file]) {
+    return Container(
+      width: 90,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: isUploaded
+                ? Image.network(url, fit: BoxFit.cover)
+                : Image.file(file!, fit: BoxFit.cover),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isUploaded) {
+                    _detailImages.removeAt(index);
+                  } else {
+                    _selectedDetailFiles.remove(file);
+                  }
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 16),
+              ),
+            ),
+          ),
+          if (!isUploaded)
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.cloud_upload, color: Colors.white, size: 12),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickDetailImages() async {
+    try {
+      final List<File>? pickedFiles = await BaseActivity.pickImage(true);
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        if (_detailImages.length + _selectedDetailFiles.length + pickedFiles.length > 5) {
+          if (mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "You can only upload up to 5 images");
+          }
+          return;
+        }
+        
+        setState(() {
+          _selectedDetailFiles.addAll(pickedFiles);
+        });
+        
+        // Auto-upload
+        await _uploadDetailImages();
+      }
+    } catch (e) {
+      debugPrint("Error picking images: $e");
+    }
+  }
+
+  Future<void> _uploadDetailImages() async {
+    if (_selectedDetailFiles.isEmpty) return;
+    
+    setState(() {
+      _isUploadingDetailImages = true;
+    });
+
+    try {
+      // Upload files one by one or together if API supports
+      var response = await addShopDataManager!.postImage(_selectedDetailFiles, context, skipAutoNavigation: true);
+      var data = ImageModuleData.fromJson(jsonDecode(response.body));
+      
+      if (data.status == "success" && data.data != null) {
+        setState(() {
+          if (data.data!.url != null) {
+            _detailImages.add(data.data!.url!);
+          }
+          _selectedDetailFiles.clear();
+        });
+      }
+    } catch (e) {
+      debugPrint("Error uploading detail images: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingDetailImages = false;
+        });
+      }
+    }
   }
 
   Widget _buildShopImageField() {
@@ -2471,7 +2675,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         // close time
         _shopNameController.text,
         // title
-        "Business description",
+        _serviceAboutController.text.isEmpty ? "Professional car service" : _serviceAboutController.text.trim(),
         // about
         _useSmartDefaults ? "5-8 cars per hour" : _selectedCapacity,
         // time slot (capacity)
@@ -2483,7 +2687,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
         // category name (first selected)
         primaryCategoryId,
         // category ID (first selected)
-        [],
+        _detailImages,
         // detail images
         _shopImageUrl.isNotEmpty ? _shopImageUrl : "",
         // cover image (shop image)
@@ -2505,9 +2709,33 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
       // Parse the response
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Success
-        CommonWidget.successShowSnackBarFor(
-            context, "Shop details saved successfully!");
+        // Update user profile image as well to ensure it's saved with "all three" (vendor, user, service)
+        try {
+          final userId = sharedPreferences?.getString(Constant.id) ?? "";
+          final firstName = sharedPreferences?.getString(Constant.firstName) ?? "";
+          final lastName = sharedPreferences?.getString(Constant.lastName) ?? "";
+          
+          if (userId.isNotEmpty && _shopImageUrl.isNotEmpty) {
+            await loginDataManager?.postUserDetails(
+              firstName,
+              lastName,
+              userEmail.isNotEmpty ? userEmail : (sharedPreferences?.getString(Constant.email) ?? ""),
+              _shopImageUrl,
+              userId,
+              context,
+            );
+            // Save to local storage as well
+            await sharedPreferences?.setString(Constant.image, _shopImageUrl);
+          }
+        } catch (userUpdateError) {
+          debugPrint("Note: User profile image sync failed, but shop was created: $userUpdateError");
+        }
+
+        if (mounted) {
+          CommonWidget.successShowSnackBarFor(
+              context, "Shop details saved successfully!");
+        }
+
 
         // Parse response to get vendorId and save it
         try {
@@ -2652,6 +2880,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           categoryName, // categoryName
           categoryId, // categoryId
           coverImage, // coverImage
+          _detailImages, // detailImages
           mobile, // mobile
         );
 

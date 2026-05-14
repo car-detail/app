@@ -14,6 +14,7 @@ import 'package:car_app/features/log_in/model/vendor_details_bean.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
@@ -66,7 +67,51 @@ class _DashboardActivityState extends State<DashboardActivity> {
         CommonWidget.errorShowSnackBarFor(context, "Please complete your vendor registration first");
       }
     }
+    
+    // Handle when app is opened from a terminated state via notification
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        debugPrint('🔔 Vendor App opened from terminated state via notification');
+        _handleNotificationClick(message);
+      }
+    });
+
+    // Handle when app is in background and opened via notification
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('🔔 Vendor App opened from background via notification');
+      _handleNotificationClick(message);
+    });
+
+    // Listen for foreground messages to refresh data
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('🔔 Vendor Dashboard received foreground message: ${message.data}');
+      if (message.data['type'] == 'BOOKING_CONFIRMED' || 
+          message.data['type'] == 'BOOKING_CANCELLED') {
+        debugPrint('🔔 New booking event detected. Refreshing data...');
+        if (mounted) {
+          getdetails(context);
+          _loadVendorDetails();
+          if (context.mounted && message.notification != null) {
+            CommonWidget.successShowSnackBarFor(context, "${message.notification?.title}: ${message.notification?.body}");
+          }
+        }
+      }
+    });
   }
+
+  void _handleNotificationClick(RemoteMessage message) {
+    debugPrint('🔔 Handling notification click: ${message.data}');
+    if (message.data['type'] == 'BOOKING_CONFIRMED' || 
+        message.data['type'] == 'BOOKING_CANCELLED' ||
+        message.data['type'] == 'NEW_BOOKING') {
+      if (mounted) {
+        setState(() {
+          selectedpage = 1; // Navigate to Bookings tab
+        });
+      }
+    }
+  }
+
   
   Future<void> _loadVendorDetails() async {
     try {
@@ -280,15 +325,14 @@ class _DashboardActivityState extends State<DashboardActivity> {
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
-            // Green status bar background
+              // Status bar background — matches gradient start
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: Container(
                 height: MediaQuery.of(context).padding.top,
-                color: ColorClass.base_color,
-                width: double.infinity,
+                color: const Color(0xFF166534),
               ),
             ),
             // Main content
@@ -303,6 +347,13 @@ class _DashboardActivityState extends State<DashboardActivity> {
                       if (mounted) {
                         setState(() {
                           isValid = value;
+                        });
+                      }
+                    },
+                    onTabChange: (index) {
+                      if (mounted) {
+                        setState(() {
+                          selectedpage = index;
                         });
                       }
                     },
@@ -565,56 +616,59 @@ class _DashboardActivityState extends State<DashboardActivity> {
           return _buildVendorRegistrationPrompt();
         }
         
-        return const BookingListActivity();
+        return const BookingListActivity(isTab: true);
       },
     );
   }
 
   Widget _buildModernBottomNav() {
     return Container(
+      margin: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
+      ),
+      height: 64,
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
+      child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            key: _homeNavKey,
-            icon: Icons.home_rounded,
-            label: 'Home',
-            index: 0,
-            isSelected: selectedpage == 0,
-          ),
-          _buildNavItem(
-            key: _bookingsNavKey,
-            icon: Icons.calendar_today_rounded,
-            label: 'Bookings',
-            index: 1,
-            isSelected: selectedpage == 1,
-          ),
-          _buildNavItem(
-            key: _profileNavKey,
-            icon: Icons.person_rounded,
-            label: 'Profile',
-            index: 2,
-            isSelected: selectedpage == 2,
-          ),
-        ],
+            children: [
+              _buildNavItem(
+                key: _homeNavKey,
+                icon: Icons.home_rounded,
+                label: 'Home',
+                index: 0,
+                isSelected: selectedpage == 0,
+              ),
+              _buildNavItem(
+                key: _bookingsNavKey,
+                icon: Icons.calendar_month_rounded,
+                label: 'Bookings',
+                index: 1,
+                isSelected: selectedpage == 1,
+              ),
+              _buildNavItem(
+                key: _profileNavKey,
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                index: 2,
+                isSelected: selectedpage == 2,
+              ),
+            ],
           ),
         ),
-      ),
     );
   }
 
@@ -628,33 +682,39 @@ class _DashboardActivityState extends State<DashboardActivity> {
     return Expanded(
       key: key,
       child: GestureDetector(
-      onTap: () {
-        if (mounted && selectedpage != index) {
-          setState(() => selectedpage = index);
-        }
-      },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-                icon,
-              color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? const Color(0xFF1CB273) : Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ],
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (mounted && selectedpage != index) {
+            setState(() => selectedpage = index);
+          }
+        },
+        child: Container(
+          height: double.infinity,
+          alignment: Alignment.center,
+          child: isSelected
+              ? Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1CB273),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, color: Colors.white, size: 22),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Icon(icon, color: Colors.grey[400], size: 24),
         ),
       ),
     );

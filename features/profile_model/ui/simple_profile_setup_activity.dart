@@ -62,8 +62,7 @@ class _SimpleProfileSetupActivityState extends State<SimpleProfileSetupActivity>
   Future<void> loadExistingData() async {
     try {
       var response = await dataManager!.getdetails(context);
-      var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
-      if (data.status == "success" && data.data != null) {
+      if (mounted && data.status == "success" && data.data != null) {
         setState(() {
           businessNameController.text = data.data!.businessName ?? "";
           businessDescriptionController.text = data.data!.businessDescription ?? "";
@@ -716,12 +715,16 @@ class _SimpleProfileSetupActivityState extends State<SimpleProfileSetupActivity>
       
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
       
-      Navigator.pop(context); // Close loader
-      CommonWidget.successShowSnackBarFor(context, "Business setup completed successfully!");
-      Navigator.pop(context); // Go back to previous screen
+      if (mounted) {
+        Navigator.pop(context); // Close loader
+        CommonWidget.successShowSnackBarFor(context, "Business setup completed successfully!");
+        Navigator.pop(context); // Go back to previous screen
+      }
     } catch (e) {
-      Navigator.pop(context); // Close loader
-      CommonWidget.errorShowSnackBarFor(context, "Error saving information: $e");
+      if (mounted) {
+        Navigator.pop(context); // Close loader
+        CommonWidget.errorShowSnackBarFor(context, "Error saving information: $e");
+      }
     }
   }
 }

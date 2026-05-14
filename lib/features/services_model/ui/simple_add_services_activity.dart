@@ -663,6 +663,7 @@ class _SimpleAddServicesActivityState extends State<SimpleAddServicesActivity> {
         selectedCategoryName, // catName
         selectedCategoryId,
         "", // serviceImage
+        [], // detailImages
         "", // mobile
       );
       

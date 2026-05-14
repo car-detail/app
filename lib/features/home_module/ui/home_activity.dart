@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'dart:ffi'; // Not available on web platform
 
 import 'package:flutter/services.dart';
@@ -44,11 +46,13 @@ import 'location_picker_screen.dart';
 
 class HomeActivity extends StatefulWidget {
   Function(bool value) offline;
+  final Function(int index)? onTabChange;
   final GlobalKey? shopStatusKey;
   final GlobalKey? quickAccessKey;
   
   HomeActivity(
     this.offline, {
+    this.onTabChange,
     this.shopStatusKey,
     this.quickAccessKey,
     super.key,
@@ -73,18 +77,34 @@ class _HomeActivityState extends State<HomeActivity> {
   PageController? offerPageController;
   int currentOfferPage = 0;
   String vendorName = ""; // Store vendor display name
+  double vendorRating = 0.0;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     offerPageController = PageController();
     start();
+    // Auto-refresh every 60 seconds as a fallback
+    _refreshTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      if (mounted) {
+        start();
+      }
+    });
+
+    // Instant refresh when a push notification is received
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (mounted) {
+        print("🔔 Notification received in foreground, refreshing data...");
+        start();
+      }
+    });
   }
 
   @override
   void dispose() {
     offerPageController?.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -275,17 +295,6 @@ class _HomeActivityState extends State<HomeActivity> {
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
-            // Green status bar background - MUST be at the very top
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: MediaQuery.of(context).padding.top,
-                color: ColorClass.base_color,
-                width: double.infinity,
-              ),
-            ),
             // Main content
             Column(
         children: [
@@ -293,26 +302,27 @@ class _HomeActivityState extends State<HomeActivity> {
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 8,
-              bottom: 20,
+              bottom: 30,
             ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  ColorClass.base_color,
-                  ColorClass.base_color.withOpacity(0.9),
+                  Color(0xFF166534),
+                  Color(0xFF1CB273),
+                  Color(0xFF00E676),
                 ],
               ),
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: ColorClass.base_color.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: Color(0xFF1CB273).withOpacity(0.4),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -325,18 +335,34 @@ class _HomeActivityState extends State<HomeActivity> {
                     children: [
                       // Vendor name on the left
                                 Expanded(
-                                  child: Text(
-                          vendorName.isNotEmpty ? vendorName : "My Business",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: "Pop600",
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        "Welcome back 👋",
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: "Pop400",
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        vendorName.isNotEmpty ? vendorName : "My Business",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: "Pop600",
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                       const SizedBox(width: 12),
                       // Notification icon on the right
                       GestureDetector(
@@ -346,20 +372,28 @@ class _HomeActivityState extends State<HomeActivity> {
                               context, NotificationActivity(notificationsList));
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
                           ),
                           child: Stack(
                             clipBehavior: Clip.none,
+                            alignment: Alignment.center,
                             children: [
                               const Icon(
                                 Icons.notifications_outlined,
                                 color: Colors.white,
-                                size: 22,
+                                size: 24,
                               ),
-                              if (notificationsList.isNotEmpty)
+                              if (notificationsList.any((n) {
+                                String? lastReadStr = sharedPreferences?.getString(Constant.lastReadNotificationsAt);
+                                if (lastReadStr == null) return true;
+                                DateTime lastRead = DateTime.parse(lastReadStr);
+                                return n.createdAt != null && DateTime.parse(n.createdAt!).isAfter(lastRead);
+                              }))
                                 Positioned(
                                   right: -4,
                                   top: -4,
@@ -373,14 +407,24 @@ class _HomeActivityState extends State<HomeActivity> {
                                       minWidth: 18,
                                       minHeight: 18,
                                     ),
-                                    child: Text(
-                                      '${notificationsList.length > 9 ? "9+" : notificationsList.length}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
+                                    child: Builder(
+                                      builder: (context) {
+                                        int unreadCount = notificationsList.where((n) {
+                                          String? lastReadStr = sharedPreferences?.getString(Constant.lastReadNotificationsAt);
+                                          if (lastReadStr == null) return true;
+                                          DateTime lastRead = DateTime.parse(lastReadStr);
+                                          return n.createdAt != null && DateTime.parse(n.createdAt!).isAfter(lastRead);
+                                        }).length;
+                                        return Text(
+                                          '${unreadCount > 9 ? "9+" : unreadCount}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        );
+                                      }
                                     ),
                                   ),
                                 ),
@@ -399,21 +443,15 @@ class _HomeActivityState extends State<HomeActivity> {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.white.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.store_rounded,
-                          color: isShopOpen ? ColorClass.base_color : Colors.grey[400],
+                          color: Colors.white,
                           size: 20,
                         ),
                         const SizedBox(width: 10),
@@ -426,16 +464,14 @@ class _HomeActivityState extends State<HomeActivity> {
                                   fontFamily: "Pop600",
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
-                                  color: Colors.black87,
+                                  color: Colors.white,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: isShopOpen 
-                                      ? ColorClass.base_color.withOpacity(0.1)
-                                      : Colors.grey[200],
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Row(
@@ -445,7 +481,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       width: 5,
                                       height: 5,
                                       decoration: BoxDecoration(
-                                        color: isShopOpen ? ColorClass.base_color : Colors.grey[400],
+                                        color: isShopOpen ? const Color(0xFF1CB273) : Colors.grey,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -455,7 +491,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       style: TextStyle(
                                         fontFamily: "Pop500",
                                         fontSize: 11,
-                                        color: isShopOpen ? ColorClass.base_color : Colors.grey[600],
+                                        color: isShopOpen ? const Color(0xFF1CB273) : Colors.grey[600],
                                       ),
                                     ),
                                   ],
@@ -467,7 +503,8 @@ class _HomeActivityState extends State<HomeActivity> {
                         Transform.scale(
                           scale: 0.85,
                           child: Switch(
-                            activeThumbColor: ColorClass.base_color,
+                            activeColor: Colors.white,
+                            activeTrackColor: Colors.white.withOpacity(0.4),
                             inactiveThumbColor: Colors.grey[400],
                             inactiveTrackColor: Colors.grey[200],
                             value: isShopOpen,
@@ -516,9 +553,8 @@ class _HomeActivityState extends State<HomeActivity> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  
-                  // Pending Bookings Section (only show if there are pending bookings)
-                  if (records.isNotEmpty) ...[
+
+                  if (records.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 15),
                       child: Column(
@@ -527,56 +563,51 @@ class _HomeActivityState extends State<HomeActivity> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 "Recent Bookings",
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                  fontFamily: "Pop500",
+                                  fontFamily: "Pop600",
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                  color: Colors.black87,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  if (!mounted) return;
-                                  try {
-                                  CommonWidget.navigateToScreen(
-                                    context,
-                                    const BookingListActivity(),
-                                  );
-                                  } catch (e) {
-                                    if (mounted && context.mounted) {
-                                      CommonWidget.errorShowSnackBarFor(
-                                        context,
-                                        "Unable to open bookings. Please try again."
-                                      );
-                                    }
+                              GestureDetector(
+                                onTap: () {
+                                  if (widget.onTabChange != null) {
+                                    widget.onTabChange!(1);
+                                  } else {
+                                    CommonWidget.navigateToScreen(
+                                      context,
+                                      const BookingListActivity()
+                                    );
                                   }
                                 },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(50, 30),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
+                                child: Text(
                                   "View All",
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w600,
+                                    fontFamily: "PopReg",
                                     fontSize: 14,
-                                    color: Color(0xFF1CB273),
+                                    color: ColorClass.base_color,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          // Show only the first 3 pending bookings
-                          ...records.take(3).map((booking) => _buildPendingBookingCard(booking)),
+                          const SizedBox(height: 15),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: records.length > 3 ? 3 : records.length,
+                            itemBuilder: (context, index) {
+                              return _buildBookingCard(records[index]);
+                            },
+                          ),
                           const SizedBox(height: 20),
                         ],
                       ),
                     ),
-                  ],
                   
                   // Business Metrics Cards
                   Container(
@@ -606,7 +637,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         Expanded(
                           child: _buildMetricCard(
                             "Rating",
-                            "4.8",
+                            vendorRating > 0 ? vendorRating.toStringAsFixed(1) : "—",
                             "stars_icon.png",
                             const Color(0xFFFBBF24), // Amber
                             2,
@@ -625,13 +656,14 @@ class _HomeActivityState extends State<HomeActivity> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                        Text(
+                        const Text(
                           "Quick Actions",
                           style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontFamily: "Pop500",
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            color: Colors.black87,
+                            fontFamily: "Pop600",
+                            letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -689,10 +721,14 @@ class _HomeActivityState extends State<HomeActivity> {
                                 Icons.event_available_rounded,
                                 const Color(0xFF3B82F6), // Blue
                                 () {
-                                  CommonWidget.navigateToScreen(
-                                    context, 
-                                    const BookingListActivity()
-                                  );
+                                  if (widget.onTabChange != null) {
+                                    widget.onTabChange!(1);
+                                  } else {
+                                    CommonWidget.navigateToScreen(
+                                      context, 
+                                      const BookingListActivity()
+                                    );
+                                  }
                                 },
                               ),
                             ),
@@ -701,21 +737,6 @@ class _HomeActivityState extends State<HomeActivity> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                "View Analytics",
-                                Icons.trending_up_rounded,
-                                const Color(0xFF6366F1), // Indigo
-                                () {
-                                  // TODO: Navigate to analytics screen
-                                  CommonWidget.successShowSnackBarFor(
-                                    context, 
-                                    "Analytics feature coming soon!"
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
                             Expanded(
                               child: _buildQuickActionCard(
                                 "Quick Add",
@@ -734,98 +755,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   
                   const SizedBox(height: 25),
                   
-                  // Recent Bookings
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Recent Bookings",
-                              style: TextStyle(
-                                fontFamily: "Pop500",
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                CommonWidget.navigateToScreen(
-                                  context, 
-                                  const BookingListActivity()
-                                );
-                              },
-                              child: Text(
-                                "View All",
-                                style: TextStyle(
-                                  fontFamily: "PopReg",
-                                  fontSize: 14,
-                                  color: ColorClass.base_color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        if (records.isEmpty)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.book_online_outlined,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "No bookings yet",
-                                  style: TextStyle(
-                                    fontFamily: "Pop500",
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  "Your bookings will appear here",
-                                  style: TextStyle(
-                                    fontFamily: "Pop400",
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.grey[500],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: records.length > 3 ? 3 : records.length,
-                            itemBuilder: (context, index) {
-                              return _buildBookingCard(records[index]);
-                            },
-                      ),
-                    ],
-                  ),
-                  ),
+                
                   
                   const SizedBox(height: 20),
                   
@@ -959,18 +889,35 @@ class _HomeActivityState extends State<HomeActivity> {
     );
   }
 
-  // Helper method to build metric cards - Minimal design with realistic icons
+  // Helper method to build metric cards - Gradient design
   Widget _buildMetricCard(String title, String value, String iconAsset, Color iconColor, int index) {
+    final List<List<Color>> gradients = [
+      [const Color(0xFF667EEA), const Color(0xFF764BA2)], // Bookings
+      [const Color(0xFFF59E0B), const Color(0xFFEF4444)], // Services
+      [const Color(0xFF11998E), const Color(0xFF38EF7D)], // Rating
+    ];
+    final List<IconData> icons = [
+      Icons.calendar_today_rounded,
+      Icons.miscellaneous_services_rounded,
+      Icons.star_rounded,
+    ];
+    final gradientColors = gradients[index % gradients.length];
+    final iconData = icons[index % icons.length];
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: gradientColors[0].withOpacity(0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -982,21 +929,13 @@ class _HomeActivityState extends State<HomeActivity> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.08),
+              color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Image.asset(
-              CommonWidget.getImagePath(iconAsset),
-              width: 32,
-              height: 32,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(
-                  Icons.info_outline,
-                  color: iconColor,
-                  size: 32,
-                );
-              },
+            child: Icon(
+              iconData,
+              color: Colors.white,
+              size: 28,
             ),
           ),
           const SizedBox(height: 14),
@@ -1004,10 +943,10 @@ class _HomeActivityState extends State<HomeActivity> {
             value,
             style: const TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
               height: 1.1,
-              fontFamily: "Pop500",
+              fontFamily: "Pop600",
             ),
             textAlign: TextAlign.center,
           ),
@@ -1017,7 +956,7 @@ class _HomeActivityState extends State<HomeActivity> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w400,
-              color: Colors.grey[600],
+              color: Colors.white.withOpacity(0.85),
               fontFamily: "Pop400",
             ),
             textAlign: TextAlign.center,
@@ -1027,65 +966,52 @@ class _HomeActivityState extends State<HomeActivity> {
     );
   }
 
-  // Helper method to build quick action cards - Enhanced design
+  // Helper method to build quick action cards - Compact neutral design
   Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.12),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      color.withOpacity(0.2),
-                      color.withOpacity(0.1),
-                    ],
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontFamily: "Pop600",
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 28,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                  fontFamily: "Pop600",
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey[400]),
             ],
           ),
         ),
@@ -1093,37 +1019,45 @@ class _HomeActivityState extends State<HomeActivity> {
     );
   }
 
-  // Helper method to build booking cards - Simple design
+  // Helper method to build booking cards - Modern Gen-Z design
   Widget _buildBookingCard(Records booking) {
+    final statusColor = _getStatusColor(booking.orderStatus ?? "");
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border(
+          left: BorderSide(color: statusColor, width: 4),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         children: [
           Row(
             children: [
               Container(
                 height: 48,
                 width: 48,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(24),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                  ),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.person,
-                  color: Colors.grey,
+                  color: Colors.white,
                   size: 24,
                 ),
               ),
@@ -1142,7 +1076,7 @@ class _HomeActivityState extends State<HomeActivity> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Slot: ${CommonWidget.convertToLocalTime(booking.timeSlot ?? "")}",
+                      "Slot: ${CommonWidget.formatTimeSlot(booking.timeSlot ?? "")}",
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -1163,17 +1097,22 @@ class _HomeActivityState extends State<HomeActivity> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(booking.orderStatus ?? "").withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: LinearGradient(
+                        colors: [
+                          statusColor,
+                          statusColor.withOpacity(0.75),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       booking.orderStatus ?? "",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _getStatusColor(booking.orderStatus ?? ""),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -1264,6 +1203,7 @@ class _HomeActivityState extends State<HomeActivity> {
             ),
           ],
         ],
+        ),
       ),
     );
   }
@@ -1274,7 +1214,7 @@ class _HomeActivityState extends State<HomeActivity> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -1284,7 +1224,7 @@ class _HomeActivityState extends State<HomeActivity> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             // Background Image or Color
@@ -1940,6 +1880,8 @@ class _HomeActivityState extends State<HomeActivity> {
         setState(() {
           servicesData.clear();
           servicesData.addAll(data.data!);
+          final rated = servicesData.where((s) => (s.averageRating ?? 0) > 0).toList();
+          vendorRating = rated.isEmpty ? 0.0 : rated.map((s) => s.averageRating!.toDouble()).reduce((a, b) => a + b) / rated.length;
         });
       } else {
         // Don't show error snackbar here as it might be expected for new vendors
@@ -1955,6 +1897,8 @@ class _HomeActivityState extends State<HomeActivity> {
       var response = await dataManager!.getBookingListFilter(context, "Pending");
       debugPrint('📅 getBookingListFilter: Status Code: ${response.statusCode}');
       
+      if (!mounted) return;
+      
       if (response.statusCode == 404) {
         debugPrint('📅 getBookingListFilter: 404 - Clearing records');
         setState(() {
@@ -1969,7 +1913,14 @@ class _HomeActivityState extends State<HomeActivity> {
         debugPrint('📅 getBookingListFilter: Found ${data.data?.records?.length ?? 0} records');
         setState(() {
           records.clear();
-          records.addAll(data.data!.records!);
+          List<Records> fetchedRecords = data.data!.records!;
+          // Sort records by date and timeSlot (descending - most recent first)
+          fetchedRecords.sort((a, b) {
+            int dateCompare = (b.date ?? "").compareTo(a.date ?? "");
+            if (dateCompare != 0) return dateCompare;
+            return (b.timeSlot ?? "").compareTo(a.timeSlot ?? "");
+          });
+          records.addAll(fetchedRecords);
         });
       } else {
         debugPrint('📅 getBookingListFilter: Status not success - clearing records');
@@ -1980,14 +1931,17 @@ class _HomeActivityState extends State<HomeActivity> {
     } catch (e, stackTrace) {
       debugPrint('📅 getBookingListFilter Error: $e');
       debugPrint('📅 StackTrace: $stackTrace');
-      setState(() {
-        records.clear();
-      });
+      if (mounted) {
+        setState(() {
+          records.clear();
+        });
+      }
     }
   }
 
   getoffer(BuildContext context) async {
     var response = await dataManager!.getOfferList(context);
+    if (!mounted) return;
     var data = OfferListModelBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       setState(() {
@@ -2004,6 +1958,7 @@ class _HomeActivityState extends State<HomeActivity> {
     try {
       debugPrint('🔔 Vendor App: Fetching notifications...');
       var response = await dataManager!.getNotification(context);
+      if (!mounted) return;
       debugPrint('🔔 Vendor App: Response status ${response.statusCode}');
       var data = NotificationDataBean.fromJson(jsonDecode(response.body));
       debugPrint('🔔 Vendor App: Parsed - status: ${data.status}, count: ${data.data?.notifications?.length ?? 0}');
@@ -2190,6 +2145,7 @@ class _HomeActivityState extends State<HomeActivity> {
       isShopOpen: nextStatus,
       offlineUntil: offlineUntil
     );
+    if (!mounted) return;
     var data = VendorDetailsMainBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       setState(() {
@@ -2205,12 +2161,15 @@ class _HomeActivityState extends State<HomeActivity> {
     try {
       debugPrint('📅 putStatusCompleted: Marking booking ${data.sId} as Completed');
       var response = await dataManager!.putStatusCompleted(context, data.sId.toString());
+      if (!mounted) return;
       var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
       debugPrint('📅 putStatusCompleted: Status: ${responseData.status}');
       if (responseData.status == "success") {
         CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
         debugPrint('📅 putStatusCompleted: Success - Refreshing list');
-        await getBookingListFilter(context);
+        if (mounted && context.mounted) {
+          await getBookingListFilter(context);
+        }
         debugPrint('📅 putStatusCompleted: List refresh triggered');
       } else {
         CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");
@@ -2224,12 +2183,15 @@ class _HomeActivityState extends State<HomeActivity> {
     try {
       debugPrint('📅 putStatusCancel: Cancelling booking $sId. Reason: $reason');
       var response = await dataManager!.putStatusCancel(context, reason, sId);
+      if (!mounted) return;
       var responseData = CompletedModelBean.fromJson(jsonDecode(response.body));
       debugPrint('📅 putStatusCancel: Status: ${responseData.status}');
       if (responseData.status == "success") {
         CommonWidget.successShowSnackBarFor(context, responseData.message ?? "");
         debugPrint('📅 putStatusCancel: Success - Refreshing list');
-        await getBookingListFilter(context);
+        if (mounted && context.mounted) {
+          await getBookingListFilter(context);
+        }
         debugPrint('📅 putStatusCancel: List refresh triggered');
       } else {
         CommonWidget.errorShowSnackBarFor(context, responseData.message ?? "");

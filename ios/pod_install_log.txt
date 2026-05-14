@@ -1,0 +1,83 @@
+Analyzing dependencies
+firebase_auth: Using Firebase SDK version '11.10.0' defined in 'firebase_core'
+firebase_core: Using Firebase SDK version '11.10.0' defined in 'firebase_core'
+Warning: firebase_app_id_file.json file does not exist. This may cause issues in upload-symbols. If this error is unexpected, try running flutterfire configure again.
+firebase_crashlytics: Using Firebase SDK version '11.10.0' defined in 'firebase_core'
+firebase_messaging: Using Firebase SDK version '11.10.0' defined in 'firebase_core'
+Downloading dependencies
+Installing DKImagePickerController (4.3.9)
+Installing DKPhotoGallery (0.0.19)
+Installing Firebase (11.10.0)
+Installing FirebaseAppCheckInterop (11.15.0)
+Installing FirebaseAuth (11.10.0)
+Installing FirebaseAuthInterop (11.15.0)
+Installing FirebaseCore (11.10.0)
+Installing FirebaseCoreExtension (11.10.0)
+Installing FirebaseCoreInternal (11.10.0)
+Installing FirebaseCrashlytics (11.10.0)
+Installing FirebaseInstallations (11.10.0)
+Installing FirebaseMessaging (11.10.0)
+Installing FirebaseRemoteConfigInterop (11.15.0)
+Installing FirebaseSessions (11.10.0)
+Installing Flutter (1.0.0)
+Installing GTMSessionFetcher (4.5.0)
+Installing GoogleDataTransport (10.1.0)
+Installing GoogleUtilities (8.1.0)
+Installing OrderedSet (6.0.3)
+Installing PromisesObjC (2.4.0)
+Installing PromisesSwift (2.4.0)
+Installing RecaptchaInterop (101.0.0)
+Installing SDWebImage (5.21.7)
+Installing SwiftyGif (5.4.5)
+Installing device_info_plus (0.0.1)
+Installing file_picker (0.0.1)
+Installing firebase_auth (5.5.3)
+Installing firebase_core (3.13.0)
+Installing firebase_crashlytics (4.3.5)
+Installing firebase_messaging (15.2.5)
+Installing flutter_inappwebview_ios (0.0.1)
+Installing flutter_keyboard_visibility (0.0.1)
+Installing flutter_local_notifications (0.0.1)
+Installing flutter_timezone (0.0.1)
+Installing geocoding_ios (1.0.5)
+Installing geolocator_apple (1.2.0)
+Installing image_picker_ios (0.0.1)
+Installing nanopb (3.30910.0)
+Installing package_info_plus (0.4.5)
+Installing path_provider_foundation (0.0.1)
+Installing permission_handler_apple (9.3.0)
+Installing pointer_interceptor_ios (0.0.1)
+Installing share_plus (0.0.1)
+Installing shared_preferences_foundation (0.0.1)
+Installing syncfusion_flutter_pdfviewer (0.0.1)
+Installing url_launcher_ios (0.0.1)
+Generating Pods project
+[!] An error occurred while processing the post-install hook of the Podfile.
+
+/Users/macbook/flutter/bin/cache/artifacts/engine/ios/Flutter.xcframework must exist. If you're running pod install manually, make sure "flutter precache --ios" is executed first
+
+/Users/macbook/flutter/packages/flutter_tools/bin/podhelper.rb:61:in `flutter_additional_ios_build_settings'
+/Users/macbook/Anuj/cahrz/app/ios/Podfile:41:in `block (3 levels) in from_ruby'
+/Users/macbook/Anuj/cahrz/app/ios/Podfile:40:in `each'
+/Users/macbook/Anuj/cahrz/app/ios/Podfile:40:in `block (2 levels) in from_ruby'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-core-1.16.2/lib/cocoapods-core/podfile.rb:196:in `post_install!'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:1013:in `run_podfile_post_install_hook'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:1001:in `block in run_podfile_post_install_hooks'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/user_interface.rb:149:in `message'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:1000:in `run_podfile_post_install_hooks'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:337:in `block (2 levels) in create_and_save_projects'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer/xcode/pods_project_generator/pods_project_writer.rb:61:in `write!'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:336:in `block in create_and_save_projects'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/user_interface.rb:64:in `section'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:315:in `create_and_save_projects'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:307:in `generate_pods_project'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:183:in `integrate'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/installer.rb:170:in `install!'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/command/install.rb:52:in `run'
+/Users/macbook/.gem/ruby/2.6.0/gems/claide-1.1.0/lib/claide/command.rb:334:in `run'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/lib/cocoapods/command.rb:52:in `run'
+/Users/macbook/.gem/ruby/2.6.0/gems/cocoapods-1.16.2/bin/pod:55:in `<top (required)>'
+/Users/macbook/.gem/ruby/2.6.0/bin/pod:23:in `load'
+/Users/macbook/.gem/ruby/2.6.0/bin/pod:23:in `<main>'
+
+[!] Automatically assigning platform `iOS` with version `15` on target `Runner` because no platform was specified. Please specify a platform for this target in your Podfile. See `https://guides.cocoapods.org/syntax/podfile.html#platform`.

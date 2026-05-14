@@ -46,7 +46,12 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
     // Initialize Firebase Messaging and get token
     try {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
-      
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
       // Request permission
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
@@ -60,13 +65,23 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
       print('User granted permission: ${settings.authorizationStatus}');
 
       // Get Token
+      if (Platform.isIOS) {
+        String? apnsToken = await messaging.getAPNSToken();
+        print("🔔 iOS APNS Token: $apnsToken");
+        if (apnsToken == null) {
+          print("⚠️ APNS token is null. FCM registration might fail. Ensure Push Notifications capability is added in Xcode.");
+        }
+      }
+
       String? token = await messaging.getToken();
-      print("FCM Token: $token");
-      
+      print("🔔 FCM Token: $token");
+
       if (token != null) {
         sharedPreferences!.setString(Constant.fbtoken, token);
+      } else {
+        print("❌ FCM Token is null!");
       }
-      
+
       // Listen to token refresh
       messaging.onTokenRefresh.listen((fcmToken) {
         sharedPreferences!.setString(Constant.fbtoken, fcmToken);
@@ -176,26 +191,63 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
             children: [
               // Only show Get Started button if user is NOT logged in
               if(userid == null || userid!.isEmpty)
-              GestureDetector(
-                  onTap: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => NewLoginActivity(),
+                Container(
+                  margin: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
+                  child: GestureDetector(
+                    onTap: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => NewLoginActivity(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    child: Container(
+                      height: 58,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Color(0xFF166534), Color(0xFF1CB273), Color(0xFF00E676)],
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF1CB273).withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                          (route) => false,
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 30, right: 30),
-                    child: CommonWidget.getGradinetButton(
-                        "Get Started",
-                        startcolor: 0xff006538,
-                        endcolor: 0xff006538,
-                        height: 50
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Get Started",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                          ),
+                        ],
+                      ),
                     ),
-                  )),
+                  ),
+                ),
             ],
           ),
 

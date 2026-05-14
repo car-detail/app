@@ -61,6 +61,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
   var shopNameController = TextEditingController();
   var mobileController = TextEditingController();
   var emailController = TextEditingController();
+  var aboutController = TextEditingController();
   var profileController = TextEditingController();
   var addressController = TextEditingController();
   double long = 0.0;
@@ -320,11 +321,14 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
         long,
         late,
         addressController.text,
+        aboutController.text,
         context);
     var data = CaptureVendorBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       sharedPreferences!
           .setString(Constant.vendorId, data.data?.newBusinessData?.sId ?? "");
+      sharedPreferences!
+          .setString(Constant.image, data.data?.newBusinessData?.displayPicture ?? "");
       CommonWidget.successShowSnackBarFor(context, data.message ?? "");
       CommonWidget.safePop(context, result: true);
     } else {
@@ -562,7 +566,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
             
             // Email
             _buildTextFieldWithLabel(
-              label: "Email Address (Optional)",
+              label: "Email Address",
               controller: emailController,
               hint: "Enter email address",
               icon: Icons.email_outlined,
@@ -571,13 +575,21 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
             ),
             const SizedBox(height: 20),
             
-            // Mobile
             _buildTextFieldWithLabel(
               label: "Mobile Number",
               controller: mobileController,
               hint: "Enter mobile number",
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 20),
+
+            _buildTextFieldWithLabel(
+              label: "Shop Description",
+              controller: aboutController,
+              hint: "Briefly describe your shop and services",
+              icon: Icons.description_outlined,
+              maxLines: 3,
             ),
             const SizedBox(height: 20),
             // Address
@@ -841,6 +853,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
     required String hint,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    int? maxLines,
     bool isOptional = false,
   }) {
     return Column(
@@ -872,6 +885,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLines: maxLines ?? 1,
           style: const TextStyle(
             fontSize: 16,
             fontFamily: "Pop400",
@@ -1051,6 +1065,7 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
       shopNameController.text = data.data![0].displayName??"";
       emailController.text = data.data![0].officialEmail??"";
       mobileController.text = data.data![0].mobile??"";
+      aboutController.text = data.data![0].about??"";
       
       // Get default times from vendor data
       String defaultOpenTime = CommonWidget.convertToLocalTimeWithAMPM(data.data![0].openTime??"09:00 AM");

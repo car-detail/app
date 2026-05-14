@@ -1,11 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:car_app/Common/BaseActivity.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/features/dashboard_module/ui/dashboard_activity.dart';
 import 'package:car_app/features/home_module/model/category_model_data.dart';
+import 'package:car_app/features/resister_vendor_model/ui/edit_vendor_activity.dart';
+import 'package:car_app/features/log_in/ui/profile_activity.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
+import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -29,17 +34,24 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
   // Only essential fields
   final TextEditingController _shopNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _serviceAboutController = TextEditingController();
 
-  // Auto-filled or smart defaults
-  String _selectedCategory = "Car Wash"; // Default
-  String _selectedCategoryId = "";
+  // Selected values - now supports multiple selections
+  final List<String> _selectedCategories = [];
+  final List<String> _selectedCategoryIds = [];
   double _currentLat = 0.0;
   double _currentLng = 0.0;
 
   // Data managers
   AddShopDataManager? addShopDataManager;
+  ServicesDataManager? servicesDataManager;
   SharedPreferences? sharedPreferences;
   List<CategoryData> _categories = [];
+  
+  // Service images
+  List<String> _detailImages = [];
+  List<File> _selectedDetailFiles = [];
+  bool _isUploadingImages = false;
 
   // Smart defaults - no need for user to configure
   final String _defaultOpenTime = "9:00 AM";
@@ -58,6 +70,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
   void _initializeData() async {
     sharedPreferences = await SharedPreferences.getInstance();
     addShopDataManager = AddShopDataManager(sharedPreferences!);
+    servicesDataManager = ServicesDataManager(sharedPreferences!);
     
     // Auto-fill shop name from user's name if available
     final firstName = sharedPreferences?.getString(Constant.firstName) ?? "";
@@ -96,8 +109,11 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             if (mounted) {
               setState(() {
                 _categories = data.data!;
-                _selectedCategory = _categories.first.categoryTitle ?? "Car Wash";
-                _selectedCategoryId = _categories.first.sId ?? "";
+                // Auto-select first category by default
+                _selectedCategories.clear();
+                _selectedCategoryIds.clear();
+                _selectedCategories.add(_categories.first.categoryTitle ?? "Car Wash");
+                _selectedCategoryIds.add(_categories.first.sId ?? "");
                 _isLoadingCategories = false;
               });
             }
@@ -127,8 +143,10 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             CategoryData(sId: "fallback3", categoryTitle: "Auto Repair"),
           ];
           if (_categories.isNotEmpty) {
-            _selectedCategory = _categories.first.categoryTitle ?? "Car Wash";
-            _selectedCategoryId = _categories.first.sId ?? "";
+            _selectedCategories.clear();
+            _selectedCategoryIds.clear();
+            _selectedCategories.add(_categories.first.categoryTitle ?? "Car Wash");
+            _selectedCategoryIds.add(_categories.first.sId ?? "");
           }
         });
       }
@@ -495,42 +513,105 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
                             textAlign: TextAlign.center,
                           ),
                         )
-                      : Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: _categories.take(6).map((category) {
-                            final isSelected = _selectedCategory == category.categoryTitle;
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _categories.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final category = _categories[index];
+                            final categoryTitle = category.categoryTitle ?? "";
+                            final categoryId = category.sId ?? "";
+                            final isSelected = _selectedCategories.contains(categoryTitle);
+
                             return InkWell(
                               onTap: () {
                                 if (mounted) {
                                   setState(() {
-                                    _selectedCategory = category.categoryTitle ?? "";
-                                    _selectedCategoryId = category.sId ?? "";
+                                    if (isSelected) {
+                                      _selectedCategories.remove(categoryTitle);
+                                      _selectedCategoryIds.remove(categoryId);
+                                    } else {
+                                      _selectedCategories.add(categoryTitle);
+                                      _selectedCategoryIds.add(categoryId);
+                                    }
                                   });
                                 }
                               },
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? ColorClass.base_color : Colors.white,
+                                  color: isSelected
+                                      ? ColorClass.base_color.withOpacity(0.1)
+                                      : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isSelected ? ColorClass.base_color : Colors.grey[300]!,
                                     width: isSelected ? 2 : 1,
                                   ),
                                 ),
-                                child: Text(
-                                  category.categoryTitle ?? "",
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.black87,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: ColorClass.base_color.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: category.logoImage != null && category.logoImage!.isNotEmpty
+                                          ? ClipRRect(
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: Image.network(
+                                                category.logoImage!,
+                                                width: 24,
+                                                height: 24,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => Icon(Icons.category, color: ColorClass.base_color, size: 24),
+                                              ),
+                                            )
+                                          : Icon(Icons.category, color: ColorClass.base_color, size: 24),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            categoryTitle,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected ? ColorClass.base_color : Colors.black87,
+                                            ),
+                                          ),
+                                          if (category.categoryDescription != null && category.categoryDescription!.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 4),
+                                              child: Text(
+                                                category.categoryDescription!,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: ColorClass.base_color,
+                                        size: 24,
+                                      ),
+                                  ],
                                 ),
                               ),
                             );
-                          }).toList(),
+                          },
                         ),
           const SizedBox(height: 20),
           UXHelperWidget.buildInfoBanner(
@@ -539,6 +620,53 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             backgroundColor: Colors.amber[50],
             iconColor: Colors.amber[700],
           ),
+          const SizedBox(height: 30),
+          
+          // Optional Service Images
+          const Text(
+            "Add Service Photos (Optional)",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Show customers your work! You can add up to 5 photos.",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          UXHelperWidget.buildHelpfulInputField(
+            context: context,
+            controller: _serviceAboutController,
+            label: "Service Description",
+            icon: Icons.description_outlined,
+            helpText: "Briefly tell customers what's included in this service.",
+            example: "Quick exterior wash and tire polish.",
+            maxLines: 2,
+            isRequired: false,
+          ),
+          const SizedBox(height: 20),
+          
+          _buildImageUploadArea(),
+          
+          if (_detailImages.isNotEmpty || _selectedDetailFiles.isNotEmpty)
+            Container(
+              height: 100,
+              margin: const EdgeInsets.only(top: 16),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _detailImages.length + _selectedDetailFiles.length,
+                itemBuilder: (context, index) {
+                  bool isUploaded = index < _detailImages.length;
+                  return _buildImagePreview(index, isUploaded);
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -675,6 +803,136 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
     );
   }
 
+  Widget _buildImageUploadArea() {
+    return InkWell(
+      onTap: _isUploadingImages ? null : _pickServiceImages,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 30),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: ColorClass.base_color.withOpacity(0.3),
+            style: BorderStyle.solid,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              if (_isUploadingImages)
+                const CircularProgressIndicator()
+              else ...[
+                Icon(Icons.add_a_photo_outlined, color: ColorClass.base_color, size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  "Tap to add photos",
+                  style: TextStyle(
+                    color: ColorClass.base_color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _pickServiceImages() async {
+    // Re-using common file picker
+    BaseActivity.showFilePicker(
+      context,
+      (List<File>? files) async {
+        if (files != null && files.isNotEmpty) {
+          setState(() {
+            _selectedDetailFiles = files.take(5).toList();
+            _isUploadingImages = true;
+          });
+          
+          // Upload each image
+          List<String> uploadedUrls = [];
+          for (var file in _selectedDetailFiles) {
+            try {
+              var response = await addShopDataManager!.postImage([file], context, skipAutoNavigation: true);
+              if (response.statusCode == 200 || response.statusCode == 201) {
+                var data = jsonDecode(response.body);
+                if (data['status'] == "success" && data['data'] != null) {
+                  uploadedUrls.add(data['data']);
+                }
+              }
+            } catch (e) {
+            }
+          }
+          
+          if (mounted) {
+            setState(() {
+              _detailImages.addAll(uploadedUrls);
+              _selectedDetailFiles.clear();
+              _isUploadingImages = false;
+            });
+            
+            if (uploadedUrls.isNotEmpty) {
+              CommonWidget.successShowSnackBarFor(context, "Added ${uploadedUrls.length} photos!");
+            }
+          }
+        }
+      },
+      isFile: false,
+      isPhoto: true,
+      isOnlyPhoto: true,
+      allowMultipleImage: true,
+    );
+  }
+
+  Widget _buildImagePreview(int index, bool isUploaded) {
+    return Stack(
+      children: [
+        Container(
+          width: 90,
+          height: 90,
+          margin: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: isUploaded
+                ? Image.network(_detailImages[index], fit: BoxFit.cover)
+                : Image.file(_selectedDetailFiles[index - _detailImages.length], fit: BoxFit.cover),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 12,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isUploaded) {
+                  _detailImages.removeAt(index);
+                } else {
+                  _selectedDetailFiles.removeAt(index - _detailImages.length);
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 14),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDefaultInfo(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -778,7 +1036,7 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
         );
         return false;
       }
-      if (_selectedCategory.isEmpty) {
+      if (_selectedCategories.isEmpty) {
         UXHelperWidget.showFriendlyError(
           context,
           "Please select your business type by tapping on one of the options above!",
@@ -858,23 +1116,25 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
         throw Exception("Unable to register. Please try again.");
       }
 
+      final userProfileImage = sharedPreferences?.getString(Constant.image) ?? "";
+
       // Call API to create vendor with service
       var response = await addShopDataManager!.captureVendor(
         _shopNameController.text.trim(),
         userEmail,
         userMobile,
-        "", // profile image
+        userProfileImage, // Use existing profile image if available
         _defaultOpenTime,
         _defaultCloseTime,
         _shopNameController.text.trim(), // service title
-        "Professional car service", // about
+        _serviceAboutController.text.isEmpty ? "Professional car service" : _serviceAboutController.text.trim(), // about
         _defaultCapacity,
         "0", // price - can be set later
         _defaultDuration,
-        _selectedCategory,
-        _selectedCategoryId,
-        [], // detail images
-        "", // cover image
+        _selectedCategories[0],
+        _selectedCategoryIds[0],
+        _detailImages, // detail images
+        _detailImages.isNotEmpty ? _detailImages[0] : userProfileImage, // Use first service image as cover or fallback to profile
         _defaultDays,
         _currentLng,
         _currentLat,
@@ -905,6 +1165,17 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
             
             if (vendorId != null && vendorId.isNotEmpty) {
               await sharedPreferences?.setString(Constant.vendorId, vendorId);
+
+              // Create additional services for remaining categories
+              if (_selectedCategories.length > 1) {
+                await _createAdditionalServices(
+                  vendorId,
+                  userMobile,
+                  _defaultCapacity,
+                  _defaultDuration,
+                  _detailImages.isNotEmpty ? _detailImages[0] : userProfileImage,
+                );
+              }
             } else {
             }
           }
@@ -963,6 +1234,43 @@ class _UltraSimpleVendorRegistrationState extends State<UltraSimpleVendorRegistr
           context,
           "Unable to complete registration. Please check your internet connection and try again. If the problem continues, contact support.",
         );
+      }
+    }
+  }
+
+  Future<void> _createAdditionalServices(
+    String vendorId,
+    String mobile,
+    String capacity,
+    String duration,
+    String coverImage,
+  ) async {
+    if (servicesDataManager == null) {
+      return;
+    }
+
+    // Skip first category as it was already created with the vendor
+    for (int i = 1; i < _selectedCategories.length; i++) {
+      final categoryName = _selectedCategories[i];
+      final categoryId = _selectedCategoryIds[i];
+
+      try {
+        await servicesDataManager!.postServies(
+          context,
+          _shopNameController.text, // serviceTitle
+          _serviceAboutController.text.isEmpty ? "Professional car service" : _serviceAboutController.text.trim(), // about
+          capacity, // timeSlotCapacity
+          "0", // price
+          duration, // serviceDuration
+          categoryName, // categoryName
+          categoryId, // categoryId
+          coverImage, // coverImage
+          _detailImages, // detailImages
+          mobile, // mobile
+        );
+      } catch (e) {
+        // Continue with next category even if one fails
+        debugPrint("Error creating additional service: $e");
       }
     }
   }

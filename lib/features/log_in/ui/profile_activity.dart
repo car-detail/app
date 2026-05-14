@@ -66,6 +66,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
 
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
     loginDataManager = LoginDataManager(sharedPreferences!);
     packageDataManager = PackageDataManager(sharedPreferences!);
     offerDataManager = OfferDataManager(sharedPreferences!);
@@ -80,6 +81,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
 
   getUser(BuildContext context) async {
     var response = await loginDataManager!.getUserDetails(context);
+    if (!mounted) return;
     var data = VendorDetailBean.fromJson(jsonDecode(response.body));
     if (data.status == "success") {
       sharedPreferences!
@@ -164,6 +166,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
           lat: lat != 0.0 ? lat : null,
           lng: lng != 0.0 ? lng : null);
       
+      if (!mounted) return;
+      
       // Close loading indicator
       if (mounted && dialogContext != null && dialogContext!.mounted) {
         try {
@@ -223,6 +227,9 @@ class _ProfileActivityState extends State<ProfileActivity> {
         sharedPreferences!.setString(Constant.lat, lat.toString());
         sharedPreferences!.setString(Constant.long, lng.toString());
       }
+
+      // Sync image URL in SharedPreferences
+      sharedPreferences!.setString(Constant.image, data.data!.image ?? "");
       
           if (mounted && context.mounted) {
             CommonWidget.successShowSnackBarFor(context, data.message ?? "Profile updated successfully!");
@@ -295,6 +302,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
       );
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
       if (!serviceEnabled) {
         if (mounted && context.mounted && Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -331,6 +339,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
         timeLimit: const Duration(seconds: 10),
       );
 
+      if (!mounted) return;
+
       setState(() {
         currentLat = position.latitude;
         currentLng = position.longitude;
@@ -339,6 +349,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
       List<Placemark> placemarks = await placemarkFromCoordinates(
           position.latitude, position.longitude);
       
+      if (!mounted) return;
       String address = placemarks[0].locality ?? 
                       placemarks[0].subAdministrativeArea ?? 
                       placemarks[0].administrativeArea ?? 
@@ -403,6 +414,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
         context,
         skipAutoNavigation: true, // Skip auto-navigation to handle 401 ourselves
       );
+      
+      if (!mounted) return;
       
       // Close loading indicator using the dialog's context
       if (mounted && dialogContext != null && dialogContext!.mounted) {
@@ -905,6 +918,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
     
     try {
       var response = await packageDataManager!.getAllPackages(context);
+      if (!mounted) return;
       if (response.statusCode == 200) {
         var data = PackageModelData.fromJson(jsonDecode(response.body));
         if (data.status == "success" && data.data != null) {
@@ -925,10 +939,12 @@ class _ProfileActivityState extends State<ProfileActivity> {
         });
       }
     } catch (e) {
-      setState(() {
-        packages = [];
-        isLoadingPackages = false;
-      });
+      if (mounted) {
+        setState(() {
+          packages = [];
+          isLoadingPackages = false;
+        });
+      }
     }
   }
 
@@ -942,6 +958,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
     
     try {
       var response = await offerDataManager!.getOfferList(context);
+      if (!mounted) return;
       if (response.statusCode == 200) {
         var data = OfferListModelBean.fromJson(jsonDecode(response.body));
         if (data.status == "success" && data.data != null) {
@@ -962,10 +979,12 @@ class _ProfileActivityState extends State<ProfileActivity> {
         });
       }
     } catch (e) {
-      setState(() {
-        offers = [];
-        isLoadingOffers = false;
-      });
+      if (mounted) {
+        setState(() {
+          offers = [];
+          isLoadingOffers = false;
+        });
+      }
     }
   }
 

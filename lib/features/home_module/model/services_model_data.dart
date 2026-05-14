@@ -47,6 +47,8 @@ class ServicesData {
   String? vendorImage;
   String? vendorName;
   String? vendorMobile;
+  num? averageRating;
+  int? totalReviews;
 
   ServicesData(
       {this.sId,
@@ -61,7 +63,9 @@ class ServicesData {
         this.location,
         this.vendorImage,
         this.vendorName,
-        this.vendorMobile});
+        this.vendorMobile,
+        this.averageRating,
+        this.totalReviews});
 
   ServicesData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'] ?? json['sId'] ?? json['id'];
@@ -79,6 +83,8 @@ class ServicesData {
     vendorImage = json['vendorImage'];
     vendorName = json['vendorName'];
     vendorMobile = json['vendorMobile'];
+    averageRating = json['average_rating'];
+    totalReviews = json['total_reviews'];
   }
 
   Map<String, dynamic> toJson() {

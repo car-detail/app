@@ -347,7 +347,10 @@ class _OfferScreenState extends State<OfferScreen> {
                       // Invalid date format - allow it to proceed (will be handled by backend)
                     }
                   }
-                  await postImage(context);
+                  final uploaded = await postImage(context);
+                  if (!uploaded || coverImage.isEmpty) {
+                    return;
+                  }
                   addOffer();
                 },
                 child: Container(
@@ -369,23 +372,22 @@ class _OfferScreenState extends State<OfferScreen> {
     );
   }
 
-  postImage(BuildContext context) async {
-    if (!mounted || !context.mounted) return;
-    
+  Future<bool> postImage(BuildContext context) async {
+    if (!mounted || !context.mounted) return false;
+
     try {
       List<File> image = [selectedFiles[0]];
       var response = await offerDataManager!.postImage(image, context);
-      
-      if (!mounted || !context.mounted) return;
-      
-      // Check response status code
+
+      if (!mounted || !context.mounted) return false;
+
       if (response.statusCode != 200) {
         if (mounted && context.mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Unable to upload image. Please try again.");
         }
-        return;
+        return false;
       }
-      
+
       try {
         var data = ImageModuleData.fromJson(jsonDecode(response.body));
         if (data.status == "success") {
@@ -394,20 +396,24 @@ class _OfferScreenState extends State<OfferScreen> {
               coverImage = data.data?.url ?? "";
             });
           }
+          return coverImage.isNotEmpty;
         } else {
           if (mounted && context.mounted) {
             CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image. Please try again.");
           }
+          return false;
         }
       } catch (jsonError) {
         if (mounted && context.mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Error processing image upload. Please try again.");
         }
+        return false;
       }
     } catch (e) {
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error uploading image. Please check your connection and try again.");
       }
+      return false;
     }
   }
 

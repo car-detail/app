@@ -124,8 +124,10 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
 
   start() async {
     sharedPreferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
     dataManager = PackageDataManager(sharedPreferences!);
     await getAvailableServices();
+    if (!mounted) return;
     _populateFormData();
   }
 
@@ -228,6 +230,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         // Import LoginDataManager for vendor recovery
         final loginDataManager = LoginDataManager(sharedPreferences!);
         final vendorResponse = await loginDataManager.getVendorDetails(context);
+        if (!mounted) return;
         debugPrint('Vendor details API Status: ${vendorResponse.statusCode}');
         debugPrint('Vendor details API Response: ${vendorResponse.body}');
         
@@ -251,7 +254,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
 
       if (vId == null || vId.isEmpty) {
         debugPrint('=== Cannot fetch services - no valid vendorId in edit package ===');
-        if (mounted && context.mounted) {
+        if (mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Cannot load services: Vendor information missing. Please try logging in again.");
         }
         return;
@@ -259,13 +262,14 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
 
       debugPrint('=== Fetching Services for Vendor in edit package: $vId ===');
       var response = await dataManager!.getAllServices(context);
+      if (!mounted) return;
       debugPrint('Services API Status Code: ${response.statusCode}');
       debugPrint('Services API Response Body: ${response.body.substring(0, min(response.body.length, 500))}...');
       
       // Check for HTML error responses
       if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
         debugPrint('=== Received HTML error response instead of JSON in edit package ===');
-        if (mounted && context.mounted) {
+        if (mounted) {
           CommonWidget.errorShowSnackBarFor(context, "API Error: Backend connection issue. Please check your internet connection.");
         }
         return;
@@ -289,13 +293,13 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         }
       } else {
         debugPrint('=== Failed to load services in edit package: ${data.message} ===');
-        if (mounted && context.mounted) {
+        if (mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Failed to load services: ${data.message}");
         }
       }
     } catch (e) {
       debugPrint('=== Error loading services in edit package: $e ===');
-      if (mounted && context.mounted) {
+      if (mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error loading services: $e");
       }
     }
@@ -318,7 +322,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
             // Green status bar background
             Container(
               height: MediaQuery.of(context).padding.top,
-              color: ColorClass.base_color,
+              color: const Color(0xFF166534),
               width: double.infinity,
             ),
             // AppBar-like header
@@ -328,7 +332,11 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
                 vertical: 12,
               ),
               decoration: BoxDecoration(
-                color: ColorClass.base_color,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -1684,11 +1692,12 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
         customServices: customServices, // Send custom services as separate field
       );
       
-      Navigator.pop(context); // Close loader
+      if (!mounted) return;
+      if (mounted) Navigator.pop(context); // Close loader
       
       
       // Check if response is HTML (error page) instead of JSON
-      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+      if (mounted && (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html'))) {
         CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
         return;
       }
@@ -1696,18 +1705,24 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
       try {
         var data = PackageModelData.fromJson(jsonDecode(response.body));
         
-        if (data.status == "success") {
-          CommonWidget.successShowSnackBarFor(context, "Package updated successfully!");
-          Navigator.pop(context);
-        } else {
-          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to update package");
+        if (mounted) {
+          if (data.status == "success") {
+            CommonWidget.successShowSnackBarFor(context, "Package updated successfully!");
+            Navigator.pop(context);
+          } else {
+            CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to update package");
+          }
         }
       } catch (e) {
+      if (mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error parsing response: $e");
       }
+      }
     } catch (e) {
-      Navigator.pop(context); // Close loader
-      CommonWidget.errorShowSnackBarFor(context, "Error updating package: $e");
+      if (mounted) {
+        Navigator.pop(context); // Close loader
+        CommonWidget.errorShowSnackBarFor(context, "Error updating package: $e");
+      }
     }
   }
 }
