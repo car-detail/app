@@ -149,7 +149,39 @@ class _PackageListActivityState extends State<PackageListActivity> {
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomBar(context),
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: ColorClass.base_color.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddPackageActivity(),
+                ),
+              ).then((_) => getPackages());
+            },
+            backgroundColor: ColorClass.base_color,
+            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+            label: const Text(
+              "Add Package",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -274,33 +306,6 @@ class _PackageListActivityState extends State<PackageListActivity> {
                 fontWeight: FontWeight.w400,
                 color: _textSecondary,
                 height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddPackageActivity(),
-                  ),
-                ).then((_) => getPackages());
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                decoration: BoxDecoration(
-                  color: ColorClass.base_color,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Text(
-                  "Create package",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.1,
-                  ),
-                ),
               ),
             ),
           ],
@@ -670,49 +675,4 @@ class _PackageListActivityState extends State<PackageListActivity> {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context) {
-    return Container(
-      color: _bg,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
-      ),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddPackageActivity(),
-            ),
-          ).then((_) => getPackages());
-        },
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: ColorClass.base_color,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          alignment: Alignment.center,
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add, size: 20, color: Colors.white),
-              SizedBox(width: 8),
-              Text(
-                "Add Package",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

@@ -429,30 +429,6 @@ class _OfferListScreenState extends State<OfferListScreen> {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context)
-                    .push(
-                  MaterialPageRoute(
-                    builder: (context) => const OfferScreen(),
-                  ),
-                )
-                    .then((onValue) {
-                  if (onValue == true && venderId != "") getCategory(context);
-                });
-              },
-              icon: const Icon(Icons.add),
-              label: const Text("Create Your First Offer"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorClass.base_color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
           ],
         ),
       ),

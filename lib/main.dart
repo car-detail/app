@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-// import 'package:bot_toast/bot_toast.dart';
+import 'package:bot_toast/bot_toast.dart';
 import 'features/SplashScreenActivity.dart';
 import 'features/dashboard_module/ui/dashboard_activity.dart';
 import 'features/onboarding/ui/vendor_onboarding_activity.dart';
@@ -67,15 +67,8 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const SafeArea(child: SimpleRegistorVendorActivity()),
         '/login': (context) => const SafeArea(child: NewLoginActivity()),
       },
-      // builder: BotToast.init(),
-      // navigatorObservers: [BotToastNavigatorObserver()],
-      builder: (context, child) {
-        // Wrap with error boundary to prevent black screens
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-          child: child ?? const SizedBox(),
-        );
-      },
+      builder: BotToastInit(),
+      navigatorObservers: [BotToastNavigatorObserver()],
       ),
     );
   }

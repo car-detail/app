@@ -145,7 +145,7 @@ class BaseActivity {
               borderRadius: BorderRadius.circular(15),
             ),
             content: SizedBox(
-              height: isOnlyPhoto ? 240 : 156,
+              height: isOnlyPhoto ? 240 : 240,
               width: MediaQuery.of(context).size.width * 0.9,
               child: Stack(
                 children: [

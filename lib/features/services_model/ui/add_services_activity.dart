@@ -410,57 +410,115 @@ class _AddServicesActivityState extends State<AddServicesActivity> {
     }
   }
 
-  postImage(BuildContext context) async {
-    List<File> image = [selectedFiles[0]];
-    var response = await servicesDataManager!.postImage(image, context);
-    var data = ImageModuleData.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      serviceImage = data.data?.url ?? "";
-      //CommonWidget.successShowSnackBarFor(context, data.message??"");
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+  Future<void> postImage(BuildContext context) async {
+    if (selectedFiles.isEmpty) return;
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      List<File> image = [selectedFiles[0]];
+      var response = await servicesDataManager!.postImage(image, context, skipAutoNavigation: true);
+      
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context); // Close loading dialog
+      }
+
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+        }
+        return;
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var data = ImageModuleData.fromJson(jsonDecode(response.body));
+        if (data.status == "success") {
+          setState(() {
+            serviceImage = data.data?.url ?? "";
+          });
+        } else {
+          CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
+        }
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, "Upload failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      CommonWidget.errorShowSnackBarFor(context, "Error uploading image: $e");
     }
   }
 
   void postServices() async {
-    var response;
-    if (widget.serviceToEdit != null) {
-      // Update existing service
-          response = await servicesDataManager?.updateService(
-              context,
-              widget.serviceToEdit!.sId!,
-              titleController.text,
-              aboutController.text,
-              timeSlotController.text,
-              priceController.text.isEmpty ? "0" : priceController.text,
-              durationController.text,
-              categoryController.text,
-              categoryId,
-              serviceImage,
-              [], // detailImages
-              mobileController.text);
-    } else {
-      // Create new service
-      response = await servicesDataManager?.postServies(
-          context,
-          titleController.text,
-          aboutController.text,
-          timeSlotController.text,
-          priceController.text.isEmpty ? "0" : priceController.text,
-          durationController.text,
-          categoryController.text,
-          categoryId,
-          serviceImage,
-          [], // detailImages
-          mobileController.text);
-    }
-    
-    var data = AddServicesBean.fromJson(jsonDecode(response.body));
-    if (data.status == "success") {
-      CommonWidget.successShowSnackBarFor(context, data.message ?? "");
-      Navigator.pop(context,true);
-    } else {
-      CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      var response;
+      if (widget.serviceToEdit != null) {
+        // Update existing service
+        response = await servicesDataManager?.updateService(
+            context,
+            widget.serviceToEdit!.sId!,
+            titleController.text,
+            aboutController.text,
+            timeSlotController.text,
+            priceController.text.isEmpty ? "0" : priceController.text,
+            durationController.text,
+            categoryController.text,
+            categoryId,
+            serviceImage,
+            [], // detailImages
+            mobileController.text);
+      } else {
+        // Create new service
+        response = await servicesDataManager?.postServies(
+            context,
+            titleController.text,
+            aboutController.text,
+            timeSlotController.text,
+            priceController.text.isEmpty ? "0" : priceController.text,
+            durationController.text,
+            categoryController.text,
+            categoryId,
+            serviceImage,
+            [], // detailImages
+            mobileController.text);
+      }
+      
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context); // Close loading dialog
+      }
+
+      if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+        if (mounted && context.mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
+        }
+        return;
+      }
+
+      var data = AddServicesBean.fromJson(jsonDecode(response.body));
+      if (data.status == "success") {
+        CommonWidget.successShowSnackBarFor(context, data.message ?? "");
+        Navigator.pop(context, true);
+      } else {
+        CommonWidget.errorShowSnackBarFor(context, data.message ?? "");
+      }
+    } catch (e) {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      CommonWidget.errorShowSnackBarFor(context, "Error saving service: $e");
     }
   }
 

@@ -332,7 +332,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
               right: 0,
               child: Container(
                 height: MediaQuery.of(context).padding.top,
-                color: const Color(0xFF166534),
+                color: ColorClass.base_color,
               ),
             ),
             // Main content
@@ -372,7 +372,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
                       // Modern Header
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(
                           color: ColorClass.base_color,
                           boxShadow: [

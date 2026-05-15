@@ -188,7 +188,12 @@ class _PackagesListActivityState extends State<PackagesListActivity> {
           children: [
             // Enhanced Header with Back Button
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                bottom: 20,
+                left: 20,
+                right: 20,
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -249,33 +254,7 @@ class _PackagesListActivityState extends State<PackagesListActivity> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      if (mounted && context.mounted) {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AddPackageActivity(),
-                          ),
-                        );
-                        if (mounted && context.mounted && result == true) {
-                          await getPackages(); // Refresh the list
-                        }
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
+                  const Spacer(),
                 ],
               ),
             ),
@@ -332,6 +311,23 @@ class _PackagesListActivityState extends State<PackagesListActivity> {
                 ),
               ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (mounted && context.mounted) {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddPackageActivity(),
+              ),
+            );
+            if (mounted && context.mounted && result == true) {
+              await getPackages(); // Refresh the list
+            }
+          }
+        },
+        backgroundColor: ColorClass.base_color,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

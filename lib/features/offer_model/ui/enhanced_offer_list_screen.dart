@@ -142,10 +142,10 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               left: 20, right: 20, bottom: 20,
             ),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                colors: [ColorClass.base_color, ColorClass.base_color.withOpacity(0.8)],
               ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
@@ -328,7 +328,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               await getOffers();
             }
           },
-          backgroundColor: const Color(0xFF166534),
+          backgroundColor: ColorClass.base_color,
           icon: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
           label: const Text(
             "Create Offer",
@@ -735,38 +735,36 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                 : Colors.grey.withOpacity(0.1),
         child: Container(
           constraints: const BoxConstraints(
-            minHeight: 60,
-            minWidth: 60,
+            minHeight: 44,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: borderColor,
-              width: 1.5,
+              width: 1,
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon, 
-                size: 22, 
+                size: 16, 
                 color: iconColor,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
                   color: textColor,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -832,30 +830,6 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                 fontSize: 16,
                 color: Colors.grey[600],
                 height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const EnhancedOfferScreen(),
-                  ),
-                );
-                if (result == true) {
-                  await getOffers();
-                }
-              },
-              icon: const Icon(Icons.add),
-              label: const Text("Create Your First Offer"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorClass.base_color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
           ],

@@ -53,7 +53,12 @@ class _BookingListActivityState extends State<BookingListActivity> {
         children: [
           // Modern Header
           Container(
-            padding: const EdgeInsets.only(top: 55, bottom: 28, left: 20, right: 20),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 12,
+              bottom: 20,
+              left: 20,
+              right: 20,
+            ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF166534), Color(0xFF1CB273)],
@@ -67,19 +72,17 @@ class _BookingListActivityState extends State<BookingListActivity> {
             ),
             child: Row(
               children: [
-                if (!widget.isTab) ...[
-                  CommonWidget.buildBackButton(
-                    context,
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    iconColor: Colors.white,
-                    onPressed: () {
-                      if (mounted && context.mounted) {
-                        CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 16),
-                ],
+                CommonWidget.buildBackButton(
+                  context,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  iconColor: Colors.white,
+                  onPressed: () {
+                    if (mounted && context.mounted) {
+                      CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+                    }
+                  },
+                ),
+                const SizedBox(width: 16),
                 const Text(
                   "Bookings",
                   style: TextStyle(
@@ -93,9 +96,8 @@ class _BookingListActivityState extends State<BookingListActivity> {
             ),
           ),
 
-          // Filter Tabs
           Container(
-            margin: const EdgeInsets.all(20),
+            margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: const Color(0xFF166534).withOpacity(0.08),

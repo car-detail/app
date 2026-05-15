@@ -302,16 +302,15 @@ class _HomeActivityState extends State<HomeActivity> {
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 8,
-              bottom: 30,
+              bottom: 16,
             ),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF166534),
-                  Color(0xFF1CB273),
-                  Color(0xFF00E676),
+                  ColorClass.base_color,
+                  ColorClass.base_color.withOpacity(0.8),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -320,7 +319,7 @@ class _HomeActivityState extends State<HomeActivity> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Color(0xFF1CB273).withOpacity(0.4),
+                  color: ColorClass.base_color.withOpacity(0.4),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -717,7 +716,7 @@ class _HomeActivityState extends State<HomeActivity> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildQuickActionCard(
-                                "Manage Bookings",
+                                "Bookings",
                                 Icons.event_available_rounded,
                                 const Color(0xFF3B82F6), // Blue
                                 () {

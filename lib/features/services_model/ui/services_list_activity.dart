@@ -62,22 +62,25 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color(0xFFF0FDF4),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        bottomNavigationBar: null,
         body: Column(
           children: [
             // Enhanced Fancy Header with Back Button
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                bottom: 20,
+                left: 20,
+                right: 20,
+              ),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF166534),
-                    Color(0xFF1CB273),
-                    Color(0xFF26D17A),
+                    ColorClass.base_color,
+                    ColorClass.base_color.withOpacity(0.8),
                   ],
-                  stops: [0.0, 0.5, 1.0],
                 ),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
@@ -252,7 +255,49 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               _buildNoVendorState()
           ],
         ),
-        floatingActionButton: null);
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: ColorClass.base_color.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              if (mounted && context.mounted) {
+                Navigator.of(context)
+                    .push(
+                  MaterialPageRoute(
+                    builder: (context) => const ModernAddServiceActivity(),
+                  ),
+                )
+                    .then((onValue) async {
+                  if (mounted && context.mounted && onValue == true && venderId != "") {
+                    await getCategory(context);
+                    await _fetchAllCategories();
+                    _checkIfAllCategoriesHaveServices();
+                  }
+                });
+              }
+            },
+            backgroundColor: ColorClass.base_color,
+            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+            label: const Text(
+              "Add Service",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      );
   }
 
   Widget _buildServiceCard(ServicesListData data, int index) {
@@ -839,84 +884,6 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               ),
             ),
             const SizedBox(height: 32),
-            if (venderId.isEmpty) ...[
-              ElevatedButton.icon(
-                onPressed: () {
-                  _showVendorRegistrationDialog();
-                },
-                icon: const Icon(Icons.business),
-                label: const Text("Complete Vendor Registration"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorClass.base_color,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "You need to complete vendor registration first",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ] else ...[
-              if (!allCategoriesHaveServices)
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(
-                      MaterialPageRoute(
-                        builder: (context) => const ModernAddServiceActivity(),
-                      ),
-                    )
-                        .then((onValue) async {
-                      if (onValue == true && venderId != "") {
-                        await getCategory(context);
-                        await _fetchAllCategories();
-                        _checkIfAllCategoriesHaveServices();
-                      }
-                    });
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add Your First Service"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorClass.base_color,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.amber[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber[200]!),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.amber[800], size: 20),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          "You have created services for all available categories!",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.amber[900],
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
           ],
         ),
       ),

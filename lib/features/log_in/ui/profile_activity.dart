@@ -563,18 +563,13 @@ class _ProfileActivityState extends State<ProfileActivity> {
                     ],
                   ),
                           child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(ModernDesignSystem.spacingXL),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: ModernDesignSystem.spacingL,
+                        vertical: ModernDesignSystem.spacingM),
                             child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                        // Title
-                        // Text(
-                        //   "Profile Details",
-                        //   style: ModernDesignSystem.heading2(
-                        //     color: ColorClass.base_color,
-                        //   ),
-                        // ),
-                        const SizedBox(height: ModernDesignSystem.spacingXL),
+                        const SizedBox(height: ModernDesignSystem.spacingM),
                         
                         // Profile Picture
                         Center(

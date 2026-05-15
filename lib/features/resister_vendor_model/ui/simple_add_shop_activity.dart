@@ -1323,18 +1323,35 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     });
 
     try {
-      // Upload files one by one or together if API supports
-      var response = await addShopDataManager!.postImage(_selectedDetailFiles, context, skipAutoNavigation: true);
-      var data = ImageModuleData.fromJson(jsonDecode(response.body));
-      
-      if (data.status == "success" && data.data != null) {
-        setState(() {
-          if (data.data!.url != null) {
-            _detailImages.add(data.data!.url!);
+      // Upload files one by one to match the single-file backend API
+      for (int i = 0; i < _selectedDetailFiles.length; i++) {
+        File file = _selectedDetailFiles[i];
+        
+        if (mounted) {
+          // You could show specific progress here if needed
+          debugPrint("Uploading image ${i + 1} of ${_selectedDetailFiles.length}");
+        }
+
+        var response = await addShopDataManager!.postImage([file], context, skipAutoNavigation: true);
+        
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          var data = ImageModuleData.fromJson(jsonDecode(response.body));
+          if (data.status == "success" && data.data?.url != null) {
+            setState(() {
+              _detailImages.add(data.data!.url!);
+            });
           }
-          _selectedDetailFiles.clear();
-        });
+        } else {
+          debugPrint("Failed to upload image $i: ${response.statusCode}");
+          if (mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Failed to upload image ${i + 1}");
+          }
+        }
       }
+      
+      setState(() {
+        _selectedDetailFiles.clear();
+      });
     } catch (e) {
       debugPrint("Error uploading detail images: $e");
     } finally {

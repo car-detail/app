@@ -33,10 +33,11 @@ import '../../packages_model/ui/edit_package_activity.dart';
 // ---------------------------------------------------------------------------
 // Design tokens
 // ---------------------------------------------------------------------------
-const _kBgColor       = Color(0xFFF0FDF4);
-const _kDark          = Color(0xFF166534);
-const _kGreen         = Color(0xFF1CB273);
-const _kAccent        = Color(0xFF16A34A);
+// Design tokens using global ColorClass
+final _kBgColor       = Colors.white;
+final _kGreen         = ColorClass.base_color;
+final _kDark          = ColorClass.base_color;
+final _kAccent        = ColorClass.base_color;
 
 class ProfileVendorListActivity extends StatefulWidget {
   final bool isActive;
@@ -219,7 +220,7 @@ class _ProfileVendorListActivityState
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   child: Column(
                     children: [
                       // vendor / shop card
@@ -270,13 +271,13 @@ class _ProfileVendorListActivityState
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_kDark, _kGreen],
+          colors: [ColorClass.base_color, ColorClass.base_color.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
@@ -458,10 +459,10 @@ class _ProfileVendorListActivityState
     return Container(
       width: 76,
       height: 76,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [_kDark, _kGreen],
+          colors: [_kGreen, _kAccent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -535,7 +536,7 @@ class _ProfileVendorListActivityState
             const SizedBox(height: 6),
             Text(
               "$count",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: _kGreen,
@@ -595,10 +596,10 @@ class _ProfileVendorListActivityState
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child:
-                      const Icon(Icons.store_rounded, color: _kGreen, size: 22),
+                      Icon(Icons.store_rounded, color: _kGreen, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   "Shop Details",
                   style: TextStyle(
                     fontSize: 18,
@@ -665,7 +666,7 @@ class _ProfileVendorListActivityState
                           height: 96,
                           width: 96,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (_, __, ___) => Icon(
                             Icons.store_rounded,
                             size: 46,
                             color: _kGreen,
@@ -974,7 +975,7 @@ class _ProfileVendorListActivityState
             width: 90,
             child: Text(
               "$label:",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: _kDark,
@@ -1291,9 +1292,9 @@ class _ProfileVendorListActivityState
               // tab bar
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: _kDark,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: _kGreen,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
@@ -1699,11 +1700,11 @@ class _ProfileVendorListActivityState
       width: double.infinity,
       height: 180,
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [_kDark, _kGreen],
@@ -1754,7 +1755,7 @@ class _ProfileVendorListActivityState
             // gradient header
             Container(
               height: 180,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1791,7 +1792,7 @@ class _ProfileVendorListActivityState
                           color: Colors.orange,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.star_rounded,
@@ -1819,7 +1820,7 @@ class _ProfileVendorListActivityState
                 children: [
                   Text(
                     package.packageName ?? "Package",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: Colors.black87,
@@ -1922,7 +1923,7 @@ class _ProfileVendorListActivityState
                   if (package.servicesIncluded != null &&
                       package.servicesIncluded!.isNotEmpty) ...[
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       "Services Included:",
                       style: TextStyle(
                           fontSize: 13,
@@ -1971,7 +1972,7 @@ class _ProfileVendorListActivityState
       ),
       child: Text(
         active ? "Active" : "Inactive",
-        style: const TextStyle(
+        style: TextStyle(
             color: Colors.white,
             fontSize: 11,
             fontWeight: FontWeight.w700),
@@ -2044,7 +2045,7 @@ class _ProfileVendorListActivityState
                 size: 18,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 "Visible to Users",
                 style: TextStyle(
                     fontSize: 13,
@@ -2087,7 +2088,7 @@ class _ProfileVendorListActivityState
         Chip(
           label: Text(
             "${package.servicesIncluded!.length} service${package.servicesIncluded!.length > 1 ? 's' : ''}",
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w500),
           ),
           backgroundColor: Colors.blue[50],
@@ -2101,7 +2102,7 @@ class _ProfileVendorListActivityState
     return categoryNames.map((name) {
       return Chip(
         label: Text(name,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w500)),
         backgroundColor: _kGreen.withOpacity(0.10),
         labelStyle: TextStyle(color: _kGreen),
@@ -2156,7 +2157,7 @@ class _ProfileVendorListActivityState
                 height: 180,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
                   ),
@@ -2168,7 +2169,7 @@ class _ProfileVendorListActivityState
                 ),
                 child: imageUrl != null && imageUrl.isNotEmpty
                     ? ClipRRect(
-                        borderRadius: const BorderRadius.only(
+                        borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(16),
                           topRight: Radius.circular(16),
                         ),
@@ -2194,7 +2195,7 @@ class _ProfileVendorListActivityState
               Container(
                 height: 180,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
                   ),
@@ -2243,7 +2244,7 @@ class _ProfileVendorListActivityState
                         offer.isCurrentlyActive
                             ? "Active"
                             : "Inactive",
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w700),
@@ -2267,12 +2268,12 @@ class _ProfileVendorListActivityState
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.percent_rounded,
+                        Icon(Icons.percent_rounded,
                             color: Colors.white, size: 14),
                         const SizedBox(width: 4),
                         Text(
                           "$discount% OFF",
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -2294,7 +2295,7 @@ class _ProfileVendorListActivityState
                     children: [
                       Text(
                         offerTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w800),
@@ -2313,7 +2314,7 @@ class _ProfileVendorListActivityState
                           ),
                           child: Text(
                             categoryName,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 11),
                           ),
@@ -2480,10 +2481,10 @@ class _ProfileVendorListActivityState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
+                  children: [
                     Icon(Icons.card_giftcard_rounded,
                         color: _kGreen, size: 24),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Text(
                       "Packages",
                       style: TextStyle(
@@ -2514,8 +2515,8 @@ class _ProfileVendorListActivityState
             ),
           ),
           if (isLoadingPackages)
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Center(
                   child: CircularProgressIndicator(color: _kGreen)),
             )
@@ -2603,7 +2604,7 @@ class _ProfileVendorListActivityState
             Container(
               width: double.infinity,
               height: 200,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -2739,7 +2740,7 @@ class _ProfileVendorListActivityState
               children: [
                 Text(
                   "\$${package.packagePrice ?? "0"}",
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: _kGreen),
@@ -2827,8 +2828,8 @@ class _ProfileVendorListActivityState
             ),
           ),
           if (isLoadingOffers)
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Center(
                   child: CircularProgressIndicator(color: _kGreen)),
             )
@@ -2922,7 +2923,7 @@ class _ProfileVendorListActivityState
                 errorBuilder: (_, __, ___) => Container(
                   width: double.infinity,
                   height: 200,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -2935,7 +2936,7 @@ class _ProfileVendorListActivityState
               Container(
                 width: double.infinity,
                 height: 200,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
