@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
+import '../../../Common/ShimmerLoader.dart';
 import '../data_model/booking_data_manager.dart';
 import '../data_model/booking_list_bean.dart';
 import '../model/complete_model_bean.dart';
@@ -18,17 +19,32 @@ class BookingListActivity extends StatefulWidget {
   final bool isTab;
   const BookingListActivity({this.isTab = false, super.key});
 
+  static final GlobalKey<BookingListActivityState> bookingListKey = GlobalKey<BookingListActivityState>();
+  static String? targetBookingId;
+  static String? targetFilterType;
+
   @override
-  State<BookingListActivity> createState() => _BookingListActivityState();
+  State<BookingListActivity> createState() => BookingListActivityState();
 }
 
-class _BookingListActivityState extends State<BookingListActivity> {
+class BookingListActivityState extends State<BookingListActivity> {
   BookingDataManager? dataManager;
   SharedPreferences? sharedPreferences;
   List<Records> records = [];
   var filterType = "Completed";
   TextEditingController reasone = TextEditingController();
   var show = false;
+  bool isLoading = false;
+  
+  void handleDeepLink(String bookingId, String filterType) {
+    if (mounted) {
+      setState(() {
+        this.filterType = filterType;
+      });
+      getBookingListFilter(context);
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -42,6 +58,9 @@ class _BookingListActivityState extends State<BookingListActivity> {
     DateTime dateTime = DateTime.now();
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     //getBookingList(context);
+    if (BookingListActivity.targetBookingId != null && BookingListActivity.targetFilterType != null) {
+      filterType = BookingListActivity.targetFilterType!;
+    }
     getBookingListFilter(context);
   }
 
@@ -122,20 +141,29 @@ class _BookingListActivityState extends State<BookingListActivity> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
+                BookingListActivity.targetBookingId = null;
                 if (mounted && context.mounted) {
                   await getBookingListFilter(context);
                 }
               },
-            child: records.isEmpty && show
-                ? _buildEmptyState()
-                : ListView.builder(
+            child: isLoading
+                ? ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: records.length,
+                    itemCount: 3,
                     itemBuilder: (context, index) {
-                      var data = records[index];
-                      return _buildBookingCard(data);
+                      return ShimmerLoader.buildBookingCardShimmer();
                     },
-                    ),
+                  )
+                : records.isEmpty && show
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: records.length,
+                        itemBuilder: (context, index) {
+                          var data = records[index];
+                          return _buildBookingCard(data);
+                        },
+                      ),
                   ),
           ),
         ],
@@ -146,6 +174,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
   Widget _buildFilterTab(String title, bool isSelected) {
     return GestureDetector(
       onTap: () {
+        BookingListActivity.targetBookingId = null;
         setState(() {
           filterType = title;
           getBookingListFilter(context);
@@ -179,19 +208,20 @@ class _BookingListActivityState extends State<BookingListActivity> {
   }
 
   Widget _buildBookingCard(Records data) {
+    final bool isHighlighted = BookingListActivity.targetBookingId == data.sId;
     final Color statusColor = _getStatusColor(data.orderStatus ?? "pending");
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isHighlighted ? const Color(0xFFE8F5E9) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border(
-          left: BorderSide(color: statusColor, width: 4),
-        ),
+        border: isHighlighted 
+            ? Border.all(color: const Color(0xFF1CB273), width: 2.0)
+            : Border(left: BorderSide(color: statusColor, width: 4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
+            color: isHighlighted ? const Color(0xFF1CB273).withOpacity(0.2) : Colors.black.withOpacity(0.06),
+            blurRadius: isHighlighted ? 16 : 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -262,7 +292,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
                     ],
                   ),
                 ),
-                // Status badge and Call button
+                 // Status badge and Call button
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -284,6 +314,33 @@ class _BookingListActivityState extends State<BookingListActivity> {
                           ),
                         ),
                     ),
+                    if (isHighlighted) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1CB273).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF1CB273).withOpacity(0.3)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.notifications_active, color: Color(0xFF1CB273), size: 10),
+                            SizedBox(width: 4),
+                            Text(
+                              "Selected",
+                              style: TextStyle(
+                                color: Color(0xFF1CB273),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: "Pop600",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (data.createdByMobile != null && data.createdByMobile!.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       GestureDetector(
@@ -581,6 +638,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
     
     setState(() {
       show = false;
+      isLoading = true;
     });
     
     try {
@@ -595,6 +653,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
         }
         setState(() {
           show = true;
+          isLoading = false;
         });
         return;
       }
@@ -607,6 +666,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
         setState(() {
           records.clear();
           show = true;
+          isLoading = false;
         });
         return;
       }
@@ -624,8 +684,19 @@ class _BookingListActivityState extends State<BookingListActivity> {
                 if (dateCompare != 0) return dateCompare;
                 return (b.timeSlot ?? "").compareTo(a.timeSlot ?? "");
               });
+              
+              // If targetBookingId is set, find and put it at the top of the list
+              if (BookingListActivity.targetBookingId != null) {
+                int targetIndex = fetchedRecords.indexWhere((r) => r.sId == BookingListActivity.targetBookingId);
+                if (targetIndex != -1) {
+                  var targetRecord = fetchedRecords.removeAt(targetIndex);
+                  fetchedRecords.insert(0, targetRecord);
+                }
+              }
+              
               records.addAll(fetchedRecords);
               show = true;
+              isLoading = false;
             });
           }
         } else {
@@ -633,6 +704,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
             setState(() {
               records.clear();
               show = true;
+              isLoading = false;
             });
           }
           if (mounted && context.mounted) {
@@ -644,6 +716,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
           setState(() {
             records.clear();
             show = true;
+            isLoading = false;
           });
         }
         if (mounted && context.mounted) {
@@ -655,6 +728,7 @@ class _BookingListActivityState extends State<BookingListActivity> {
         setState(() {
           records.clear();
           show = true;
+          isLoading = false;
         });
       }
       if (mounted && context.mounted) {

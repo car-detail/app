@@ -29,6 +29,7 @@ import '../../services_model/data_manager/services_data_manager.dart';
 import '../../services_model/model/services_list_bean.dart';
 import '../../services_model/ui/modern_add_service_activity.dart';
 import '../../packages_model/ui/edit_package_activity.dart';
+import '../../offer_model/ui/enhanced_offer_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -2133,8 +2134,23 @@ class _ProfileVendorListActivityState
       formattedValidFrom = _formatDate(validFrom);
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnhancedOfferScreen(offerToEdit: offer),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getOffers(context);
+          }
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -2455,7 +2471,7 @@ class _ProfileVendorListActivityState
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ── carousel cards (kept for backward compat) ─────────────────────────────────
@@ -2585,8 +2601,22 @@ class _ProfileVendorListActivityState
   }
 
   Widget _buildFullWidthPackageCard(PackageData package) {
-    return Container(
-      width: double.infinity,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditPackageActivity(packageData: package),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getPackages(context);
+          }
+        });
+      },
+      child: Container(
+        width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -2700,13 +2730,27 @@ class _ProfileVendorListActivityState
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPackageCard(PackageData package) {
-    return Container(
-      width: 200,
-      margin: const EdgeInsets.only(right: 12),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditPackageActivity(packageData: package),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getPackages(context);
+          }
+        });
+      },
+      child: Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
@@ -2769,7 +2813,7 @@ class _ProfileVendorListActivityState
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildOffersCard() {
@@ -2898,8 +2942,22 @@ class _ProfileVendorListActivityState
   }
 
   Widget _buildFullWidthOfferCard(OfferListModelData offer) {
-    return Container(
-      width: double.infinity,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnhancedOfferScreen(offerToEdit: offer),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getOffers(context);
+          }
+        });
+      },
+      child: Container(
+        width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -2997,7 +3055,7 @@ class _ProfileVendorListActivityState
           ],
         ),
       ),
-    );
+    ));
   }
 
   // ── date helpers ──────────────────────────────────────────────────────────────

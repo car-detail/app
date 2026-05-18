@@ -7,12 +7,14 @@ import 'package:car_app/Common/BaseActivity.dart';
 import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
 import 'package:car_app/Models/image_module_data.dart';
+import 'package:car_app/features/offer_model/model/offer_list_model_bean.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EnhancedOfferScreen extends StatefulWidget {
-  const EnhancedOfferScreen({super.key});
+  final OfferListModelData? offerToEdit;
+  const EnhancedOfferScreen({super.key, this.offerToEdit});
 
   @override
   State<EnhancedOfferScreen> createState() => _EnhancedOfferScreenState();
@@ -81,6 +83,17 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.offerToEdit != null) {
+      titleController.text = widget.offerToEdit!.title ?? "";
+      descriptionController.text = widget.offerToEdit!.description ?? "";
+      if (widget.offerToEdit!.validUntil != null && widget.offerToEdit!.validUntil!.isNotEmpty) {
+        try {
+          validUntilDate = DateTime.parse(widget.offerToEdit!.validUntil!);
+          validUntilController.text = DateFormat('dd MMM yyyy').format(validUntilDate!);
+        } catch (e) {}
+      }
+      uploadedImageUrl = widget.offerToEdit!.image ?? "";
+    }
     start();
   }
 
@@ -103,8 +116,21 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           availableServices.clear();
           availableServices.addAll(data.data!);
 
-          // Auto-select if only one service is available
-          if (availableServices.length == 1) {
+          // Auto-select if editing or only one service is available
+          if (widget.offerToEdit != null && widget.offerToEdit!.service != null) {
+            try {
+              var matchingService = availableServices.firstWhere(
+                (s) => s.sId == widget.offerToEdit!.service!.sId,
+              );
+              selectedServices.clear();
+              selectedServices.add(matchingService);
+            } catch (e) {
+              if (availableServices.isNotEmpty) {
+                selectedServices.clear();
+                selectedServices.add(availableServices[0]);
+              }
+            }
+          } else if (availableServices.length == 1) {
             selectedServices.clear();
             selectedServices.add(availableServices[0]);
           }
@@ -139,8 +165,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
           backgroundColor: Colors.white.withOpacity(0.2),
           iconColor: Colors.white,
         ),
-        title: const Text("Create Offer",
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        title: Text(widget.offerToEdit != null ? "Edit Offer" : "Create Offer",
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         backgroundColor: ColorClass.base_color,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -226,9 +252,9 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                 elevation: 4,
                 shadowColor: ColorClass.base_color.withOpacity(0.4),
               ),
-              child: const Text(
-                "Create Offer",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text(
+                widget.offerToEdit != null ? "Update Offer" : "Create Offer",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -597,16 +623,30 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
       String lastErrorMessage = "Failed to create offers";
 
       for (var service in selectedServices) {
-        var response = await offerDataManager!.addOffer(
-          context,
-          titleController.text.trim(),
-          descriptionController.text.trim(),
-          "", // No explicit offer value needed anymore
-          "",
-          validUntilDate?.toIso8601String() ?? "",
-          service.sId!,
-          uploadedImageUrl,
-        );
+        var response;
+        if (widget.offerToEdit != null) {
+          response = await offerDataManager!.editOffer(
+            context,
+            widget.offerToEdit!.sId!,
+            titleController.text.trim(),
+            descriptionController.text.trim(),
+            "", // No explicit discount for now
+            validUntilDate?.toIso8601String() ?? "",
+            service.sId!,
+            uploadedImageUrl,
+          );
+        } else {
+          response = await offerDataManager!.addOffer(
+            context,
+            titleController.text.trim(),
+            descriptionController.text.trim(),
+            "", // No explicit offer value needed anymore
+            "",
+            validUntilDate?.toIso8601String() ?? "",
+            service.sId!,
+            uploadedImageUrl,
+          );
+        }
 
         if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
           lastErrorMessage = "API Error: Received HTML instead of JSON.";
@@ -629,7 +669,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
 
       if (successCount > 0) {
         if (mounted && context.mounted) {
-          CommonWidget.successShowSnackBarFor(context, "Offer(s) created successfully!");
+          CommonWidget.successShowSnackBarFor(context, widget.offerToEdit != null ? "Offer updated successfully!" : "Offer(s) created successfully!");
           Navigator.of(context).pop(true);
         }
       } else {

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dart';
+import 'package:car_app/features/offer_model/ui/enhanced_offer_screen.dart';
 import 'package:car_app/features/offer_model/ui/offer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -325,9 +326,18 @@ class _OfferListScreenState extends State<OfferListScreen> {
                       child: _buildActionButton(
                         Icons.edit,
                         "Edit",
-                        () {
-                          // TODO: Navigate to edit offer
-                          CommonWidget.successShowSnackBarFor(context, "Edit feature coming soon!");
+                        () async {
+                          if (mounted && context.mounted) {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EnhancedOfferScreen(offerToEdit: data),
+                              ),
+                            );
+                            if (result == true) {
+                              getCategory(context);
+                            }
+                          }
                         },
                       ),
                     ),

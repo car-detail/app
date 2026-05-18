@@ -38,6 +38,7 @@ class Constant {
   static var addServices = "$versionNumber/services/add-service";
   static var updateService = "$versionNumber/services/update-service/";
   static var addOffer = "$versionNumber/offers/add-offer";
+  static var editOffer = "$versionNumber/offers/edit-offer/";
   static var addRating = "$versionNumber/ratings-review/add-rating-review";
   static var editRating = "$versionNumber/ratings-review/edit-rating-review/";
   static var getReviewRate = "$versionNumber/ratings-review/get-reviews/";

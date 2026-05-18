@@ -948,6 +948,7 @@ class CommonWidget {
   static void _showPremiumNotification(String message, {required bool isError}) {
     BotToast.showCustomNotification(
       duration: const Duration(seconds: 4),
+      allowClick: true,
       toastBuilder: (cancel) => Material(
         color: Colors.transparent,
         child: SafeArea(

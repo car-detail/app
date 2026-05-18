@@ -24,6 +24,8 @@ import '../../packages_model/model/package_model_data.dart';
 import '../../offer_model/ui/enhanced_offer_list_screen.dart';
 import '../../offer_model/data_manager/offer_data_manager.dart';
 import '../../offer_model/model/offer_list_model_bean.dart';
+import '../../packages_model/ui/edit_package_activity.dart';
+import '../../offer_model/ui/enhanced_offer_screen.dart';
 
 class ProfileActivity extends StatefulWidget {
   const ProfileActivity({super.key});
@@ -1079,8 +1081,22 @@ class _ProfileActivityState extends State<ProfileActivity> {
 
   // Build Package Card
   Widget _buildPackageCard(PackageData package) {
-    return Container(
-      width: 200,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditPackageActivity(packageData: package),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getPackages(context);
+          }
+        });
+      },
+      child: Container(
+        width: 200,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
@@ -1146,7 +1162,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   // Build Offers Section
@@ -1245,8 +1261,22 @@ class _ProfileActivityState extends State<ProfileActivity> {
 
   // Build Offer Card
   Widget _buildOfferCard(OfferListModelData offer) {
-    return Container(
-      width: 200,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnhancedOfferScreen(offerToEdit: offer),
+          ),
+        ).then((_) {
+          String? vendorId = sharedPreferences!.getString(Constant.vendorId);
+          if (vendorId != null && vendorId.isNotEmpty) {
+            getOffers(context);
+          }
+        });
+      },
+      child: Container(
+        width: 200,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
@@ -1326,7 +1356,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
           ],
         ),
       ),
-    );
+    ));
   }
 
 }

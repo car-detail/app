@@ -88,4 +88,37 @@ class OfferDataManager{
       skipAutoNavigation: true,
     );
   }
+
+  editOffer(
+      BuildContext context,
+      String offerId,
+      String title,
+      String description,
+      String discount,
+      String validUntil,
+      String serviceId,
+      String image) {
+    var data = <String, dynamic>{
+        "title": title,
+        "service": serviceId,
+        "description": description,
+        "image": image,
+    };
+    if (validUntil.isNotEmpty) {
+      data["validUntil"] = validUntil;
+    } else {
+      data["validUntil"] = null;
+    }
+    if (discount.isNotEmpty) {
+      data["discount"] = double.tryParse(discount);
+    } else {
+      data["discount"] = null;
+    }
+
+    return apiFuntions.patchdatauser(
+      context,
+      "${Constant.editOffer}$offerId",
+      data,
+    );
+  }
 }

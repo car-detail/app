@@ -96,10 +96,23 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
 
         if (message.notification != null) {
           print('Message also contained a notification: ${message.notification}');
-          // You can show a custom snackbar or local notification here if needed
           if (context.mounted) {
             CommonWidget.successShowSnackBarFor(context, "${message.notification?.title}: ${message.notification?.body}");
           }
+        }
+      });
+
+      // Handle message when app is opened from background
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print('App opened from a background notification!');
+        // Navigation logic can go here if needed
+      });
+
+      // Handle message when app is opened from terminated state
+      messaging.getInitialMessage().then((RemoteMessage? message) {
+        if (message != null) {
+          print('App opened from a terminated notification!');
+          // Navigation logic can go here if needed
         }
       });
       

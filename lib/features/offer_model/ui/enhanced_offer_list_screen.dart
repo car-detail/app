@@ -615,9 +615,17 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                       child: _buildModernActionButton(
                         Icons.edit_rounded,
                         "Edit",
-                        () {
+                        () async {
                           if (mounted && context.mounted) {
-                            CommonWidget.successShowSnackBarFor(context, "Edit feature coming soon! You can delete and recreate the offer for now.");
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EnhancedOfferScreen(offerToEdit: offer),
+                              ),
+                            );
+                            if (result == true) {
+                              await getOffers();
+                            }
                           }
                         },
                         isPrimary: true,
