@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Common/ModernDesignSystem.dart';
-import 'car_wash_icon.dart';
+import 'car_silhouette.dart';
 
 /// Standard gradient page header — back button, title, optional subtitle,
 /// optional trailing actions, with the same decorative "blob" texture and
@@ -61,13 +61,17 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 left: -30,
                 child: _blob(90),
               ),
-              // car-wash watermark -- front-facing car + sparkles, matching
-              // the reference icon style. Was 12% opacity and easy to miss
-              // entirely; bumped up and enlarged so it actually reads.
+              // Side-profile car silhouette watermark. The front-facing
+              // CarWashIcon reads fine at full size/opacity (splash screen)
+              // but its internal detail lines (headlights, windshield)
+              // disappear at small size + low opacity + clipped bounds,
+              // leaving just an unrecognizable blob. A side-profile
+              // silhouette (body + two wheel circles) is recognizable as
+              // "a car" from its outline alone, no internal detail needed.
               Positioned(
-                right: 6,
-                bottom: -6,
-                child: CarWashIcon(size: 110, opacity: 0.28),
+                right: 0,
+                bottom: 6,
+                child: CarSilhouette(size: 130, opacity: 0.35, rotation: -0.04),
               ),
             ],
             Row(
