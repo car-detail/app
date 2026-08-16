@@ -879,88 +879,57 @@ class _ProfileVendorListActivityState
 
   // ── settings card ────────────────────────────────────────────────────────────
   Widget _buildSettingsCard() {
-    final headerAccent = ModernDesignSystem.accentFor(3); // violet, neutral vs. the danger-red item
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(ModernDesignSystem.radiusXL),
-        boxShadow: ModernDesignSystem.shadowLarge,
+        border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
         children: [
           // header
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  headerAccent.withOpacity(0.10),
-                  headerAccent.withOpacity(0.03),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
             child: Row(
               children: [
-                ModernDesignSystem.iconTile(
-                  Icons.settings_rounded,
-                  color: headerAccent,
-                  size: 38,
-                  iconSize: 20,
-                  circle: false,
-                ),
-                const SizedBox(width: 12),
+                Icon(Icons.settings_outlined, color: Colors.grey[500], size: 20),
+                const SizedBox(width: 10),
                 const Text(
                   "Account Settings",
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
               ],
             ),
           ),
-          // items
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _settingsItem(
-                  icon: Icons.person_outline_rounded,
-                  iconColor: Colors.blue,
-                  label: "Edit Profile",
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (_) => const ProfileActivity()))
-                        .then((v) {
-                      if (v == true) getUser(context);
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                _settingsItem(
-                  icon: Icons.logout_rounded,
-                  iconColor: Colors.orange,
-                  label: "Logout",
-                  onTap: () => _showLogoutDialog(context),
-                ),
-                const SizedBox(height: 10),
-                _settingsItem(
-                  icon: Icons.delete_forever_rounded,
-                  iconColor: Colors.red,
-                  label: "Delete Account",
-                  onTap: () => _showDeleteAccountDialog(context),
-                ),
-              ],
-            ),
+          Divider(height: 1, color: Colors.grey[200]),
+          _settingsItem(
+            icon: Icons.person_outline_rounded,
+            label: "Edit Profile",
+            onTap: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (_) => const ProfileActivity()))
+                  .then((v) {
+                if (v == true) getUser(context);
+              });
+            },
+          ),
+          Divider(height: 1, indent: 20, color: Colors.grey[100]),
+          _settingsItem(
+            icon: Icons.logout_rounded,
+            label: "Logout",
+            onTap: () => _showLogoutDialog(context),
+          ),
+          Divider(height: 1, indent: 20, color: Colors.grey[100]),
+          _settingsItem(
+            icon: Icons.delete_outline_rounded,
+            label: "Delete Account",
+            textColor: Colors.red[400],
+            onTap: () => _showDeleteAccountDialog(context),
           ),
         ],
       ),
@@ -969,35 +938,31 @@ class _ProfileVendorListActivityState
 
   Widget _settingsItem({
     required IconData icon,
-    required Color iconColor,
     required String label,
     required VoidCallback onTap,
+    Color? textColor,
   }) {
+    final color = textColor ?? Colors.grey[800]!;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           children: [
-            ModernDesignSystem.iconTile(icon, color: iconColor, size: 38, iconSize: 20),
-            const SizedBox(width: 14),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: iconColor,
+                  fontWeight: FontWeight.w500,
+                  color: color,
                 ),
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: iconColor.withOpacity(0.5), size: 20),
+                color: Colors.grey[350], size: 18),
           ],
         ),
       ),
