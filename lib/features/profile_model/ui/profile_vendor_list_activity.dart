@@ -878,17 +878,12 @@ class _ProfileVendorListActivityState
 
   // ── settings card ────────────────────────────────────────────────────────────
   Widget _buildSettingsCard() {
+    final headerAccent = ModernDesignSystem.accentFor(3); // violet, neutral vs. the danger-red item
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusXL),
+        boxShadow: ModernDesignSystem.shadowLarge,
       ),
       child: Column(
         children: [
@@ -899,8 +894,8 @@ class _ProfileVendorListActivityState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.red.withOpacity(0.10),
-                  Colors.red.withOpacity(0.03),
+                  headerAccent.withOpacity(0.10),
+                  headerAccent.withOpacity(0.03),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -912,14 +907,12 @@ class _ProfileVendorListActivityState
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.settings_rounded,
-                      color: Colors.red, size: 20),
+                ModernDesignSystem.iconTile(
+                  Icons.settings_rounded,
+                  color: headerAccent,
+                  size: 38,
+                  iconSize: 20,
+                  circle: false,
                 ),
                 const SizedBox(width: 12),
                 const Text(
@@ -940,10 +933,8 @@ class _ProfileVendorListActivityState
               children: [
                 _settingsItem(
                   icon: Icons.person_outline_rounded,
-                  iconBg: Colors.blue.withOpacity(0.12),
                   iconColor: Colors.blue,
                   label: "Edit Profile",
-                  labelColor: Colors.blue,
                   onTap: () {
                     Navigator.of(context)
                         .push(MaterialPageRoute(
@@ -956,19 +947,15 @@ class _ProfileVendorListActivityState
                 const SizedBox(height: 10),
                 _settingsItem(
                   icon: Icons.logout_rounded,
-                  iconBg: Colors.orange.withOpacity(0.12),
                   iconColor: Colors.orange,
                   label: "Logout",
-                  labelColor: Colors.orange,
                   onTap: () => _showLogoutDialog(context),
                 ),
                 const SizedBox(height: 10),
                 _settingsItem(
                   icon: Icons.delete_forever_rounded,
-                  iconBg: Colors.red.withOpacity(0.10),
                   iconColor: Colors.red,
                   label: "Delete Account",
-                  labelColor: Colors.red,
                   onTap: () => _showDeleteAccountDialog(context),
                 ),
               ],
@@ -981,32 +968,22 @@ class _ProfileVendorListActivityState
 
   Widget _settingsItem({
     required IconData icon,
-    required Color iconBg,
     required Color iconColor,
     required String label,
-    required Color labelColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey[200]!),
+          color: iconColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
+            ModernDesignSystem.iconTile(icon, color: iconColor, size: 38, iconSize: 20),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
@@ -1014,12 +991,12 @@ class _ProfileVendorListActivityState
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: labelColor,
+                  color: iconColor,
                 ),
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: labelColor.withOpacity(0.5), size: 20),
+                color: iconColor.withOpacity(0.5), size: 20),
           ],
         ),
       ),
@@ -1605,45 +1582,40 @@ class _ProfileVendorListActivityState
           await getServices(context);
         }
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
+        margin: const EdgeInsets.only(top: 22), // room for the badge to float above the card
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border(left: BorderSide(color: _kGreen, width: 4)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: ModernDesignSystem.shadowLarge,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // cover image / gradient header
             Container(
-              height: 180,
+              height: 170,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
               ),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
                     ),
                     child: service.coverImage != null &&
                             service.coverImage!.isNotEmpty
                         ? Image.network(
                             service.coverImage!,
                             width: double.infinity,
-                            height: 180,
+                            height: 170,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) =>
                                 _serviceGradientBg(),
@@ -1653,18 +1625,18 @@ class _ProfileVendorListActivityState
                   // dark overlay
                   Container(
                     width: double.infinity,
-                    height: 180,
+                    height: 170,
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
                       ),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.5),
                         ],
                       ),
                     ),
@@ -1676,12 +1648,39 @@ class _ProfileVendorListActivityState
                     child: _statusBadge(
                         active: service.isActive ?? true),
                   ),
+                  // floating category icon badge, overlaps the card edge below
+                  Positioned(
+                    left: 16,
+                    bottom: -22,
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: ModernDesignSystem.shadowMedium,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [_kGreen, ModernDesignSystem.accentFor(1)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: const Icon(Icons.build_circle_rounded,
+                            color: Colors.white, size: 24),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             // content
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
