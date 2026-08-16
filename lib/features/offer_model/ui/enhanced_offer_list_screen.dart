@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_screen.dart';
 import 'package:car_app/features/offer_model/model/offer_list_model_bean.dart';
@@ -142,11 +143,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               left: 20, right: 20, bottom: 20,
             ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [ColorClass.base_color, ColorClass.base_color.withOpacity(0.8)],
-              ),
+              gradient: ModernDesignSystem.brandGradient,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),

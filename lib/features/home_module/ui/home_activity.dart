@@ -348,14 +348,7 @@ class _HomeActivityState extends State<HomeActivity> {
               bottom: 16,
             ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  ColorClass.base_color,
-                  ColorClass.base_color.withOpacity(0.8),
-                ],
-              ),
+              gradient: ModernDesignSystem.brandGradient,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),

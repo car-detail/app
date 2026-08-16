@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
+import '../../../Common/ModernDesignSystem.dart';
 import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 import '../../specialists_module/ui/specialists_activity.dart';
 import '../data_manager/services_data_manager.dart';
@@ -73,14 +74,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                 right: 20,
               ),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    ColorClass.base_color,
-                    ColorClass.base_color.withOpacity(0.8),
-                  ],
-                ),
+                gradient: ModernDesignSystem.brandGradient,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),

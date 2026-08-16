@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/packages_model/ui/add_package_activity.dart';
@@ -196,11 +197,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
         bottom: 24,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF166534), Color(0xFF1CB273), Color(0xFF26D17A)],
-        ),
+        gradient: ModernDesignSystem.brandGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
