@@ -20,7 +20,7 @@
 | Vendor onboarding flow | 🟡 De-duplicated (Phase 0.2/0.3 done) — `SimpleAddShopActivity` confirmed as the one live screen, dead chain removed |
 | Services / packages / offers management | 🟡 Exists, functional, UI not modern |
 | Modern/fun UI | ⬜ Not started — no animation lib, no design system, no theming layer |
-| State management | ⬜ Not started — raw `setState`, God-Activity files up to 3,200 lines |
+| State management | 🟡 Riverpod added to `app` and wired at the root; existing screens not yet migrated off `setState` |
 | Automated tests | ⬜ Not started — 1 test file for ~50k LOC vendor app |
 | Git hygiene | ✅ Working tree committed as checkpoint, now clean |
 | Pre-existing compile errors | ✅ Fixed — 24 → 0 `flutter analyze` errors (Phase 0.3a) |
@@ -47,10 +47,10 @@
 
 | # | Task | Repo | Status |
 |---|---|---|---|
-| 1.1 | Pick a state management approach (Riverpod recommended — testable, no BuildContext coupling) | app, app-user | ⬜ |
-| 1.2 | Define a shared design-system package/module: colors, typography, spacing, reusable components (buttons, cards, chips, bottom sheets) | app, app-user | ⬜ |
-| 1.3 | Extract business logic out of the largest Activities into services/notifiers, one screen at a time, starting with the top 3 offenders (`profile_vendor_list_activity.dart` 3216 LOC, `simple_add_shop_activity.dart` 3149 LOC, `home_activity.dart` 2707 LOC) | app | ⬜ |
-| 1.4 | Split each extracted screen into sub-widgets (target: no single file > ~400 LOC) | app | ⬜ |
+| 1.1 | Pick a state management approach (Riverpod recommended — testable, no BuildContext coupling) | app, app-user | 🟡 `flutter_riverpod` added + `ProviderScope` wraps `MyApp` in `app` (`abe74f4`); `app-user` not started |
+| 1.2 | Define a shared design-system package/module: colors, typography, spacing, reusable components (buttons, cards, chips, bottom sheets) | app, app-user | 🟡 Started in `app`: `lib/design_system/` with `AppColors`, `AppTypography` (existing Poppins fonts), `AppSpacing`/`AppRadius`, `AppButton`, `AppCard` (`abe74f4`). Purely additive — no existing screen uses it yet. Still needed: chips, bottom sheets, text fields, empty/loading/error states; and the equivalent module in `app-user` |
+| 1.3 | Extract business logic out of the largest Activities into services/notifiers, one screen at a time, starting with the top 3 offenders (`profile_vendor_list_activity.dart` 3216 LOC, `simple_add_shop_activity.dart` 3149 LOC, `home_activity.dart` 2707 LOC) | app | ⬜ Not started — largest, highest-risk item in the plan; needs a per-screen pass with manual verification since there's no test suite yet (see 6.2) |
+| 1.4 | Split each extracted screen into sub-widgets (target: no single file > ~400 LOC) | app | ⬜ Depends on 1.3 |
 | 1.5 | Standardize API layer (typed responses, consistent error handling) replacing ad-hoc calls in `ApiFuntion.dart` | app, app-user | ⬜ |
 | 1.6 | Move hardcoded base URL / environment config into build flavors (dev/staging/prod), remove commented-out URL history from `Constant.dart` | app, app-user | ⬜ |
 
