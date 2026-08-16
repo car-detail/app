@@ -11,6 +11,7 @@ import 'package:car_app/features/log_in/data_manager/LoginDataManager.dart';
 import 'package:car_app/features/log_in/ui/new_login_activity.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
+import 'package:car_app/features/resister_vendor_model/ui/widgets/shop_form_fields.dart';
 import 'package:car_app/Models/image_module_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -598,7 +599,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
           _buildDetailImageUploadArea(),
           const SizedBox(height: 20),
 
-          _buildInputField(
+          ShopInputField(
             controller: _serviceAboutController,
             label: "Service Description",
             icon: Icons.description_outlined,
@@ -645,7 +646,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
               ),
             ),
             const SizedBox(height: 24),
-            _buildInputField(
+            ShopInputField(
               controller: _shopNameController,
               label: "Business Name",
               icon: Icons.store,
@@ -653,7 +654,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
               isRequired: true,
             ),
             const SizedBox(height: 20),
-            _buildInputField(
+            ShopInputField(
               controller: _emailController,
               label: "Email Address (Optional)",
               icon: Icons.email,
@@ -777,11 +778,11 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                       ),
                       child: Column(
                         children: [
-                          _buildDefaultPreviewRow("Hours", "9 AM - 6 PM (Monday-Saturday)"),
+                          ShopDefaultPreviewRow(label: "Hours", value: "9 AM - 6 PM (Monday-Saturday)"),
                           const SizedBox(height: 8),
-                          _buildDefaultPreviewRow("Service Duration", "30-60 minutes"),
+                          ShopDefaultPreviewRow(label: "Service Duration", value: "30-60 minutes"),
                           const SizedBox(height: 8),
-                          _buildDefaultPreviewRow("Capacity", "5-8 cars per hour"),
+                          ShopDefaultPreviewRow(label: "Capacity", value: "5-8 cars per hour"),
                         ],
                       ),
                     ),
@@ -867,7 +868,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                   ],
                 ),
                 children: [
-                  _buildDropdownField(
+                  ShopDropdownField(
                     label: "Service Duration",
                     value: _selectedServiceDuration,
                     options: _serviceDurations,
@@ -879,7 +880,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                     icon: Icons.schedule,
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdownField(
+                  ShopDropdownField(
                     label: "Capacity",
                     value: _selectedCapacity,
                     options: _capacityOptions,
@@ -901,32 +902,6 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     );
   }
   
-  Widget _buildDefaultPreviewRow(String label, String value) {
-    return Row(
-      children: [
-        Icon(Icons.check_circle, color: Colors.green[600], size: 16),
-        const SizedBox(width: 8),
-        Text(
-          "$label: ",
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[800],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildOperatingDetailsStep() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -952,7 +927,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
             ),
             const SizedBox(height: 30),
             // Service Duration
-            _buildDropdownField(
+            ShopDropdownField(
               label: "How long does each service take?",
               value: _selectedServiceDuration,
               options: _serviceDurations,
@@ -965,7 +940,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
             ),
             const SizedBox(height: 20),
             // Capacity
-            _buildDropdownField(
+            ShopDropdownField(
               label: "How many cars can you handle per hour?",
               value: _selectedCapacity,
               options: _capacityOptions,
@@ -1098,82 +1073,6 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     );
   }
 
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? hint,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    bool isRequired = false,
-    bool isAutoPopulated = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            if (isRequired)
-              const Text(
-                " *",
-                style: TextStyle(color: Colors.red, fontSize: 16),
-              ),
-            if (isAutoPopulated) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
-                ),
-                child: const Text(
-                  "Auto-filled",
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: ColorClass.base_color),
-            hintText: hint ?? "Enter $label",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ColorClass.base_color, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildDetailImageUploadArea() {
     return Column(
@@ -2001,62 +1900,6 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
     }
   }
 
-  Widget _buildDropdownField({
-    required String label,
-    required String value,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              icon:
-                  Icon(Icons.keyboard_arrow_down, color: ColorClass.base_color),
-              items: options.map((String option) {
-                return DropdownMenuItem<String>(
-                  value: option,
-                  child: Row(
-                    children: [
-                      Icon(icon, color: ColorClass.base_color, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          option,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildOperatingHoursField() {
     // Create a dynamic list that includes custom hours if set

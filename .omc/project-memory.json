@@ -174,8 +174,14 @@
   "hotPaths": [
     {
       "path": "upgrade_plan.md",
-      "accessCount": 9,
-      "lastAccessed": 1786866525132,
+      "accessCount": 12,
+      "lastAccessed": 1786866699294,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/resister_vendor_model/ui/simple_add_shop_activity.dart",
+      "accessCount": 11,
+      "lastAccessed": 1786866841577,
       "type": "file"
     },
     {
@@ -278,6 +284,12 @@
       "path": "lib/design_system/design_system.dart",
       "accessCount": 1,
       "lastAccessed": 1786866658886,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/resister_vendor_model/ui/widgets/shop_form_fields.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866799770,
       "type": "file"
     }
   ],
