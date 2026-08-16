@@ -5,6 +5,8 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/UXHelperWidget.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/app_header.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:car_app/features/services_model/model/add_services_bean.dart';
 import 'package:car_app/features/services_model/model/services_list_bean.dart';
@@ -155,28 +157,12 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: _currentStep > 0
-            ? CommonWidget.buildAppBarBackButton(
-                context,
-                iconColor: Colors.black87,
-                onPressed: _previousStep,
-              )
-            : CommonWidget.buildAppBarBackButton(
-                context,
-                iconColor: Colors.black87,
-              ),
-        title: Text(
-          widget.serviceToEdit != null ? "Edit Service" : "Add Service",
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+      appBar: AppHeader(
+        title: widget.serviceToEdit != null ? "Edit Service" : "Add Service",
+        subtitle: widget.serviceToEdit != null
+            ? "Update your service details"
+            : "Let's get your service listed",
+        onBack: _currentStep > 0 ? _previousStep : null,
       ),
       body: Column(
         children: [
@@ -205,38 +191,68 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
     );
   }
 
+  static const _stepIcons = [
+    Icons.edit_note_rounded,
+    Icons.tune_rounded,
+    Icons.photo_library_rounded,
+  ];
+  static const _stepLabels = ["Basics", "Details", "Photos"];
+
   Widget _buildProgressIndicator() {
+    final accent = ModernDesignSystem.accentFor(1); // indigo, services identity
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       color: Colors.white,
-      child: Column(
-        children: [
-          Row(
-            children: List.generate(_totalSteps, (index) {
-              return Expanded(
-                child: Container(
-                  height: 3,
-                  margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 6 : 0),
-                  decoration: BoxDecoration(
-                    color: index <= _currentStep
-                        ? const Color(0xFF1CB273)
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      child: Row(
+        children: List.generate(_totalSteps * 2 - 1, (i) {
+          if (i.isOdd) {
+            final leftDone = (i - 1) ~/ 2 < _currentStep;
+            return Expanded(
+              child: Container(
+                height: 3,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: leftDone ? accent : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
-              );
-            }),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Step ${_currentStep + 1} of $_totalSteps",
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+              ),
+            );
+          }
+          final index = i ~/ 2;
+          final isDone = index < _currentStep;
+          final isCurrent = index == _currentStep;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: (isDone || isCurrent) ? ModernDesignSystem.brandGradient : null,
+                  color: (isDone || isCurrent) ? null : Colors.grey[200],
+                  boxShadow: isCurrent
+                      ? ModernDesignSystem.getColoredShadow(accent, opacity: 0.35)
+                      : null,
+                ),
+                child: Icon(
+                  isDone ? Icons.check_rounded : _stepIcons[index],
+                  color: (isDone || isCurrent) ? Colors.white : Colors.grey[500],
+                  size: 18,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _stepLabels[index],
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                  color: isCurrent ? accent : Colors.grey[500],
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -250,6 +266,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           children: [
             // Welcome Banner
             UXHelperWidget.buildInfoBanner(
+              iconColor: ModernDesignSystem.accentFor(1),
               message: widget.serviceToEdit != null
                   ? "Update your service information below. You can change anything anytime!"
                   : "Let's add your service! Just fill in the basic details. We'll help you every step of the way.",
@@ -257,6 +274,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             ),
             const SizedBox(height: 30),
             UXHelperWidget.buildHelpfulInputField(
+              accentColor: ModernDesignSystem.accentFor(1),
               context: context,
               controller: _serviceTitleController,
               label: "Service Name",
@@ -269,6 +287,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             _buildCategoryDropdown(),
             const SizedBox(height: 20),
             UXHelperWidget.buildHelpfulInputField(
+              accentColor: ModernDesignSystem.accentFor(1),
               context: context,
               controller: _aboutController,
               label: "Service Description",
@@ -374,11 +393,13 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UXHelperWidget.buildInfoBanner(
+              iconColor: ModernDesignSystem.accentFor(1),
               message: "Set up pricing and capacity for your service. Don't worry, you can change these later.",
               icon: Icons.settings_outlined,
             ),
             const SizedBox(height: 30),
             UXHelperWidget.buildHelpfulInputField(
+              accentColor: ModernDesignSystem.accentFor(1),
               context: context,
               controller: _priceController,
               label: "Price",
@@ -519,6 +540,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UXHelperWidget.buildInfoBanner(
+              iconColor: ModernDesignSystem.accentFor(1),
               message: "Add a cover image for your service. This helps customers see what to expect. You can skip this and add it later.",
               icon: Icons.image_outlined,
             ),

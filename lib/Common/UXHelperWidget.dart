@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Color.dart';
+import 'ModernDesignSystem.dart';
 
 /// Helper widget for layman-friendly UX components
 class UXHelperWidget {
@@ -128,7 +129,9 @@ class UXHelperWidget {
     int maxLines = 1,
     bool isRequired = false,
     BuildContext? context,
+    Color? accentColor,
   }) {
+    final accent = accentColor ?? ColorClass.base_color;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -168,16 +171,16 @@ class UXHelperWidget {
                   );
                 },
                 child: Container(
-                  width: 20,
-                  height: 20,
+                  width: 22,
+                  height: 22,
                   decoration: BoxDecoration(
-                    color: ColorClass.base_color.withOpacity(0.1),
+                    color: accent.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.help_outline,
                     size: 14,
-                    color: ColorClass.base_color,
+                    color: accent,
                   ),
                 ),
               ),
@@ -200,21 +203,30 @@ class UXHelperWidget {
           keyboardType: keyboardType,
           maxLines: maxLines,
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: ColorClass.base_color),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.all(10),
+              child: ModernDesignSystem.iconTile(
+                icon,
+                color: accent,
+                size: 34,
+                iconSize: 17,
+                circle: false,
+              ),
+            ),
             hintText: hintText ?? "Enter $label",
             helperText: example != null ? "Example: $example" : null,
             helperMaxLines: 3,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
+              borderSide: BorderSide(color: accent.withOpacity(0.2)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
+              borderSide: BorderSide(color: accent.withOpacity(0.2)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ColorClass.base_color, width: 2),
+              borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
+              borderSide: BorderSide(color: accent, width: 2),
             ),
             filled: true,
             fillColor: Colors.white,
@@ -294,32 +306,30 @@ class UXHelperWidget {
     Color? backgroundColor,
     Color? iconColor,
   }) {
+    final accent = iconColor ?? Colors.blue[700]!;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: (backgroundColor ?? Colors.blue[50])!,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: (iconColor ?? Colors.blue[300]!),
-          width: 1,
-        ),
+        color: backgroundColor ?? accent.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
+        border: Border.all(color: accent.withOpacity(0.2)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: iconColor ?? Colors.blue[700],
-            size: 20,
-          ),
+          ModernDesignSystem.iconTile(icon, color: accent, size: 34, iconSize: 18),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[800],
-                height: 1.4,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[800],
+                  height: 1.4,
+                ),
               ),
             ),
           ),
