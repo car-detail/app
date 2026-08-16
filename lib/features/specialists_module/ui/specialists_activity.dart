@@ -859,7 +859,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           height: 6,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0D1526), Color(0xFF192028), Color(0xFF26D17A)],
+              colors: [Color(0xFF0D1526), Color(0xFF192028), Color(0xFF2A3542)],
             ),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
           ),
@@ -909,7 +909,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(colors: [Color(0xFF192028), Color(0xFF26D17A)]),
+                  gradient: LinearGradient(colors: [Color(0xFF192028), Color(0xFF2A3542)]),
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 child: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),

@@ -585,7 +585,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF192028), Color(0xFF00C853)],
+                                      colors: [Color(0xFF192028), Color(0xFF2A3542)],
                                     ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
@@ -1082,7 +1082,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                             left: 12, top: 6, bottom: 6, right: 6),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF192028), Color(0xFF00C853)],
+                            colors: [Color(0xFF192028), Color(0xFF2A3542)],
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -1311,7 +1311,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                       ? const LinearGradient(
                                           colors: [
                                             Color(0xFF192028),
-                                            Color(0xFF00C853)
+                                            Color(0xFF2A3542)
                                           ],
                                         )
                                       : null,
@@ -1653,7 +1653,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF192028), Color(0xFF00C853)],
+                                colors: [Color(0xFF192028), Color(0xFF2A3542)],
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -1679,7 +1679,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF192028), Color(0xFF00C853)],
+                              colors: [Color(0xFF192028), Color(0xFF2A3542)],
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),

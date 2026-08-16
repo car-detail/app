@@ -203,7 +203,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                   height: 44,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF192028), Color(0xFF00C853)],
+                      colors: [Color(0xFF192028), Color(0xFF2A3542)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -326,7 +326,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                           height: 36,
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Color(0xFF192028), Color(0xFF00C853)],
+                              colors: [Color(0xFF192028), Color(0xFF2A3542)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),

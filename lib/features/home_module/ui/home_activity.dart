@@ -705,7 +705,7 @@ class _HomeActivityState extends State<HomeActivity> {
                               child: _buildQuickActionCard(
                                 "Services",
                                 Icons.auto_awesome_rounded,
-                                const Color(0xFF10B981), // Green
+                                const Color(0xFF192028), // Green
                                 () {
                                   CommonWidget.navigateToScreen(
                                     context, 
@@ -926,7 +926,7 @@ class _HomeActivityState extends State<HomeActivity> {
     final List<List<Color>> gradients = [
       [const Color(0xFF667EEA), const Color(0xFF764BA2)], // Bookings
       [const Color(0xFFF59E0B), const Color(0xFFEF4444)], // Services
-      [const Color(0xFF11998E), const Color(0xFF38EF7D)], // Rating
+      [const Color(0xFF192028), const Color(0xFF2A3542)], // Rating
     ];
     final List<IconData> icons = [
       Icons.calendar_today_rounded,
