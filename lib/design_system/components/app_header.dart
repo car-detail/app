@@ -61,14 +61,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 left: -30,
                 child: _blob(90),
               ),
-              // faint car-wash watermark -- front-facing car + sparkles,
-              // matching the reference icon style. Kept subtle (12%
-              // opacity) so it reads as texture, not decoration fighting
-              // the title for attention.
+              // car-wash watermark -- front-facing car + sparkles, matching
+              // the reference icon style. Was 12% opacity and easy to miss
+              // entirely; bumped up and enlarged so it actually reads.
               Positioned(
-                right: 4,
-                bottom: -10,
-                child: CarWashIcon(size: 90, opacity: 0.12),
+                right: 6,
+                bottom: -6,
+                child: CarWashIcon(size: 110, opacity: 0.28),
               ),
             ],
             Row(
