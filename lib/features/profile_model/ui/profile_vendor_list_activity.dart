@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:car_app/Common/Color.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ContainerDecoration.dart';
@@ -495,18 +496,21 @@ class _ProfileVendorListActivityState
           icon: Icons.build_circle_rounded,
           count: services.length,
           label: "Services",
+          accent: ModernDesignSystem.accentFor(1),
         ),
         const SizedBox(width: 10),
         _statPill(
           icon: Icons.card_giftcard_rounded,
           count: packages.length,
           label: "Packages",
+          accent: ModernDesignSystem.accentFor(4),
         ),
         const SizedBox(width: 10),
         _statPill(
           icon: Icons.local_offer_rounded,
           count: offers.length,
           label: "Offers",
+          accent: ModernDesignSystem.accentFor(2),
         ),
       ],
     );
@@ -516,6 +520,7 @@ class _ProfileVendorListActivityState
     required IconData icon,
     required int count,
     required String label,
+    required Color accent,
   }) {
     return Expanded(
       child: Container(
@@ -523,9 +528,10 @@ class _ProfileVendorListActivityState
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: accent.withOpacity(0.2), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _kGreen.withOpacity(0.12),
+              color: accent.withOpacity(0.15),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -533,14 +539,14 @@ class _ProfileVendorListActivityState
         ),
         child: Column(
           children: [
-            Icon(icon, color: _kGreen, size: 22),
+            ModernDesignSystem.iconTile(icon, color: accent, size: 38, iconSize: 20),
             const SizedBox(height: 6),
             Text(
               "$count",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: _kGreen,
+                color: accent,
               ),
             ),
             const SizedBox(height: 2),
