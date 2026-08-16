@@ -12,6 +12,7 @@ import 'package:car_app/features/log_in/ui/new_login_activity.dart';
 import 'package:car_app/features/resister_vendor_model/datamanager/add_shop_data_manager.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:car_app/features/resister_vendor_model/ui/widgets/shop_form_fields.dart';
+import 'package:car_app/design_system/components/timeout_network_image.dart';
 import 'package:car_app/Models/image_module_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -1006,20 +1007,12 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                         category.logoImage!.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          category.logoImage!,
+                        child: TimeoutNetworkImage(
+                          url: category.logoImage!,
                           width: 24,
                           height: 24,
                           fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Icon(
-                              Icons.category,
-                              color: ColorClass.base_color,
-                              size: 24,
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) => Icon(
+                          fallback: Icon(
                             Icons.category,
                             color: ColorClass.base_color,
                             size: 24,
