@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
+import '../Common/Color.dart';
+import '../design_system/components/car_wash_icon.dart';
 import 'home_module/data_manager/home_data_manager.dart';
 import 'log_in/ui/new_login_activity.dart';
 import 'log_in/data_manager/LoginDataManager.dart';
@@ -189,82 +191,131 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('assets/images/first_image.png'),
-              fit: BoxFit.cover)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
-          padding: const EdgeInsets.fromLTRB(15, 30, 15, 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Only show Get Started button if user is NOT logged in
-              if(userid == null || userid!.isEmpty)
-                Container(
-                  margin: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
-                  child: GestureDetector(
-                    onTap: () {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => NewLoginActivity(),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                    child: Container(
-                      height: 58,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [Color(0xFF0D1526), Color(0xFF1B2A4A), Color(0xFF3F5A85)],
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFF1B2A4A).withOpacity(0.5),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+    final loggedOut = userid == null || userid!.isEmpty;
+    return Scaffold(
+      backgroundColor: ColorClass.dark_bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            // Illustration blob
+            Expanded(
+              flex: 5,
+              child: Center(
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: CarWashIcon(size: 170, color: ColorClass.base_color),
+                  ),
+                ),
+              ),
+            ),
+            // Pagination dots (decorative)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _dot(false),
+                _dot(true),
+                _dot(false),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Cahrz for Vendors",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "Manage your car wash business, bookings and offers all in one place.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14, height: 1.4),
+              ),
+            ),
+            const Spacer(),
+            if (loggedOut)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: GestureDetector(
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => NewLoginActivity(),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Get Started",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
-                          ),
-                        ],
+                      (route) => false,
+                    );
+                  },
+                  child: Container(
+                    height: 58,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Color(0xFF0D1526), Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                       ),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1B2A4A).withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Get Started",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
-          ),
-
+              ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _dot(bool active) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      width: active ? 20 : 6,
+      height: 6,
+      decoration: BoxDecoration(
+        color: active ? Colors.white : Colors.white.withOpacity(0.25),
+        borderRadius: BorderRadius.circular(3),
       ),
     );
   }
