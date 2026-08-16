@@ -288,7 +288,7 @@ class UXHelperWidget {
               ),
             ],
           ),
-          backgroundColor: Colors.green[600],
+          backgroundColor: const Color(0xFF192028),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           shape: RoundedRectangleBorder(

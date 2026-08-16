@@ -50,15 +50,15 @@ class ShopInputField extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: const Color(0xFF192028).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFF192028).withOpacity(0.3)),
                 ),
                 child: const Text(
                   "Auto-filled",
                   style: TextStyle(
                     fontSize: 10,
-                    color: Colors.green,
+                    color: const Color(0xFF192028),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -177,7 +177,7 @@ class ShopDefaultPreviewRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.check_circle, color: Colors.green[600], size: 16),
+        Icon(Icons.check_circle, color: const Color(0xFF192028), size: 16),
         const SizedBox(width: 8),
         Text(
           "$label: ",

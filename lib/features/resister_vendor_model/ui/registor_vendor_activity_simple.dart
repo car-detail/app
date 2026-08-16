@@ -103,7 +103,7 @@ class _RegistorVendorActivitySimpleState extends State<RegistorVendorActivitySim
                 Icons.location_on,
                 "Business Address",
                 "Your shop location and contact details",
-                Colors.green,
+                const Color(0xFF192028),
               ),
               const SizedBox(height: 16),
               _buildRequirementCard(

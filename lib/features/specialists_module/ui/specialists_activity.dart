@@ -1202,7 +1202,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
                   icon: Icons.verified_user_rounded,
                   title: "Status",
                   value: servicesDetailsData.isActive == true ? "Active" : "Inactive",
-                  color: servicesDetailsData.isActive == true ? Colors.green.shade700 : Colors.grey[700]!,
+                  color: servicesDetailsData.isActive == true ? const Color(0xFF192028) : Colors.grey[700]!,
                 ),
               ),
             ],

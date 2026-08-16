@@ -51,7 +51,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
       name: "Percentage",
       description: "Percentage off",
       icon: Icons.percent,
-      color: Colors.green,
+      color: const Color(0xFF192028),
       type: "percentage",
       defaultTitle: "Flash Sale: 20% OFF",
       defaultDescription: "Get an exclusive 20% off our professional car wash services for a limited time!",

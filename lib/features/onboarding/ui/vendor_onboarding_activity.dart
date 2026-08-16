@@ -67,7 +67,7 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
     BusinessTypeTemplate(
       name: "Detailing",
       icon: Icons.cleaning_services,
-      color: Colors.green,
+      color: const Color(0xFF192028),
       description: "Professional vehicle detailing",
       services: ["Paint Correction", "Ceramic Coating", "Interior Detailing", "Paint Protection"],
       packages: ["Basic Detail", "Premium Detail", "Ultra Detail"],
@@ -206,7 +206,7 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             Icons.store,
             "Step 2: Shop Details",
             "Add your business name and location",
-            Colors.green,
+            const Color(0xFF192028),
           ),
           const SizedBox(height: 16),
           _buildFeatureCard(
@@ -254,8 +254,8 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
             UXHelperWidget.buildInfoBanner(
               message: "Don't worry! This information is safe and only used for your business profile.",
               icon: Icons.lock_outline,
-              backgroundColor: Colors.green[50],
-              iconColor: Colors.green[700],
+              backgroundColor: const Color(0xFF192028),
+              iconColor: const Color(0xFF192028),
             ),
             const SizedBox(height: 20),
             UXHelperWidget.buildHelpfulInputField(
@@ -624,13 +624,13 @@ class _VendorOnboardingActivityState extends State<VendorOnboardingActivity> {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: const Color(0xFF192028).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.check_circle,
               size: 80,
-              color: Colors.green,
+              color: const Color(0xFF192028),
             ),
           ),
           const SizedBox(height: 30),

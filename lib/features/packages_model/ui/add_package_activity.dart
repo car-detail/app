@@ -60,7 +60,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
       duration: "1",
       tier: "OUTSIDE",
       services: ["Hand Wash", "Tire Wipe", "Air Dry"],
-      color: Colors.green,
+      color: const Color(0xFF192028),
     ),
     PackageTemplate(
       name: "BASIC",

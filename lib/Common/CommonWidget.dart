@@ -325,7 +325,7 @@ class CommonWidget {
       String title,
       String value, {
         Color titlecolor = Colors.black,
-        Color valuecolor = Colors.green,
+        Color valuecolor = const Color(0xFF192028),
         double textsize = 12, // Reduced text size for compactness
         int maxLine = 2, // Reduce the number of max lines
       }) {

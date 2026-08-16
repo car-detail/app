@@ -792,12 +792,12 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: _smartDefaultsAcknowledged
-                            ? Colors.green[50]
+                            ? const Color(0xFF192028)
                             : Colors.orange[50],
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _smartDefaultsAcknowledged
-                              ? Colors.green[300]!
+                              ? const Color(0xFF192028)
                               : Colors.orange[300]!,
                           width: 1.5,
                         ),
@@ -811,7 +811,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                                 _smartDefaultsAcknowledged = value ?? false;
                               });
                             },
-                            activeColor: Colors.green[700],
+                            activeColor: const Color(0xFF192028),
                             checkColor: Colors.white,
                           ),
                           Expanded(
@@ -1355,7 +1355,7 @@ class _SimpleAddShopActivityState extends State<SimpleAddShopActivity> {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: Colors.green,
+                                  color: const Color(0xFF192028),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(

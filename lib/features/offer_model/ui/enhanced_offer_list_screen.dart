@@ -463,7 +463,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                               color: isExpired 
                                   ? Colors.red[700]!.withOpacity(0.9)
                                   : isActive 
-                                      ? Colors.green[700]!.withOpacity(0.9)
+                                      ? const Color(0xFF192028).withOpacity(0.9)
                                       : Colors.grey[700]!.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -545,7 +545,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                           color: isExpired 
                               ? Colors.red[50] 
                               : offer.validUntil == null || offer.validUntil!.isEmpty
-                                  ? Colors.green[50]
+                                  ? const Color(0xFF192028)
                                   : ColorClass.base_light_color,
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -560,7 +560,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                               color: isExpired 
                                   ? Colors.red[700]
                                   : offer.validUntil == null || offer.validUntil!.isEmpty
-                                      ? Colors.green[700]
+                                      ? const Color(0xFF192028)
                                       : ColorClass.base_color,
                             ),
                             const SizedBox(width: 6),
@@ -574,7 +574,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                                   color: isExpired 
                                       ? Colors.red[700]
                                       : offer.validUntil == null || offer.validUntil!.isEmpty
-                                          ? Colors.green[700]
+                                          ? const Color(0xFF192028)
                                           : ColorClass.base_color,
                                   fontWeight: FontWeight.w600,
                                 ),

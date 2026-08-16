@@ -12,7 +12,7 @@ class AppColors {
   static const secondary = Color(0xff3F51B5);
 
   // Semantic
-  static const success = Color(0xff1CB273);
+  static const success = Color(0xff192028);
   static const warning = Color(0xffFFA000);
   static const error = Color(0xffC41618);
   static const info = Color(0xff008FF1);

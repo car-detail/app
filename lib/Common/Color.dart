@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 class ColorClass {
-  // Brand color: navy (was green 0xff1CB273) -- switched per the dark
-  // navy/white/black reference the user provided for the whole app.
-  static var base_color = const Color(0xff1B2A4A);
-  static var base_light_color = const Color(0xffE7EAF1);
+  // Brand color: charcoal #192028, per explicit instruction to remove
+  // green everywhere in the app.
+  static var base_color = const Color(0xff192028);
+  static var base_light_color = const Color(0xffE6E7E9);
   static var start_color = const Color(0xff3F51B5);
-  static var base_color_int = 0xff1B2A4A;
+  static var base_color_int = 0xff192028;
   static var start_color_int = 0xff3F51B5;
 
-  // Dark navy/near-black for onboarding-style dark screens.
+  // Dark near-black for onboarding-style dark screens.
   static var dark_bg = const Color(0xff14141A);
 
   /*<color name="payble">#008FF1</color>
@@ -37,6 +37,6 @@ class ColorClass {
   static var light_browne = const Color(0xffF0EADD);
   static var browne = const Color(0xffae9251);
   static int gray = 0xffdedede;
-  static int green = 0xFF4CAF50;
+  static int green = 0xFF192028;
   static int red = 0xFFF44336;
 }

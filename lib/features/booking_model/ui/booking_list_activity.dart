@@ -594,7 +594,7 @@ class BookingListActivityState extends State<BookingListActivity> {
       case 'pending':
         return Colors.orange;
       case 'completed':
-        return Colors.green;
+        return const Color(0xFF192028);
       case 'cancelled':
         return Colors.red;
       default:
@@ -942,7 +942,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                                     contentPadding:
                                         const EdgeInsets.fromLTRB(10, 10, 10, 10),
                                     filled: true,
-                                    fillColor: Colors.green[50],
+                                    fillColor: const Color(0xFF192028),
                                     hintText: "Enter Reason....",
                                     hintStyle: const TextStyle(
                                         color: Colors.grey,
@@ -968,8 +968,8 @@ class BookingListActivityState extends State<BookingListActivity> {
                                       margin: const EdgeInsets.only(right: 5),
                                       child: CommonWidget.getButtonWidget(
                                           "No",
-                                          Colors.green[300]!,
-                                          Colors.green[300]!)),
+                                          const Color(0xFF192028),
+                                          const Color(0xFF192028))),
                                 )),
                                 Expanded(
                                     child: GestureDetector(

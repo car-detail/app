@@ -454,7 +454,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                 Icons.attach_money_rounded,
                                 "\$${data.price}",
                                 "Price",
-                                Colors.green,
+                                const Color(0xFF192028),
                               ),
                             ),
                             Container(
@@ -556,7 +556,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                           child: _buildFancyActionButton(
                             data.isPaused == true ? Icons.play_arrow_rounded : Icons.pause_rounded,
                             data.isPaused == true ? "Resume" : "Pause",
-                            data.isPaused == true ? Colors.green[600]! : Colors.orange[700]!,
+                            data.isPaused == true ? const Color(0xFF192028) : Colors.orange[700]!,
                             () async {
                               final newStatus = data.isPaused != true;
                               final response = await servicesDataManager!.pauseService(

@@ -1171,7 +1171,7 @@ class _HomeActivityState extends State<HomeActivity> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildMiniStatus("Pending", pendingBookings, Colors.amber),
-              _buildMiniStatus("Completed", completedBookings, Colors.green),
+              _buildMiniStatus("Completed", completedBookings, const Color(0xFF192028)),
               _buildMiniStatus("Cancelled", cancelledBookings, Colors.red),
             ],
           ),
@@ -1598,7 +1598,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: (offer.isActive ?? true) ? Colors.green : Colors.grey,
+                            color: (offer.isActive ?? true) ? const Color(0xFF192028) : Colors.grey,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -1825,13 +1825,13 @@ class _HomeActivityState extends State<HomeActivity> {
                           Icon(
                             Icons.all_inclusive_rounded,
                             size: 12,
-                            color: Colors.green[300],
+                            color: const Color(0xFF192028),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             "Never expires",
                             style: TextStyle(
-                              color: Colors.green[300],
+                              color: const Color(0xFF192028),
                               fontFamily: "PopReg",
                               fontSize: 11,
                             ),
@@ -1855,7 +1855,7 @@ class _HomeActivityState extends State<HomeActivity> {
       case 'pending':
         return Colors.orange;
       case 'completed':
-        return Colors.green;
+        return const Color(0xFF192028);
       case 'cancelled':
         return Colors.red;
       default:
@@ -1995,7 +1995,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: const Color(0xFF192028),
                       borderRadius: BorderRadius.circular(ModernDesignSystem.radiusS),
                     ),
                     child: const Text(
@@ -2471,7 +2471,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   child: _buildQuickAddOption(
                     "Add Service",
                     Icons.design_services,
-                    Colors.green,
+                    const Color(0xFF192028),
                     () {
                       CommonWidget.safePop(context);
                       CommonWidget.navigateToScreen(
@@ -2577,7 +2577,7 @@ class _HomeActivityState extends State<HomeActivity> {
               "Browse Services",
               "Add from existing service templates",
               Icons.design_services,
-              Colors.green,
+              const Color(0xFF192028),
               () {
                 CommonWidget.safePop(context);
                 CommonWidget.navigateToScreen(

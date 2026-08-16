@@ -209,9 +209,9 @@ class ModernDesignSystem {
 
   // --- Playful accents ---
   // A small rotating palette so repeated tiles (fields, cards) don't all
-  // read as the same flat brand-green block.
+  // read as the same flat block. No green anywhere per explicit instruction.
   static const List<Color> accentPalette = [
-    Color(0xff1CB273), // brand green
+    Color(0xff192028), // brand charcoal
     Color(0xff3F51B5), // indigo
     Color(0xffFF7A59), // coral
     Color(0xff9C6ADE), // violet
