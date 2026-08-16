@@ -295,155 +295,145 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
 
   Widget _buildServiceCard(ServicesListData data, int index) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border(
-          left: BorderSide(
-            width: 4,
-            color: ModernDesignSystem.accentFor(1),
-          ),
-        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: ModernDesignSystem.shadowLarge,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
+          child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Row: Icon, Title, Status
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Service Icon with image fallback chain
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                ModernDesignSystem.accentFor(1),
-                                ModernDesignSystem.accentFor(1).withOpacity(0.7),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ModernDesignSystem.accentFor(1).withOpacity(0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                    // Big banner image, not a small icon -- this is the
+                    // vendor's actual service photo, it needs to read clearly.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 170,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  ModernDesignSystem.accentFor(1),
+                                  ModernDesignSystem.accentFor(1).withOpacity(0.7),
+                                ],
                               ),
-                            ],
+                            ),
+                            child: _buildServiceIconWithFallback(data),
                           ),
-                          child: _buildServiceIconWithFallback(data),
-                        ),
-                        const SizedBox(width: 12),
-                        // Title and Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                          // dark gradient so the status badge stays readable
+                          // over any photo
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.45),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Status Badge
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: data.isPaused == true
+                                      ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
+                                      : [ModernDesignSystem.accentFor(1), ModernDesignSystem.accentFor(1).withOpacity(0.7)],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Expanded(
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    data.isPaused == true ? "Paused" : "Active",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: "Pop600",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Title + category badge, over the image like the
+                          // rest of the app's photo cards
+                          Positioned(
+                            left: 14,
+                            right: 14,
+                            bottom: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  data.categoryName ?? data.serviceTitle ?? "Untitled Service",
+                                  style: const TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    fontFamily: "Pop600",
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (data.categoryName != null && data.categoryName!.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.25),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.white.withOpacity(0.35)),
+                                    ),
                                     child: Text(
-                                      data.categoryName ?? data.serviceTitle ?? "Untitled Service",
+                                      data.categoryName!,
                                       style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black87,
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
                                         fontFamily: "Pop600",
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 4),
-                              // Category and Status Row
-                              Row(
-                                children: [
-                                  // Category Badge
-                                  if (data.categoryName != null && data.categoryName!.isNotEmpty)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: ModernDesignSystem.accentFor(1).withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: ModernDesignSystem.accentFor(1).withOpacity(0.3),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        data.categoryName!,
-                                        style: TextStyle(
-                                          color: ModernDesignSystem.accentFor(1),
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: "Pop600",
-                                        ),
-                                      ),
-                                    ),
-                                  const SizedBox(width: 6),
-                                  // Status Badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: data.isPaused == true
-                                            ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
-                                            : [ModernDesignSystem.accentFor(1), ModernDesignSystem.accentFor(1).withOpacity(0.7)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 5,
-                                          height: 5,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.white,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          data.isPaused == true ? "Paused" : "Active",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: "Pop600",
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
                     // Key Info Cards: Price, Duration, Capacity
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -607,11 +597,13 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                   ],
                 ),
               ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
+
   Widget _buildServiceIconWithFallback(ServicesListData data) {
     // Priority 1: Try service cover image
     String? coverImage = data.coverImage;
