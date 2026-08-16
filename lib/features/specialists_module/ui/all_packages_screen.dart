@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/Common/ShimmerLoader.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data_manager/specialists_data_manager.dart';
@@ -143,20 +143,10 @@ class _AllPackagesScreenState extends State<AllPackagesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: List.generate(
-          3,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ShimmerLoader.buildSleekShimmer(
-              width: double.infinity,
-              height: 200,
-              borderRadius: 12,
-            ),
-          ),
-        ),
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: CarLoader(),
       ),
     );
   }

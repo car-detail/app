@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/Common/ShimmerLoader.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 import 'package:car_app/Common/TourGuide.dart';
 import 'package:car_app/features/dashboard_module/model/vendor_details_main_bean.dart';
 import 'package:car_app/features/home_module/ui/home_activity.dart';
@@ -671,8 +671,8 @@ class _DashboardActivityState extends State<DashboardActivity> {
       future: _getVendorId(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: ShimmerLoader.buildCarLoadingAnimation(),
+          return const Center(
+            child: CarLoader(),
           );
         }
         

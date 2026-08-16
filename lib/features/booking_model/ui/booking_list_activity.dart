@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
-import '../../../Common/ShimmerLoader.dart';
+import '../../../design_system/components/car_loader.dart';
 import '../../../design_system/components/app_header.dart';
 import '../data_model/booking_data_manager.dart';
 import '../data_model/booking_list_bean.dart';
@@ -112,12 +112,11 @@ class BookingListActivityState extends State<BookingListActivity> {
                 }
               },
             child: isLoading
-                ? ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: 3,
-                    itemBuilder: (context, index) {
-                      return ShimmerLoader.buildBookingCardShimmer();
-                    },
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: CarLoader(),
+                    ),
                   )
                 : records.isEmpty && show
                     ? _buildEmptyState()

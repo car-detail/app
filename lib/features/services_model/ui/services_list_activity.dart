@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/Common/ShimmerLoader.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 import 'package:car_app/Common/ContainerDecoration.dart';
 import 'package:car_app/features/services_model/ui/modern_add_service_activity.dart';
 import 'package:flutter/material.dart';
@@ -220,10 +220,11 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
             if (venderId != "")
               Expanded(
                 child: isLoading
-                    ? ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: 6,
-                        itemBuilder: (_, __) => ShimmerLoader.buildServiceCardShimmer(),
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 60),
+                          child: CarLoader(),
+                        ),
                       )
                     : servicesData.isNotEmpty
                     ? RefreshIndicator(

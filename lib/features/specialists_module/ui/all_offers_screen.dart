@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
-import 'package:car_app/Common/ShimmerLoader.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 
 class AllOffersScreen extends StatefulWidget {
   final String vendorId;
@@ -59,20 +59,10 @@ class _AllOffersScreenState extends State<AllOffersScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: List.generate(
-          3,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ShimmerLoader.buildSleekShimmer(
-              width: double.infinity,
-              height: 200,
-              borderRadius: 12,
-            ),
-          ),
-        ),
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: CarLoader(),
       ),
     );
   }
