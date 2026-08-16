@@ -387,7 +387,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: ColorClass.base_color.withOpacity(0.3),
+                              color: ModernDesignSystem.accentFor(2).withOpacity(0.3),
                               child: const Icon(
                                 Icons.local_offer_rounded,
                                 color: Colors.white,
@@ -397,7 +397,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                           },
                         )
                       : Container(
-                          color: ColorClass.base_color,
+                          color: ModernDesignSystem.accentFor(2),
                           child: const Icon(
                             Icons.local_offer_rounded,
                             color: Colors.white,

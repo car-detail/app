@@ -309,7 +309,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
         border: Border(
           left: BorderSide(
             width: 4,
-            color: const Color(0xFF1CB273),
+            color: ModernDesignSystem.accentFor(1),
           ),
         ),
       ),
@@ -335,14 +335,14 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                ColorClass.base_color,
-                                ColorClass.base_color.withOpacity(0.7),
+                                ModernDesignSystem.accentFor(1),
+                                ModernDesignSystem.accentFor(1).withOpacity(0.7),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: ColorClass.base_color.withOpacity(0.2),
+                                color: ModernDesignSystem.accentFor(1).withOpacity(0.2),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -382,17 +382,17 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: ColorClass.base_color.withOpacity(0.1),
+                                        color: ModernDesignSystem.accentFor(1).withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: ColorClass.base_color.withOpacity(0.3),
+                                          color: ModernDesignSystem.accentFor(1).withOpacity(0.3),
                                           width: 1,
                                         ),
                                       ),
                                       child: Text(
                                         data.categoryName!,
                                         style: TextStyle(
-                                          color: ColorClass.base_color,
+                                          color: ModernDesignSystem.accentFor(1),
                                           fontSize: 10,
                                           fontWeight: FontWeight.w600,
                                           fontFamily: "Pop600",
@@ -407,7 +407,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                       gradient: LinearGradient(
                                         colors: data.isPaused == true
                                             ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
-                                            : [const Color(0xFF1CB273), const Color(0xFF00E676)],
+                                            : [ModernDesignSystem.accentFor(1), ModernDesignSystem.accentFor(1).withOpacity(0.7)],
                                       ),
                                       borderRadius: BorderRadius.circular(20),
                                     ),

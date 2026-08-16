@@ -360,7 +360,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
         color: _card,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _borderAccent.withValues(alpha: 0.15),
+          color: ModernDesignSystem.accentFor(4).withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -375,8 +375,8 @@ class _PackageListActivityState extends State<PackageListActivity> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    ColorClass.base_color.withValues(alpha: 0.9),
-                    ColorClass.base_color.withValues(alpha: 0.3),
+                    ModernDesignSystem.accentFor(4).withValues(alpha: 0.9),
+                    ModernDesignSystem.accentFor(4).withValues(alpha: 0.3),
                   ],
                 ),
               ),
@@ -434,8 +434,8 @@ class _PackageListActivityState extends State<PackageListActivity> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    ColorClass.base_color,
-                                    ColorClass.base_color
+                                    ModernDesignSystem.accentFor(4),
+                                    ModernDesignSystem.accentFor(4)
                                         .withValues(alpha: 0.7),
                                   ],
                                 ),
@@ -458,7 +458,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: isActive
-                                  ? ColorClass.base_color.withValues(alpha: 0.12)
+                                  ? ModernDesignSystem.accentFor(4).withValues(alpha: 0.12)
                                   : _surface,
                               borderRadius: BorderRadius.circular(50),
                             ),
@@ -468,7 +468,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: isActive
-                                    ? ColorClass.base_color
+                                    ? ModernDesignSystem.accentFor(4)
                                     : _textSecondary,
                                 letterSpacing: 0.1,
                               ),
@@ -588,7 +588,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
                           child: Container(
                             height: 42,
                             decoration: BoxDecoration(
-                              color: ColorClass.base_color,
+                              color: ModernDesignSystem.accentFor(4),
                               borderRadius: BorderRadius.circular(50),
                             ),
                             alignment: Alignment.center,
