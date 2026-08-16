@@ -33,15 +33,13 @@ import '../../offer_model/model/offer_list_model_bean.dart';
 import '../model/category_model_data.dart';
 import '../model/notification_data_bean.dart';
 import '../model/services_model_data.dart';
-import '../../services_model/ui/simple_add_services_activity.dart';
 import '../../services_model/ui/services_list_activity.dart';
 import '../../booking_model/ui/booking_list_activity.dart';
 import '../../offer_model/ui/enhanced_offer_screen.dart';
 import '../../packages_model/ui/add_package_activity.dart';
 import '../../packages_model/ui/package_list_activity.dart';
-import '../../packages_model/ui/ultra_simple_add_package.dart';
 import '../../notification_model/ui/notification_activity.dart';
-import '../../services_model/ui/ultra_simple_add_service.dart';
+import '../../services_model/ui/modern_add_service_activity.dart';
 import 'location_picker_screen.dart';
 
 class HomeActivity extends StatefulWidget {
@@ -2469,7 +2467,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       CommonWidget.safePop(context);
                       CommonWidget.navigateToScreen(
                         context,
-                        const UltraSimpleAddService(),
+                        const ModernAddServiceActivity(),
                       );
                     },
                   ),

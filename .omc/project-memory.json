@@ -185,9 +185,15 @@
       "type": "file"
     },
     {
+      "path": "lib/features/home_module/ui/home_activity.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786866490479,
+      "type": "file"
+    },
+    {
       "path": "lib/features/services_model/ui/services_list_activity.dart",
-      "accessCount": 3,
-      "lastAccessed": 1786865267218,
+      "accessCount": 4,
+      "lastAccessed": 1786866491574,
       "type": "file"
     },
     {
@@ -224,12 +230,6 @@
       "path": "lib/features/offer_model/model/offer_list_model_bean.dart",
       "accessCount": 2,
       "lastAccessed": 1786865661461,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/home_module/ui/home_activity.dart",
-      "accessCount": 1,
-      "lastAccessed": 1786865367758,
       "type": "file"
     },
     {
