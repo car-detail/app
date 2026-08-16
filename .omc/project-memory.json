@@ -174,8 +174,8 @@
   "hotPaths": [
     {
       "path": "upgrade_plan.md",
-      "accessCount": 7,
-      "lastAccessed": 1786865730208,
+      "accessCount": 9,
+      "lastAccessed": 1786866525132,
       "type": "file"
     },
     {
@@ -191,15 +191,15 @@
       "type": "file"
     },
     {
-      "path": "lib/features/services_model/ui/services_list_activity.dart",
-      "accessCount": 4,
-      "lastAccessed": 1786866491574,
+      "path": "lib/main.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786866611722,
       "type": "file"
     },
     {
-      "path": "lib/main.dart",
-      "accessCount": 3,
-      "lastAccessed": 1786865285285,
+      "path": "lib/features/services_model/ui/services_list_activity.dart",
+      "accessCount": 4,
+      "lastAccessed": 1786866491574,
       "type": "file"
     },
     {
@@ -236,6 +236,48 @@
       "path": "lib/features/log_in/ui/LoginActivity.dart",
       "accessCount": 1,
       "lastAccessed": 1786865633058,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/Color.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866584756,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/app_colors.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866623257,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/app_spacing.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866628273,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/app_typography.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866639135,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/app_button.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866648763,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/app_card.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866655084,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/design_system.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786866658886,
       "type": "file"
     }
   ],
