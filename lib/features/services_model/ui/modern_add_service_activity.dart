@@ -7,6 +7,8 @@ import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/UXHelperWidget.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
 import 'package:car_app/design_system/components/app_header.dart';
+import 'package:car_app/design_system/components/bouncy_tap.dart';
+import 'package:car_app/design_system/components/staggered_fade_in.dart';
 import 'package:car_app/features/services_model/data_manager/services_data_manager.dart';
 import 'package:car_app/features/services_model/model/add_services_bean.dart';
 import 'package:car_app/features/services_model/model/services_list_bean.dart';
@@ -208,7 +210,9 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           if (i.isOdd) {
             final leftDone = (i - 1) ~/ 2 < _currentStep;
             return Expanded(
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutCubic,
                 height: 3,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
@@ -224,21 +228,33 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: (isDone || isCurrent) ? ModernDesignSystem.brandGradient : null,
-                  color: (isDone || isCurrent) ? null : Colors.grey[200],
-                  boxShadow: isCurrent
-                      ? ModernDesignSystem.getColoredShadow(accent, opacity: 0.35)
-                      : null,
-                ),
-                child: Icon(
-                  isDone ? Icons.check_rounded : _stepIcons[index],
-                  color: (isDone || isCurrent) ? Colors.white : Colors.grey[500],
-                  size: 18,
+              AnimatedScale(
+                scale: isCurrent ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutBack,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: (isDone || isCurrent) ? ModernDesignSystem.brandGradient : null,
+                    color: (isDone || isCurrent) ? null : Colors.grey[200],
+                    boxShadow: isCurrent
+                        ? ModernDesignSystem.getColoredShadow(accent, opacity: 0.35)
+                        : null,
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Icon(
+                      isDone ? Icons.check_rounded : _stepIcons[index],
+                      key: ValueKey(isDone),
+                      color: (isDone || isCurrent) ? Colors.white : Colors.grey[500],
+                      size: 18,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
@@ -265,37 +281,48 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Welcome Banner
-            UXHelperWidget.buildInfoBanner(
-              iconColor: ModernDesignSystem.accentFor(1),
-              message: widget.serviceToEdit != null
-                  ? "Update your service information below. You can change anything anytime!"
-                  : "Let's add your service! Just fill in the basic details. We'll help you every step of the way.",
-              icon: widget.serviceToEdit != null ? Icons.edit_outlined : Icons.info_outline,
+            StaggeredFadeIn(
+              child: UXHelperWidget.buildInfoBanner(
+                iconColor: ModernDesignSystem.accentFor(1),
+                message: widget.serviceToEdit != null
+                    ? "Update your service information below. You can change anything anytime!"
+                    : "Let's add your service! Just fill in the basic details. We'll help you every step of the way.",
+                icon: widget.serviceToEdit != null ? Icons.edit_outlined : Icons.info_outline,
+              ),
             ),
             const SizedBox(height: 30),
-            UXHelperWidget.buildHelpfulInputField(
-              accentColor: ModernDesignSystem.accentFor(1),
-              context: context,
-              controller: _serviceTitleController,
-              label: "Service Name",
-              icon: Icons.design_services,
-              helpText: "Give your service a clear and descriptive name, like 'Basic Car Wash' or 'Premium Interior Detailing'. This is what customers will see.",
-              example: "Basic Car Wash",
-              isRequired: true,
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: UXHelperWidget.buildHelpfulInputField(
+                accentColor: ModernDesignSystem.accentFor(1),
+                context: context,
+                controller: _serviceTitleController,
+                label: "Service Name",
+                icon: Icons.design_services,
+                helpText: "Give your service a clear and descriptive name, like 'Basic Car Wash' or 'Premium Interior Detailing'. This is what customers will see.",
+                example: "Basic Car Wash",
+                isRequired: true,
+              ),
             ),
             const SizedBox(height: 20),
-            _buildCategoryDropdown(),
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 160),
+              child: _buildCategoryDropdown(),
+            ),
             const SizedBox(height: 20),
-            UXHelperWidget.buildHelpfulInputField(
-              accentColor: ModernDesignSystem.accentFor(1),
-              context: context,
-              controller: _aboutController,
-              label: "Service Description",
-              icon: Icons.description,
-              helpText: "Briefly describe what this service includes. Keep it simple and clear so customers know what to expect.",
-              example: "Complete exterior wash with soap and water",
-              maxLines: 4,
-              isRequired: true,
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 240),
+              child: UXHelperWidget.buildHelpfulInputField(
+                accentColor: ModernDesignSystem.accentFor(1),
+                context: context,
+                controller: _aboutController,
+                label: "Service Description",
+                icon: Icons.description,
+                helpText: "Briefly describe what this service includes. Keep it simple and clear so customers know what to expect.",
+                example: "Complete exterior wash with soap and water",
+                maxLines: 4,
+                isRequired: true,
+              ),
             ),
           ],
         ),
@@ -392,28 +419,33 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UXHelperWidget.buildInfoBanner(
-              iconColor: ModernDesignSystem.accentFor(1),
-              message: "Set up pricing and capacity for your service. Don't worry, you can change these later.",
-              icon: Icons.settings_outlined,
+            StaggeredFadeIn(
+              child: UXHelperWidget.buildInfoBanner(
+                iconColor: ModernDesignSystem.accentFor(1),
+                message: "Set up pricing and capacity for your service. Don't worry, you can change these later.",
+                icon: Icons.settings_outlined,
+              ),
             ),
             const SizedBox(height: 30),
-            UXHelperWidget.buildHelpfulInputField(
-              accentColor: ModernDesignSystem.accentFor(1),
-              context: context,
-              controller: _priceController,
-              label: "Price",
-              icon: Icons.attach_money,
-              helpText: "How much do you charge for this service? Enter just the number. You can leave this empty and set it later.",
-              example: "25",
-              hintText: "e.g., 25 (Optional)",
-              keyboardType: TextInputType.number,
-              isRequired: false,
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 80),
+              child: UXHelperWidget.buildHelpfulInputField(
+                accentColor: ModernDesignSystem.accentFor(1),
+                context: context,
+                controller: _priceController,
+                label: "Price",
+                icon: Icons.attach_money,
+                helpText: "How much do you charge for this service? Enter just the number. You can leave this empty and set it later.",
+                example: "25",
+                hintText: "e.g., 25 (Optional)",
+                keyboardType: TextInputType.number,
+                isRequired: false,
+              ),
             ),
             const SizedBox(height: 20),
-            _buildDurationDropdown(),
+            StaggeredFadeIn(delay: const Duration(milliseconds: 160), child: _buildDurationDropdown()),
             const SizedBox(height: 20),
-            _buildCapacityDropdown(),
+            StaggeredFadeIn(delay: const Duration(milliseconds: 240), child: _buildCapacityDropdown()),
           ],
         ),
       ),
@@ -539,38 +571,46 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UXHelperWidget.buildInfoBanner(
-              iconColor: ModernDesignSystem.accentFor(1),
-              message: "Add a cover image for your service. This helps customers see what to expect. You can skip this and add it later.",
-              icon: Icons.image_outlined,
+            StaggeredFadeIn(
+              child: UXHelperWidget.buildInfoBanner(
+                iconColor: ModernDesignSystem.accentFor(1),
+                message: "Add a cover image for your service. This helps customers see what to expect. You can skip this and add it later.",
+                icon: Icons.image_outlined,
+              ),
             ),
             const SizedBox(height: 30),
-            _buildImageSection(
-              title: "Service Image",
-              subtitle: "Upload an image for your service",
-              maxImages: 1,
-              selectedFiles: selectedFiles,
-              onFilesSelected: (files) {
-                setState(() {
-                  selectedFiles = files;
-                });
-              },
-              existingImage: serviceImage,
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 100),
+              child: _buildImageSection(
+                title: "Service Image",
+                subtitle: "Upload an image for your service",
+                maxImages: 1,
+                selectedFiles: selectedFiles,
+                onFilesSelected: (files) {
+                  setState(() {
+                    selectedFiles = files;
+                  });
+                },
+                existingImage: serviceImage,
+              ),
             ),
             const SizedBox(height: 30),
-            _buildImageSection(
-              title: "Service Gallery (Optional)",
-              subtitle: "Upload multiple images showing your work",
-              maxImages: 10,
-              selectedFiles: selectedDetailFiles,
-              onFilesSelected: (files) {
-                setState(() {
-                  selectedDetailFiles = files;
-                });
-                _uploadSelectedImage(isDetailImage: true);
-              },
-              existingImages: detailImages,
-              isMultiple: true,
+            StaggeredFadeIn(
+              delay: const Duration(milliseconds: 200),
+              child: _buildImageSection(
+                title: "Service Gallery (Optional)",
+                subtitle: "Upload multiple images showing your work",
+                maxImages: 10,
+                selectedFiles: selectedDetailFiles,
+                onFilesSelected: (files) {
+                  setState(() {
+                    selectedDetailFiles = files;
+                  });
+                  _uploadSelectedImage(isDetailImage: true);
+                },
+                existingImages: detailImages,
+                isMultiple: true,
+              ),
             ),
           ],
         ),
@@ -1047,6 +1087,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
   }
 
   Widget _buildNavigationButtons() {
+    final accent = ModernDesignSystem.accentFor(1);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
@@ -1057,45 +1098,60 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
         children: [
           if (_currentStep > 0)
             Expanded(
-              child: OutlinedButton(
-                onPressed: _previousStep,
-                style: OutlinedButton.styleFrom(
+              child: BouncyTap(
+                onTap: _previousStep,
+                child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Color(0xFF1CB273), width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+                    border: Border.all(color: accent, width: 1.5),
                   ),
-                ),
-                child: const Text(
-                  "Previous",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1CB273),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Previous",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: accent,
+                    ),
                   ),
                 ),
               ),
             ),
           if (_currentStep > 0) const SizedBox(width: 12),
           Expanded(
-            child: ElevatedButton(
-              onPressed: _currentStep == _totalSteps - 1 ? _saveService : _nextStep,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1CB273),
-                elevation: 0,
+            child: BouncyTap(
+              onTap: _currentStep == _totalSteps - 1 ? _saveService : _nextStep,
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                decoration: BoxDecoration(
+                  gradient: ModernDesignSystem.brandGradient,
+                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+                  boxShadow: ModernDesignSystem.getColoredShadow(ColorClass.base_color, opacity: 0.3),
                 ),
-              ),
-              child: Text(
-                _currentStep == _totalSteps - 1 
-                    ? (widget.serviceToEdit != null ? "Update" : "Save") 
-                    : "Next",
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _currentStep == _totalSteps - 1
+                          ? (widget.serviceToEdit != null ? "Update" : "Save")
+                          : "Next",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      _currentStep == _totalSteps - 1
+                          ? Icons.check_circle_outline
+                          : Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
                 ),
               ),
             ),
