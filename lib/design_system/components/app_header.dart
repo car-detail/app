@@ -29,13 +29,14 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         bottomLeft: Radius.circular(28),
         bottomRight: Radius.circular(28),
       ),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
+        padding: EdgeInsets.fromLTRB(16, statusBarHeight + 16, 16, 22),
         decoration: BoxDecoration(gradient: ModernDesignSystem.brandGradient),
         child: Stack(
           clipBehavior: Clip.none,
