@@ -387,7 +387,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             child: DropdownButton<String>(
               value: filteredCategoryData.any((cat) => cat.categoryTitle == _selectedCategory) ? _selectedCategory : null,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1B2A4A)),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF192028)),
               hint: const Text("Select service type", style: TextStyle(color: Colors.grey)),
               items: filteredCategoryData.map((CategoryData cat) {
                 return DropdownMenuItem<String>(
@@ -713,7 +713,7 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
             child: DropdownButton<String>(
               value: options.contains(value) ? value : null,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1B2A4A)),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF192028)),
               hint: Text("Select $label", style: const TextStyle(color: Colors.grey)),
               items: options.map((String option) {
                 return DropdownMenuItem<String>(

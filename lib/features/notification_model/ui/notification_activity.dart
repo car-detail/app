@@ -45,10 +45,10 @@ class _NotificationActivityState extends State<NotificationActivity> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1B2A4A).withOpacity(0.1),
+                        color: Color(0xFF192028).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.notifications_active_rounded, color: Color(0xFF1B2A4A), size: 24),
+                      child: Icon(Icons.notifications_active_rounded, color: Color(0xFF192028), size: 24),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded, color: Colors.grey),
@@ -93,7 +93,7 @@ class _NotificationActivityState extends State<NotificationActivity> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF1B2A4A),
+                      backgroundColor: Color(0xFF192028),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -118,7 +118,7 @@ class _NotificationActivityState extends State<NotificationActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF0FDF4),
+      backgroundColor: Color(0xFFF5F5F7),
       body: Column(
         children: [
           Container(
@@ -127,7 +127,7 @@ class _NotificationActivityState extends State<NotificationActivity> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
+                colors: [Color(0xFF0D1526), Color(0xFF192028)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(30),
@@ -181,7 +181,7 @@ class _NotificationActivityState extends State<NotificationActivity> {
                               Container(
                                 height: 48, width: 48,
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: [Color(0xFF1B2A4A), Color(0xFF00C853)]),
+                                  gradient: LinearGradient(colors: [Color(0xFF192028), Color(0xFF00C853)]),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Icon(Icons.notifications_rounded, color: Colors.white, size: 22),
@@ -225,10 +225,10 @@ class _NotificationActivityState extends State<NotificationActivity> {
                   Container(
                     width: 80, height: 80,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [Color(0xFF1B2A4A).withOpacity(0.15), Color(0xFF00C853).withOpacity(0.1)]),
+                      gradient: LinearGradient(colors: [Color(0xFF192028).withOpacity(0.15), Color(0xFF00C853).withOpacity(0.1)]),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.notifications_off_rounded, size: 36, color: Color(0xFF1B2A4A)),
+                    child: Icon(Icons.notifications_off_rounded, size: 36, color: Color(0xFF192028)),
                   ),
                   SizedBox(height: 20),
                   Text("No notifications yet", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.black87, letterSpacing: -0.5)),

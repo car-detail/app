@@ -134,7 +134,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0FDF4),
+      backgroundColor: const Color(0xFFF5F5F7),
       body: Column(
         children: [
           // Modern Header
@@ -151,7 +151,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1B2A4A).withOpacity(0.3),
+                  color: const Color(0xFF192028).withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 5),
                 ),
@@ -283,7 +283,7 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                       children: [
                         CarLoader(color: ModernDesignSystem.accentFor(2)),
                         const SizedBox(height: 12),
-                        const Text("Loading offers...", style: TextStyle(color: Color(0xFF1B2A4A), fontWeight: FontWeight.w600)),
+                        const Text("Loading offers...", style: TextStyle(color: Color(0xFF192028), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   )

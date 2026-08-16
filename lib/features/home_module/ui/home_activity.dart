@@ -530,7 +530,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       width: 5,
                                       height: 5,
                                       decoration: BoxDecoration(
-                                        color: isShopOpen ? const Color(0xFF1B2A4A) : Colors.grey,
+                                        color: isShopOpen ? const Color(0xFF192028) : Colors.grey,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -540,7 +540,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       style: TextStyle(
                                         fontFamily: "Pop500",
                                         fontSize: 11,
-                                        color: isShopOpen ? const Color(0xFF1B2A4A) : Colors.grey[600],
+                                        color: isShopOpen ? const Color(0xFF192028) : Colors.grey[600],
                                       ),
                                     ),
                                   ],
@@ -1101,7 +1101,7 @@ class _HomeActivityState extends State<HomeActivity> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
+                    color: const Color(0xFFF5F5F7),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -1280,7 +1280,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
+                    colors: [Color(0xFF192028), Color(0xFF3F5A85)],
                   ),
                   shape: BoxShape.circle,
                 ),
@@ -1389,7 +1389,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       putStatusCompleted(context, booking);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1B2A4A),
+                      backgroundColor: const Color(0xFF192028),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(

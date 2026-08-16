@@ -109,7 +109,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     // Show loading indicator while fetching initial data
     if (_isLoadingDetails && servicesDetailsData.serviceTitle == null) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0FDF4),
+      backgroundColor: const Color(0xFFF5F5F7),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -133,7 +133,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
     }
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF0FDF4),
+      backgroundColor: const Color(0xFFF5F5F7),
       body: RefreshIndicator(
         onRefresh: () async {
           if (mounted && context.mounted) {
@@ -803,7 +803,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           gradient: isSelected
-              ? const LinearGradient(colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)])
+              ? const LinearGradient(colors: [Color(0xFF0D1526), Color(0xFF192028)])
               : null,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -859,7 +859,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
           height: 6,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0D1526), Color(0xFF1B2A4A), Color(0xFF26D17A)],
+              colors: [Color(0xFF0D1526), Color(0xFF192028), Color(0xFF26D17A)],
             ),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
           ),
@@ -909,7 +909,7 @@ class _SpecialistsActivityState extends State<SpecialistsActivity> {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(colors: [Color(0xFF1B2A4A), Color(0xFF26D17A)]),
+                  gradient: LinearGradient(colors: [Color(0xFF192028), Color(0xFF26D17A)]),
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 child: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),

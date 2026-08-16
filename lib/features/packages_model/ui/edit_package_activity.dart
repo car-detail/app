@@ -333,7 +333,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
               ),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
+                  colors: [Color(0xFF0D1526), Color(0xFF192028)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),

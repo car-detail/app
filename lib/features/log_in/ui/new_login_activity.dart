@@ -113,7 +113,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                         end: Alignment.bottomRight,
                         colors: [
                           Color(0xFF0D1526),
-                          Color(0xFF1B2A4A),
+                          Color(0xFF192028),
                           Color(0xFF26D17A),
                         ],
                       ),
@@ -214,14 +214,14 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : (_isOTPSent ? _verifyOTP : _sendOTP),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1B2A4A),
+                          backgroundColor: const Color(0xFF192028),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
                           elevation: 6,
-                          shadowColor: const Color(0xFF1B2A4A),
+                          shadowColor: const Color(0xFF192028),
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -261,7 +261,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                             child: Text(
                               "Resend OTP",
                               style: TextStyle(
-                                color: _isLoading ? Colors.grey : const Color(0xFF1B2A4A),
+                                color: _isLoading ? Colors.grey : const Color(0xFF192028),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 decoration: TextDecoration.underline,
@@ -289,7 +289,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1B2A4A),
+            color: Color(0xFF192028),
           ),
         ),
         const SizedBox(height: 8),
@@ -300,10 +300,10 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Color(0xFF1B2A4A).withOpacity(0.3)),
+            border: Border.all(color: Color(0xFF192028).withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1B2A4A).withOpacity(0.08),
+                color: const Color(0xFF192028).withOpacity(0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -348,10 +348,10 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
             decoration: BoxDecoration(
               color: Colors.grey[50],
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF1B2A4A).withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFF192028).withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1B2A4A).withOpacity(0.08),
+                  color: const Color(0xFF192028).withOpacity(0.08),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -375,7 +375,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                 ),
                 prefixIcon: const Icon(
                   Icons.phone_android,
-                  color: Color(0xFF1B2A4A),
+                  color: Color(0xFF192028),
                   size: 24,
                 ),
                 border: InputBorder.none,
@@ -402,15 +402,15 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1B2A4A),
+            color: Color(0xFF192028),
           ),
         ),
         const SizedBox(height: 8),
         Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1B2A4A).withOpacity(0.04),
+        color: const Color(0xFF192028).withOpacity(0.04),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1B2A4A).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF192028).withOpacity(0.3)),
       ),
       child: TextField(
         controller: otpController,
@@ -431,7 +431,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
           ),
           prefixIcon: const Icon(
             Icons.lock,
-            color: Color(0xFF1B2A4A),
+            color: Color(0xFF192028),
             size: 24,
           ),
           border: InputBorder.none,

@@ -7,8 +7,8 @@ class AppColors {
   AppColors._();
 
   // Brand
-  static const primary = Color(0xff1B2A4A);
-  static const primaryLight = Color(0xffE7EAF1);
+  static const primary = Color(0xff192028);
+  static const primaryLight = Color(0xffE6E7E9);
   static const secondary = Color(0xff3F51B5);
 
   // Semantic

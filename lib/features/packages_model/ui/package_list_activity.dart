@@ -25,9 +25,9 @@ class _PackageListActivityState extends State<PackageListActivity> {
   bool isLoading = true;
 
   // ── design tokens ───────────────────────────────────────────────
-  static const _bg          = Color(0xFFF0FDF4);
+  static const _bg          = Color(0xFFF5F5F7);
   static const _card        = Colors.white;
-  static const _borderAccent = Color(0xFF1B2A4A);
+  static const _borderAccent = Color(0xFF192028);
   static const _surface     = Color(0xFFF3F4F6);
   static const _textPrimary  = Color(0xFF1A1A1A);
   static const _textSecondary = Color(0xFF6B7280);
@@ -205,7 +205,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1B2A4A).withOpacity(0.3),
+            color: const Color(0xFF192028).withOpacity(0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),

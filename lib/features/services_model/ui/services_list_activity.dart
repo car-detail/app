@@ -61,7 +61,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: const Color(0xFFF0FDF4),
+        backgroundColor: const Color(0xFFF5F5F7),
         bottomNavigationBar: null,
         body: Column(
           children: [
@@ -867,7 +867,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
+                  colors: [Color(0xFF192028), Color(0xFF3F5A85)],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -1292,12 +1292,12 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
+                        colors: [Color(0xFF192028), Color(0xFF3F5A85)],
                       ),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1B2A4A).withOpacity(0.4),
+                          color: const Color(0xFF192028).withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),

@@ -758,9 +758,9 @@ class _DashboardActivityState extends State<DashboardActivity> {
           alignment: Alignment.center,
           child: isSelected
               ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1B2A4A),
+                    color: const Color(0xFF192028),
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Row(
@@ -768,12 +768,16 @@ class _DashboardActivityState extends State<DashboardActivity> {
                     children: [
                       Icon(icon, color: Colors.white, size: 22),
                       const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          label,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
