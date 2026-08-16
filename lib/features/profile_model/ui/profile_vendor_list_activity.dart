@@ -1681,7 +1681,7 @@ class _ProfileVendorListActivityState
             ),
             // content
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1690,7 +1690,7 @@ class _ProfileVendorListActivityState
                         service.serviceTitle ??
                         "Service",
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 19,
                       fontWeight: FontWeight.w800,
                       color: Colors.black87,
                     ),
@@ -1699,63 +1699,92 @@ class _ProfileVendorListActivityState
                   ),
                   if (service.serviceTitle != null &&
                       service.serviceTitle != service.categoryName) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       service.serviceTitle!,
                       style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700]),
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[500]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                   if (service.about != null &&
                       service.about!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Text(
                       service.about!,
                       style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[600],
                           height: 1.4),
-                      maxLines: 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  const SizedBox(height: 18),
+                  // one clean price + meta row instead of a row of pills
+                  Row(
                     children: [
-                      _infoPill(
-                        icon: Icons.attach_money_rounded,
-                        label: "${service.price ?? 0}",
-                        color: ModernDesignSystem.accentFor(0),
+                      Text(
+                        "\$${service.price ?? 0}",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: ModernDesignSystem.accentFor(0),
+                        ),
                       ),
-                      if (service.serviceDuration != null)
-                        _infoPill(
-                          icon: Icons.access_time_rounded,
-                          label: service.serviceDuration!,
-                          color: ModernDesignSystem.accentFor(1),
+                      if (service.serviceDuration != null) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          width: 3,
+                          height: 3,
+                          margin: const EdgeInsets.only(top: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            shape: BoxShape.circle,
+                          ),
                         ),
+                        const SizedBox(width: 10),
+                        Text(
+                          service.serviceDuration!,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600]),
+                        ),
+                      ],
                       if (service.timeSlotCapacity != null &&
-                          service.timeSlotCapacity!.isNotEmpty)
-                        _infoPill(
-                          icon: Icons.people_rounded,
-                          label:
-                              "${service.timeSlotCapacity} slots",
-                          color: ModernDesignSystem.accentFor(4),
+                          service.timeSlotCapacity!.isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          width: 3,
+                          height: 3,
+                          margin: const EdgeInsets.only(top: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            shape: BoxShape.circle,
+                          ),
                         ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "${service.timeSlotCapacity}/hr",
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600]),
+                        ),
+                      ],
                     ],
                   ),
                   if (service.mobile != null &&
                       service.mobile!.isNotEmpty) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Icon(Icons.phone_rounded,
-                            size: 14, color: Colors.grey[500]),
+                            size: 14, color: Colors.grey[400]),
                         const SizedBox(width: 6),
                         Text(
                           service.mobile!,
@@ -2070,32 +2099,6 @@ class _ProfileVendorListActivityState
     );
   }
 
-  Widget _infoPill(
-      {required IconData icon,
-      required String label,
-      required Color color}) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
-        border: Border.all(color: color.withOpacity(0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: color),
-          const SizedBox(width: 5),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: color)),
-        ],
-      ),
-    );
-  }
 
   Widget _infoChip(
       {required IconData icon,
