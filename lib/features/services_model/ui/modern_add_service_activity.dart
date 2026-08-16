@@ -174,6 +174,10 @@ class _ModernAddServiceActivityState extends State<ModernAddServiceActivity> {
           Expanded(
             child: PageView(
               controller: _pageController,
+              // Steps must only be reachable through _nextStep()/_previousStep(),
+              // which run _validateCurrentStep() -- free swiping let users skip
+              // straight past required fields with no validation at all.
+              physics: const NeverScrollableScrollPhysics(),
               onPageChanged: (index) {
                 setState(() {
                   _currentStep = index;
