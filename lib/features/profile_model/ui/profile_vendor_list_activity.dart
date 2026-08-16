@@ -271,20 +271,62 @@ class _ProfileVendorListActivityState
         ? (dataNew!.vendorDetails![0].displayPicture ?? "")
         : "";
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [ColorClass.base_color, ColorClass.base_color.withOpacity(0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(32),
+        bottomRight: Radius.circular(32),
       ),
-      child: Column(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff1CB273), Color(0xff139c7f), Color(0xff0d7f8a)],
+            stops: [0.0, 0.55, 1.0],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // decorative artistic blobs
+            Positioned(
+              top: -30,
+              right: -40,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.06),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -50,
+              left: -30,
+              child: Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.05),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 60,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.15),
+                ),
+              ),
+            ),
+      Column(
         children: [
           // top row: back + logout
           Row(
@@ -454,7 +496,10 @@ class _ProfileVendorListActivityState
           ),
         ],
       ),
-    );
+            ],
+          ),
+        ),
+      );
   }
 
   Widget _avatarFallback() {
@@ -566,17 +611,12 @@ class _ProfileVendorListActivityState
 
   // ── shop details card ────────────────────────────────────────────────────────
   Widget _buildShopDetailsCard() {
+    final shopAccent = ModernDesignSystem.accentFor(1); // indigo, contrasts the green page header
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusXL),
+        boxShadow: ModernDesignSystem.shadowLarge,
       ),
       child: Column(
         children: [
@@ -585,7 +625,7 @@ class _ProfileVendorListActivityState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [_kGreen.withOpacity(0.12), _kGreen.withOpacity(0.04)],
+                colors: [shopAccent.withOpacity(0.12), shopAccent.withOpacity(0.03)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -596,14 +636,12 @@ class _ProfileVendorListActivityState
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _kGreen.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child:
-                      Icon(Icons.store_rounded, color: _kGreen, size: 22),
+                ModernDesignSystem.iconTile(
+                  Icons.store_rounded,
+                  color: shopAccent,
+                  size: 38,
+                  iconSize: 20,
+                  circle: false,
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -624,21 +662,28 @@ class _ProfileVendorListActivityState
                       if (v == true) getUser(context);
                     });
                   },
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: _kGreen,
-                      borderRadius: BorderRadius.circular(10),
+                      color: shopAccent,
+                      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
                     ),
-                    child: const Text(
-                      "Edit",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.edit_rounded, size: 13, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text(
+                          "Edit",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -653,55 +698,65 @@ class _ProfileVendorListActivityState
                 // shop avatar
                 Center(
                   child: Container(
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: _kGreen, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _kGreen.withOpacity(0.2),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      gradient: LinearGradient(
+                        colors: [shopAccent, ModernDesignSystem.accentFor(4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: ModernDesignSystem.getColoredShadow(shopAccent, opacity: 0.25),
                     ),
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundColor: _kGreen.withOpacity(0.1),
-                      child: ClipOval(
-                        child: Image.network(
-                          dataNew?.vendorDetails![0].displayPicture ?? "",
-                          height: 96,
-                          width: 96,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.store_rounded,
-                            size: 46,
-                            color: _kGreen,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: CircleAvatar(
+                        radius: 46,
+                        backgroundColor: shopAccent.withOpacity(0.1),
+                        child: ClipOval(
+                          child: Image.network(
+                            dataNew?.vendorDetails![0].displayPicture ?? "",
+                            height: 92,
+                            width: 92,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.store_rounded,
+                              size: 44,
+                              color: shopAccent,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                _buildDetailRow("Shop Name",
-                    dataNew?.vendorDetails![0].displayName ?? ""),
-                _buildDetailRow("Email",
-                    dataNew?.vendorDetails![0].officialEmail ?? "N/A"),
+                const SizedBox(height: 24),
+                _buildDetailRow(Icons.storefront_rounded, "Shop Name",
+                    dataNew?.vendorDetails![0].displayName ?? "", ModernDesignSystem.accentFor(1)),
+                _buildDetailRow(Icons.email_rounded, "Email",
+                    dataNew?.vendorDetails![0].officialEmail ?? "N/A", ModernDesignSystem.accentFor(2)),
+                _buildDetailRow(Icons.phone_rounded,
+                    "Mobile", dataNew?.vendorDetails![0].mobile ?? "", ModernDesignSystem.accentFor(3)),
                 _buildDetailRow(
-                    "Mobile", dataNew?.vendorDetails![0].mobile ?? ""),
-                _buildDetailRow(
+                  Icons.access_time_filled_rounded,
                   "Shop Hours",
                   "${CommonWidget.convertToLocalTimeWithAMPM(dataNew?.vendorDetails![0].openTime ?? "")} - ${CommonWidget.convertToLocalTimeWithAMPM(dataNew?.vendorDetails![0].closeTime ?? "")}",
+                  ModernDesignSystem.accentFor(4),
                 ),
                 if (dataNew?.vendorDetails![0].daysAvailable != null &&
                     dataNew!.vendorDetails![0].daysAvailable!.isNotEmpty)
                   _buildDetailRow(
+                    Icons.event_available_rounded,
                     "Days",
                     dataNew!.vendorDetails![0].daysAvailable!.join(", "),
+                    ModernDesignSystem.accentFor(5),
                   ),
-                _buildDetailRow("Location",
-                    dataNew?.vendorDetails![0].location!.name ?? ""),
+                _buildDetailRow(Icons.location_on_rounded, "Location",
+                    dataNew?.vendorDetails![0].location!.name ?? "", ModernDesignSystem.accentFor(0)),
               ],
             ),
           ),
@@ -972,27 +1027,42 @@ class _ProfileVendorListActivityState
   }
 
   // ── detail row ───────────────────────────────────────────────────────────────
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+  Widget _buildDetailRow(IconData icon, String label, String value, Color accent) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusM),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: _kDark,
-              ),
-            ),
-          ),
+          ModernDesignSystem.iconTile(icon, color: accent, size: 34, iconSize: 16),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
