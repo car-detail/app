@@ -96,160 +96,144 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: ColorClass.base_color,
         body: SafeArea(
           top: false,
+          bottom: false,
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Header with gradient
-                Container(
-                  constraints: BoxConstraints(
-                    minHeight: 280 + MediaQuery.of(context).padding.top,
-                  ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF0D1526),
-                          Color(0xFF192028),
-                          Color(0xFF26D17A),
-                        ],
+                // Photo header -- same composition as the get-started screen
+                Stack(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 220 + MediaQuery.of(context).padding.top,
+                      child: Image.asset(
+                        'assets/vetor/car-wash-detailing-station.jpg',
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                  child: Stack(
-                    children: [
-                      // Decorative circles
-                      Positioned(
-                        top: -50,
-                        right: -50,
-                        child: Container(
-                          width: 300,
-                          height: 300,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.12),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              ColorClass.base_color.withOpacity(0),
+                              ColorClass.base_color,
+                            ],
                           ),
                         ),
                       ),
+                    ),
+                    if (_isOTPSent)
                       Positioned(
-                        bottom: -30,
-                        left: -30,
-                        child: Container(
-                          width: 150,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
-                          ),
+                        top: MediaQuery.of(context).padding.top + 8,
+                        left: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () {
+                            setState(() {
+                              _isOTPSent = false;
+                            });
+                          },
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            // Back button
-                            if (_isOTPSent)
-                              IconButton(
-                                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                                onPressed: () {
-                                  setState(() {
-                                    _isOTPSent = false;
-                                  });
-                                },
-                              ),
-                            const SizedBox(height: 40),
-                            // Title
-                            const Text(
-                              "Get Started",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 38,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1.0,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _isOTPSent
-                                ? "Enter the verification code"
-                                : "Enter your mobile number to continue",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              
-                // Login Form
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
+
+                // Charcoal panel -- matches the get-started screen's bottom sheet
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(top: -28),
+                  padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 20),
-                      
-                      if (!_isOTPSent) 
+                      const Text(
+                        "Get Started",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isOTPSent
+                          ? "Enter the verification code"
+                          : "Enter your mobile number to continue",
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      if (!_isOTPSent)
                         // Mobile Number Input with Country Code
                         _buildMobileInput()
                       else
                         // OTP Input
                         _buildOTPInput(),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Action Button
                       ElevatedButton(
                         onPressed: _isLoading ? null : (_isOTPSent ? _verifyOTP : _sendOTP),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF192028),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          backgroundColor: Colors.white,
+                          foregroundColor: ColorClass.base_color,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(28),
                           ),
-                          elevation: 6,
-                          shadowColor: const Color(0xFF192028),
+                          elevation: 0,
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(ColorClass.base_color),
                                 ),
                               )
                             : Text(
                                 _isOTPSent ? "Verify OTP" : "Send OTP",
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
+                                  color: ColorClass.base_color,
                                 ),
                               ),
                       ),
-                      
-                      const SizedBox(height: 24),
-                      
+
+                      const SizedBox(height: 16),
+
                       if (_isOTPSent && _resendCountdown > 0)
                         Center(
                           child: Text(
                             "Resend OTP in $_resendCountdown seconds",
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: Colors.white.withOpacity(0.5),
                               fontSize: 14,
                             ),
                           ),
@@ -261,7 +245,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                             child: Text(
                               "Resend OTP",
                               style: TextStyle(
-                                color: _isLoading ? Colors.grey : const Color(0xFF192028),
+                                color: _isLoading ? Colors.white.withOpacity(0.4) : Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 decoration: TextDecoration.underline,
@@ -284,12 +268,12 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Mobile Number",
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF192028),
+            color: Colors.white.withOpacity(0.85),
           ),
         ),
         const SizedBox(height: 8),
@@ -298,16 +282,8 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         // Country Code Picker
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Color(0xFF192028).withOpacity(0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF192028).withOpacity(0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: CountryCodePicker(
             onChanged: (CountryCode countryCode) {
@@ -346,16 +322,8 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF192028).withOpacity(0.3)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF192028).withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: TextField(
               controller: mobileController,
@@ -397,20 +365,19 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Verification Code",
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF192028),
+            color: Colors.white.withOpacity(0.85),
           ),
         ),
         const SizedBox(height: 8),
         Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF192028).withOpacity(0.04),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF192028).withOpacity(0.3)),
       ),
       child: TextField(
         controller: otpController,
