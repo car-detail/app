@@ -24,8 +24,16 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final bool decorative;
 
+  // preferredSize has no BuildContext, so the status bar height is read
+  // directly from the platform (not MediaQuery) -- without this, Scaffold
+  // only reserves kToolbarHeight + 24 for the appBar slot, and the status
+  // bar padding added in build() below overflows past the bottom of it.
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 24);
+  Size get preferredSize {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final statusBarHeight = view.padding.top / view.devicePixelRatio;
+    return Size.fromHeight(kToolbarHeight + 24 + statusBarHeight);
+  }
 
   @override
   Widget build(BuildContext context) {
