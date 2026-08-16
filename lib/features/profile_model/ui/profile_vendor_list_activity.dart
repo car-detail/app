@@ -1456,7 +1456,7 @@ class _ProfileVendorListActivityState
                 child: Icon(
                   icon,
                   key: ValueKey<bool>(isSelected),
-                  color: isSelected ? _kGreen : Colors.white60,
+                  color: isSelected ? _kGreen : Colors.white.withOpacity(0.9),
                   size: 20,
                 ),
               ),
@@ -1466,8 +1466,8 @@ class _ProfileVendorListActivityState
                 style: TextStyle(
                   fontSize: isSelected ? 12 : 11,
                   fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w400,
-                  color: isSelected ? _kDark : Colors.white60,
+                      isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected ? _kDark : Colors.white.withOpacity(0.9),
                 ),
                 child: Text(
                   label,
@@ -1703,7 +1703,9 @@ class _ProfileVendorListActivityState
                     Text(
                       service.serviceTitle!,
                       style: TextStyle(
-                          fontSize: 13, color: Colors.grey[500]),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1728,14 +1730,14 @@ class _ProfileVendorListActivityState
                     children: [
                       _infoPill(
                         icon: Icons.attach_money_rounded,
-                        label: "\$${service.price ?? 0}",
-                        color: _kGreen,
+                        label: "${service.price ?? 0}",
+                        color: ModernDesignSystem.accentFor(0),
                       ),
                       if (service.serviceDuration != null)
                         _infoPill(
                           icon: Icons.access_time_rounded,
                           label: service.serviceDuration!,
-                          color: Colors.blue[700]!,
+                          color: ModernDesignSystem.accentFor(1),
                         ),
                       if (service.timeSlotCapacity != null &&
                           service.timeSlotCapacity!.isNotEmpty)
@@ -1743,7 +1745,7 @@ class _ProfileVendorListActivityState
                           icon: Icons.people_rounded,
                           label:
                               "${service.timeSlotCapacity} slots",
-                          color: Colors.orange[700]!,
+                          color: ModernDesignSystem.accentFor(4),
                         ),
                     ],
                   ),
@@ -2035,10 +2037,10 @@ class _ProfileVendorListActivityState
   Widget _statusBadge({required bool active}) {
     return Container(
       padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? _kGreen : Colors.grey[600]!,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -2047,12 +2049,23 @@ class _ProfileVendorListActivityState
           ),
         ],
       ),
-      child: Text(
-        active ? "Active" : "Inactive",
-        style: TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.w700),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            active ? "Active" : "Inactive",
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700),
+          ),
+        ],
       ),
     );
   }
@@ -2063,10 +2076,11 @@ class _ProfileVendorListActivityState
       required Color color}) {
     return Container(
       padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(10),
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
