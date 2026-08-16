@@ -5,6 +5,9 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/UXHelperWidget.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/app_header.dart';
+import 'package:car_app/design_system/components/bouncy_tap.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
@@ -247,30 +250,16 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF4),
-      appBar: AppBar(
-        leading: CommonWidget.buildAppBarBackButton(
-          context,
-          iconColor: Colors.white,
-          backgroundColor: Colors.transparent,
-        ),
-        title: const Text(
-          "Create Package",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: const Color(0xFF166534),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: AppHeader(
+        title: "Create Package",
+        subtitle: "Bundle your services into a package",
       ),
       body: Column(
         children: [
           // Progress Indicator
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            color: const Color(0xFF166534),
+            color: Colors.white,
             child: Row(
               children: [
                 _buildStepIndicator(0, "Basic Info"),
@@ -320,60 +309,70 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               children: [
                 if (currentStep > 0)
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
+                    child: BouncyTap(
+                      onTap: () {
                         _pageController.previousPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
                       },
-                      style: OutlinedButton.styleFrom(
+                      child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: Color(0xFF1CB273), width: 1.5),
-                        shape: RoundedRectangleBorder(
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: ModernDesignSystem.accentFor(4), width: 1.5),
                         ),
-                      ),
-                      child: const Text(
-                        "Previous",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1CB273),
+                        alignment: Alignment.center,
+                        child: Text(
+                          "Previous",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: ModernDesignSystem.accentFor(4),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 if (currentStep > 0) const SizedBox(width: 12),
                 Expanded(
-                  child: GestureDetector(
+                  child: BouncyTap(
                     onTap: currentStep < 2 ? _nextStep : _createPackage,
                     child: Container(
                       height: 52,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                        gradient: LinearGradient(
+                          colors: [
+                            ModernDesignSystem.accentFor(4),
+                            ModernDesignSystem.accentFor(4).withOpacity(0.7),
+                          ],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
                         borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1CB273).withOpacity(0.35),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        boxShadow: ModernDesignSystem.getColoredShadow(
+                            ModernDesignSystem.accentFor(4), opacity: 0.35),
                       ),
                       child: Center(
-                        child: Text(
-                          currentStep < 2 ? "Next" : "Create Package",
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              currentStep < 2 ? "Next" : "Create Package",
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Icon(
+                              currentStep < 2 ? Icons.arrow_forward_rounded : Icons.check_circle_outline,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -390,50 +389,52 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   Widget _buildStepIndicator(int step, String title) {
     final bool isCompleted = currentStep > step;
     final bool isActive = currentStep == step;
+    final accent = ModernDesignSystem.accentFor(4); // amber, packages identity
 
     return Column(
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: isActive
-                ? const LinearGradient(
-                    colors: [Color(0xFF1CB273), Color(0xFF00E676)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: isCompleted
-                ? const Color(0xFF1CB273)
-                : isActive
-                    ? null
-                    : Colors.white,
-            border: !isActive && !isCompleted 
-                ? Border.all(color: const Color(0xFF1CB273), width: 1)
-                : null,
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF1CB273).withOpacity(0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: isCompleted
-                ? const Icon(Icons.check, color: Colors.white, size: 16)
-                : Text(
-                    "${step + 1}",
-                    style: TextStyle(
-                      color: isActive ? Colors.white : const Color(0xFF166534),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
+        AnimatedScale(
+          scale: isActive ? 1.15 : 1.0,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutBack,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: (isActive || isCompleted)
+                  ? LinearGradient(
+                      colors: [accent, accent.withOpacity(0.7)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: (isActive || isCompleted) ? null : Colors.white,
+              border: !isActive && !isCompleted
+                  ? Border.all(color: accent, width: 1)
+                  : null,
+              boxShadow: isActive
+                  ? ModernDesignSystem.getColoredShadow(accent, opacity: 0.4)
+                  : null,
+            ),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: isCompleted
+                    ? const Icon(Icons.check, color: Colors.white, size: 16, key: ValueKey(true))
+                    : Text(
+                        "${step + 1}",
+                        key: const ValueKey(false),
+                        style: TextStyle(
+                          color: isActive ? Colors.white : accent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 5),
@@ -441,9 +442,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
           title,
           style: TextStyle(
             fontSize: 10,
-            color: isActive || isCompleted
-                ? const Color(0xFF1CB273)
-                : Colors.grey[400],
+            color: isActive || isCompleted ? accent : Colors.grey[400],
             fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -452,11 +451,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
   }
 
   Widget _buildStepLine(int step) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
       height: 3,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: currentStep > step ? const Color(0xFF1CB273) : Colors.white.withOpacity(0.3),
+        color: currentStep > step
+            ? ModernDesignSystem.accentFor(4)
+            : Colors.grey[300],
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -470,6 +472,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
         children: [
           // Welcome Banner
           UXHelperWidget.buildInfoBanner(
+            iconColor: ModernDesignSystem.accentFor(4),
             message: "Create a package by combining multiple services. Customers love packages because they save money!",
             icon: Icons.info_outline,
           ),

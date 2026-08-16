@@ -5,6 +5,9 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/BaseActivity.dart';
+import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/app_header.dart';
+import 'package:car_app/design_system/components/bouncy_tap.dart';
 import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dart';
 import 'package:car_app/features/home_module/model/services_model_data.dart';
 import 'package:car_app/Models/image_module_data.dart';
@@ -161,17 +164,11 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: CommonWidget.buildAppBarBackButton(
-          context,
-          backgroundColor: Colors.white.withOpacity(0.2),
-          iconColor: Colors.white,
-        ),
-        title: Text(widget.offerToEdit != null ? "Edit Offer" : "Create Offer",
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-        backgroundColor: ColorClass.base_color,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: AppHeader(
+        title: widget.offerToEdit != null ? "Edit Offer" : "Create Offer",
+        subtitle: widget.offerToEdit != null
+            ? "Update your offer details"
+            : "Attract customers with a great deal",
       ),
       body: Stack(
         children: [
@@ -246,19 +243,39 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                     ),
                   ],
                 ),
-                child: ElevatedButton(
-                  onPressed: isSaving ? null : _createOffer,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorClass.base_color,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 54),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 4,
-                    shadowColor: ColorClass.base_color.withOpacity(0.4),
-                  ),
-                  child: Text(
-                    widget.offerToEdit != null ? "Update Offer" : "Create Offer",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: BouncyTap(
+                  onTap: isSaving ? null : _createOffer,
+                  child: Container(
+                    height: 54,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          ModernDesignSystem.accentFor(2),
+                          ModernDesignSystem.accentFor(2).withOpacity(0.75),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: ModernDesignSystem.getColoredShadow(
+                          ModernDesignSystem.accentFor(2), opacity: 0.4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.offerToEdit != null ? "Update Offer" : "Create Offer",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),
