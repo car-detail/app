@@ -13,7 +13,7 @@ import '../../../Common/CommonPopUp.dart';
 import '../../../Common/CommonWidget.dart';
 import '../../../Common/Constant.dart';
 import '../../../Common/ContainerDecoration.dart';
-import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
+import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 import '../model/offer_list_model_bean.dart';
 
 class OfferListScreen extends StatefulWidget {
@@ -488,7 +488,7 @@ class _OfferListScreenState extends State<OfferListScreen> {
               ElevatedButton.icon(
                 onPressed: () {
                   CommonWidget.navigateToScreen(
-                      context, const RegistorVendorActivity());
+                      context, const RegistorVendorActivitySimple());
                 },
                 icon: const Icon(Icons.add_business),
                 label: const Text("Add Shop"),

@@ -173,9 +173,45 @@
   },
   "hotPaths": [
     {
+      "path": "lib/features/services_model/ui/services_list_activity.dart",
+      "accessCount": 3,
+      "lastAccessed": 1786865267218,
+      "type": "file"
+    },
+    {
+      "path": "lib/main.dart",
+      "accessCount": 3,
+      "lastAccessed": 1786865285285,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/dashboard_module/ui/dashboard_activity.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786865259593,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/specialists_module/ui/view_offer_list_via_detail.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786865261763,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/offer_model/ui/offer_list_screen.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786865263967,
+      "type": "file"
+    },
+    {
       "path": "upgrade_plan.md",
       "accessCount": 1,
       "lastAccessed": 1786863737302,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/home_module/ui/home_activity.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786865367758,
       "type": "file"
     }
   ],

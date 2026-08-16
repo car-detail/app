@@ -40,7 +40,6 @@ import '../../offer_model/ui/enhanced_offer_screen.dart';
 import '../../packages_model/ui/add_package_activity.dart';
 import '../../packages_model/ui/package_list_activity.dart';
 import '../../packages_model/ui/ultra_simple_add_package.dart';
-import '../../resister_vendor_model/ui/simple_registor_vendor_activity.dart';
 import '../../notification_model/ui/notification_activity.dart';
 import '../../services_model/ui/ultra_simple_add_service.dart';
 import 'location_picker_screen.dart';

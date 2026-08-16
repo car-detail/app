@@ -8,7 +8,6 @@ import 'package:bot_toast/bot_toast.dart';
 import 'features/SplashScreenActivity.dart';
 import 'features/dashboard_module/ui/dashboard_activity.dart';
 import 'features/onboarding/ui/vendor_onboarding_activity.dart';
-import 'features/resister_vendor_model/ui/simple_registor_vendor_activity.dart';
 import 'features/log_in/ui/new_login_activity.dart';
 import 'Common/Color.dart';
 
@@ -80,7 +79,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/dashboard': (context) => const SafeArea(child: DashboardActivity()),
         '/onboarding': (context) => const SafeArea(child: VendorOnboardingActivity()),
-        '/register': (context) => const SafeArea(child: SimpleRegistorVendorActivity()),
         '/login': (context) => const SafeArea(child: NewLoginActivity()),
       },
       builder: BotToastInit(),

@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Api/ApiFuntion.dart';
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
-import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
+import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 import '../../specialists_module/ui/specialists_activity.dart';
 import '../data_manager/services_data_manager.dart';
 import '../model/services_list_bean.dart';
@@ -962,7 +962,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               ElevatedButton.icon(
                 onPressed: () {
                   CommonWidget.navigateToScreen(
-                      context, const RegistorVendorActivity());
+                      context, const RegistorVendorActivitySimple());
                 },
                 icon: const Icon(Icons.add_business),
                 label: const Text("Add Shop"),
@@ -1130,7 +1130,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                   Navigator.of(context).pop();
                   CommonWidget.navigateToScreen(
                     context,
-                    const RegistorVendorActivity(),
+                    const RegistorVendorActivitySimple(),
                   );
                 }
               },

@@ -14,7 +14,7 @@ import '../../../Common/ContainerDecoration.dart';
 import '../../offer_model/data_manager/offer_data_manager.dart';
 import '../../offer_model/model/offer_list_model_bean.dart';
 import '../../offer_model/ui/enhanced_offer_screen.dart';
-import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
+import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 
 class ViewOfferListViaDetail extends StatefulWidget {
   ServicesDetailsData servicesDetailsData;
@@ -216,7 +216,7 @@ class _ViewOfferListViaDetailState extends State<ViewOfferListViaDetail> {
                       InkWell(
                         onTap: () {
                           CommonWidget.navigateToScreen(
-                              context, const RegistorVendorActivity());
+                              context, const RegistorVendorActivitySimple());
                         },
                         child: CommonWidget.getButtonWidget("Add Shop",
                             ColorClass.base_color, ColorClass.base_color,

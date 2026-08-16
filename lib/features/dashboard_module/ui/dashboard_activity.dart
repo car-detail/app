@@ -23,7 +23,7 @@ import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
 import '../../home_module/data_manager/home_data_manager.dart';
 import '../../profile_model/ui/profile_vendor_list_activity.dart';
-import '../../resister_vendor_model/ui/registor_vendor_activity.dart';
+import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
 
 class DashboardActivity extends StatefulWidget {
   const DashboardActivity({super.key});
@@ -640,7 +640,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
                 onPressed: () {
                   CommonWidget.navigateToScreen(
                     context,
-                    const RegistorVendorActivity(),
+                    const RegistorVendorActivitySimple(),
                   );
                 },
                 style: ElevatedButton.styleFrom(
