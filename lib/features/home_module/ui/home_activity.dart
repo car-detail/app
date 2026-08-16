@@ -375,11 +375,11 @@ class _HomeActivityState extends State<HomeActivity> {
                 // (unlike the earlier small low-opacity attempts) that its
                 // fine detail (hose, bubbles, sparkles) actually reads.
                 Positioned(
-                  right: 28,
-                  top: 46,
-                  bottom: 60,
+                  right: 82,
+                  top: 0,
+                  bottom: 90,
                   child: SizedBox(
-                    width: 140,
+                    width: 105,
                     child: Image.asset(
                       CarAssets.carWashHose,
                       fit: BoxFit.contain,
