@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Common/ModernDesignSystem.dart';
-import 'car_silhouette.dart';
+import 'car_wash_icon.dart';
 
 /// Standard gradient page header — back button, title, optional subtitle,
 /// optional trailing actions, with the same decorative "blob" texture and
@@ -61,13 +61,14 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 left: -30,
                 child: _blob(90),
               ),
-              // faint car watermark -- the car-themed identity, kept subtle
-              // (8% opacity) so it reads as texture, not decoration fighting
-              // the title for attention
+              // faint car-wash watermark -- front-facing car + sparkles,
+              // matching the reference icon style. Kept subtle (12%
+              // opacity) so it reads as texture, not decoration fighting
+              // the title for attention.
               Positioned(
-                right: -6,
-                bottom: -4,
-                child: CarSilhouette(size: 100, opacity: 0.1, rotation: -0.05),
+                right: 4,
+                bottom: -10,
+                child: CarWashIcon(size: 90, opacity: 0.12),
               ),
             ],
             Row(
