@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../Common/Color.dart';
 import '../../Common/ModernDesignSystem.dart';
 import 'car_silhouette.dart';
+import '../car_assets.dart';
 
 /// Standard gradient page header — back button, title, optional subtitle,
 /// optional trailing actions, with the same decorative "blob" texture and
@@ -64,22 +65,21 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 left: -30,
                 child: _blob(90),
               ),
-              // Neither the front-facing nor side-profile hand-drawn vector
-              // read well as a low-opacity background watermark -- crushed
-              // detail or an unrecognizable smudge either way. Using the
-              // real car-wash photo instead, as a small crisp fully-opaque
-              // badge (not a translucent texture), which is what actually
-              // reads as "designed" rather than "blurry."
+              // Hand-drawn vectors and a low-opacity photo watermark both
+              // failed (crushed detail / unrecognizable smudge). Using the
+              // real, properly-licensed car-wash vector art the user
+              // supplied (assets/vetor/), tinted to match the theme, as a
+              // small crisp fully-opaque badge -- bold, simple, legible.
               if (showCarBadge)
                 Positioned(
                   right: 4,
                   top: -4,
                   child: Container(
-                    width: 56,
-                    height: 56,
-                    padding: const EdgeInsets.all(3),
+                    width: 60,
+                    height: 60,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withOpacity(0.95),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -89,13 +89,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/car_image.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            CarSilhouette(size: 40, color: ColorClass.base_color, opacity: 1),
-                      ),
+                    child: Image.asset(
+                      CarAssets.carWashHose,
+                      fit: BoxFit.contain,
+                      color: ColorClass.base_color,
+                      colorBlendMode: BlendMode.srcIn,
+                      errorBuilder: (context, error, stackTrace) =>
+                          CarSilhouette(size: 40, color: ColorClass.base_color, opacity: 1),
                     ),
                   ),
                 ),

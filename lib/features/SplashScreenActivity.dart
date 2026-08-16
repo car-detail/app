@@ -13,6 +13,7 @@ import '../Common/CommonWidget.dart';
 import '../Common/Constant.dart';
 import '../Common/Color.dart';
 import '../design_system/components/car_wash_icon.dart';
+import '../design_system/car_assets.dart';
 import 'home_module/data_manager/home_data_manager.dart';
 import 'log_in/ui/new_login_activity.dart';
 import 'log_in/data_manager/LoginDataManager.dart';
@@ -217,11 +218,17 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                     ],
                   ),
                   child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/car_image.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: CarWashIcon(size: 170, color: ColorClass.base_color),
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(28),
+                      child: Image.asset(
+                        CarAssets.carWashHose,
+                        fit: BoxFit.contain,
+                        color: ColorClass.base_color,
+                        colorBlendMode: BlendMode.srcIn,
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: CarWashIcon(size: 170, color: ColorClass.base_color),
+                        ),
                       ),
                     ),
                   ),

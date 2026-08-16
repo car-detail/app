@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../Common/ModernDesignSystem.dart';
 import 'car_silhouette.dart';
+import '../car_assets.dart';
 
 /// Car-themed replacement for CircularProgressIndicator: a small car
-/// drives back and forth above a dashed "road" line. Uses the real
-/// car-wash photo (assets/images/car_image.png) clipped into a circle,
-/// falling back to the hand-drawn silhouette if the asset can't load.
-/// Drop-in for any loading spot in the app — `CarLoader()` instead of
-/// `const CircularProgressIndicator()`.
+/// drives back and forth above a dashed "road" line. Uses the real,
+/// properly-licensed side-view car line art (assets/vetor/), tinted to
+/// match the loader's color, falling back to the hand-drawn silhouette
+/// if the asset can't load. Drop-in for any loading spot in the app —
+/// `CarLoader()` instead of `const CircularProgressIndicator()`.
 class CarLoader extends StatefulWidget {
-  const CarLoader({super.key, this.color, this.width = 100, this.carSize = 50});
+  const CarLoader({super.key, this.color, this.width = 110, this.carSize = 52});
 
   final Color? color;
   final double width;
@@ -56,26 +57,16 @@ class _CarLoaderState extends State<CarLoader> with SingleTickerProviderStateMix
                 child: child!,
               );
             },
-            child: Container(
+            child: SizedBox(
               width: widget.carSize,
-              height: widget.carSize,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/car_image.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: CustomPaint(painter: CarSilhouettePainter(color: color)),
-                  ),
-                ),
+              height: widget.carSize * 0.55,
+              child: Image.asset(
+                CarAssets.muscleCarLineArt,
+                fit: BoxFit.contain,
+                color: color,
+                colorBlendMode: BlendMode.srcIn,
+                errorBuilder: (context, error, stackTrace) =>
+                    CustomPaint(painter: CarSilhouettePainter(color: color)),
               ),
             ),
           ),
