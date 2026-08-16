@@ -1769,7 +1769,7 @@ class _ProfileVendorListActivityState
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          "${service.timeSlotCapacity}/hr",
+                          service.timeSlotCapacity!,
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
