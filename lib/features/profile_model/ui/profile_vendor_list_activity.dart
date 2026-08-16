@@ -281,7 +281,7 @@ class _ProfileVendorListActivityState
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xff1CB273), Color(0xff139c7f), Color(0xff0d7f8a)],
+            colors: [Color(0xff1B2A4A), Color(0xff139c7f), Color(0xff0d7f8a)],
             stops: [0.0, 0.55, 1.0],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

@@ -760,7 +760,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
               ? Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1CB273),
+                    color: const Color(0xFF1B2A4A),
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Row(

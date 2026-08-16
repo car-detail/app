@@ -530,7 +530,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       width: 5,
                                       height: 5,
                                       decoration: BoxDecoration(
-                                        color: isShopOpen ? const Color(0xFF1CB273) : Colors.grey,
+                                        color: isShopOpen ? const Color(0xFF1B2A4A) : Colors.grey,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -540,7 +540,7 @@ class _HomeActivityState extends State<HomeActivity> {
                                       style: TextStyle(
                                         fontFamily: "Pop500",
                                         fontSize: 11,
-                                        color: isShopOpen ? const Color(0xFF1CB273) : Colors.grey[600],
+                                        color: isShopOpen ? const Color(0xFF1B2A4A) : Colors.grey[600],
                                       ),
                                     ),
                                   ],
@@ -1111,7 +1111,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         "Today's Bookings",
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF166534),
+                          color: Color(0xFF0D1526),
                           fontFamily: "Pop500",
                         ),
                       ),
@@ -1121,7 +1121,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF166534),
+                          color: Color(0xFF0D1526),
                           fontFamily: "Pop700",
                         ),
                       ),
@@ -1280,7 +1280,7 @@ class _HomeActivityState extends State<HomeActivity> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                    colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                   ),
                   shape: BoxShape.circle,
                 ),
@@ -1389,7 +1389,7 @@ class _HomeActivityState extends State<HomeActivity> {
                       putStatusCompleted(context, booking);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1CB273),
+                      backgroundColor: const Color(0xFF1B2A4A),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(

@@ -249,7 +249,7 @@ class ModernDesignSystem {
   static LinearGradient get brandGradient => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [ColorClass.base_color, const Color(0xff17A085)],
+        colors: [ColorClass.base_color, const Color(0xff0D1526)],
       );
 
   /// Fully-rounded pill button — gradient fill, no elevation shadow (the

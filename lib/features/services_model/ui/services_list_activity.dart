@@ -867,7 +867,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                  colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -1241,7 +1241,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF166534),
+        color: Color(0xFF0D1526),
         boxShadow: [
           BoxShadow(
             color: Colors.black26,
@@ -1292,12 +1292,12 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                        colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                       ),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1CB273).withOpacity(0.4),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -1355,7 +1355,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF00E676) : Colors.white60,
+              color: isSelected ? const Color(0xFF3F5A85) : Colors.white60,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -1364,7 +1364,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? const Color(0xFF00E676) : Colors.white60,
+                color: isSelected ? const Color(0xFF3F5A85) : Colors.white60,
                 fontFamily: isSelected ? "Pop600" : "Pop400",
               ),
               textAlign: TextAlign.center,

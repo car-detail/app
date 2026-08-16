@@ -322,7 +322,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
             // Green status bar background
             Container(
               height: MediaQuery.of(context).padding.top,
-              color: const Color(0xFF166534),
+              color: const Color(0xFF0D1526),
               width: double.infinity,
             ),
             // AppBar-like header
@@ -333,7 +333,7 @@ class _EditPackageActivityState extends State<EditPackageActivity> {
               ),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                  colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),

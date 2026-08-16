@@ -84,7 +84,7 @@ class BookingListActivityState extends State<BookingListActivity> {
             margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFF166534).withOpacity(0.08),
+              color: const Color(0xFF0D1526).withOpacity(0.08),
               borderRadius: BorderRadius.circular(50),
             ),
             child: Row(
@@ -150,7 +150,7 @@ class BookingListActivityState extends State<BookingListActivity> {
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
-                  colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                  colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 )
@@ -181,11 +181,11 @@ class BookingListActivityState extends State<BookingListActivity> {
         color: isHighlighted ? const Color(0xFFE8F5E9) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: isHighlighted 
-            ? Border.all(color: const Color(0xFF1CB273), width: 2.0)
+            ? Border.all(color: const Color(0xFF1B2A4A), width: 2.0)
             : Border(left: BorderSide(color: statusColor, width: 4)),
         boxShadow: [
           BoxShadow(
-            color: isHighlighted ? const Color(0xFF1CB273).withOpacity(0.2) : Colors.black.withOpacity(0.06),
+            color: isHighlighted ? const Color(0xFF1B2A4A).withOpacity(0.2) : Colors.black.withOpacity(0.06),
             blurRadius: isHighlighted ? 16 : 12,
             offset: const Offset(0, 4),
           ),
@@ -204,7 +204,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                   height: 44,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                      colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -284,19 +284,19 @@ class BookingListActivityState extends State<BookingListActivity> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1CB273).withOpacity(0.1),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF1CB273).withOpacity(0.3)),
+                          border: Border.all(color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.notifications_active, color: Color(0xFF1CB273), size: 10),
+                            Icon(Icons.notifications_active, color: Color(0xFF1B2A4A), size: 10),
                             SizedBox(width: 4),
                             Text(
                               "Selected",
                               style: TextStyle(
-                                color: Color(0xFF1CB273),
+                                color: Color(0xFF1B2A4A),
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: "Pop600",
@@ -327,7 +327,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                           height: 36,
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                              colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -371,7 +371,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                             padding: const EdgeInsets.symmetric(vertical: 11),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                                colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
@@ -458,13 +458,13 @@ class BookingListActivityState extends State<BookingListActivity> {
                             padding: const EdgeInsets.symmetric(vertical: 11),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: const Color(0xFF166534), width: 1.5),
+                              border: Border.all(color: const Color(0xFF0D1526), width: 1.5),
                               borderRadius: BorderRadius.circular(50),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.edit_calendar_rounded, size: 15, color: Color(0xFF166534)),
+                                const Icon(Icons.edit_calendar_rounded, size: 15, color: Color(0xFF0D1526)),
                                 const SizedBox(width: 5),
                                 Flexible(
                                   child: Text(
@@ -474,7 +474,7 @@ class BookingListActivityState extends State<BookingListActivity> {
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontFamily: "Pop500",
-                                      color: Color(0xFF166534),
+                                      color: Color(0xFF0D1526),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -556,13 +556,13 @@ class BookingListActivityState extends State<BookingListActivity> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: const Color(0xFF1CB273).withOpacity(0.12),
+              color: const Color(0xFF1B2A4A).withOpacity(0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.calendar_today_outlined,
               size: 48,
-              color: Color(0xFF1CB273),
+              color: Color(0xFF1B2A4A),
             ),
           ),
           const SizedBox(height: 20),
@@ -571,7 +571,7 @@ class BookingListActivityState extends State<BookingListActivity> {
             style: TextStyle(
               fontSize: 22,
               fontFamily: "Pop600",
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -612,7 +612,7 @@ class BookingListActivityState extends State<BookingListActivity> {
         );
       case 'completed':
         return const LinearGradient(
-          colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+          colors: [Color(0xFF1B2A4A), Color(0xFF3F5A85)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         );

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// Focus: Easy to use, familiar patterns, minimal cognitive load
 class SimpleDesignSystem {
   // Colors - Simple, clean palette
-  static const Color primaryColor = Color(0xFF1CB273);
+  static const Color primaryColor = Color(0xFF1B2A4A);
   static const Color primaryLight = Color(0xFFE8F7F1);
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color cardColor = Colors.white;

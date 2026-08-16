@@ -295,11 +295,11 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
-                top: BorderSide(color: const Color(0xFF1CB273).withOpacity(0.2), width: 1),
+                top: BorderSide(color: const Color(0xFF1B2A4A).withOpacity(0.2), width: 1),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1CB273).withOpacity(0.08),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.08),
                   blurRadius: 16,
                   offset: const Offset(0, -4),
                 ),
@@ -483,7 +483,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -503,7 +503,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -529,14 +529,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelectedTemplate
-                              ? const Color(0xFF1CB273)
+                              ? const Color(0xFF1B2A4A)
                               : Colors.grey[300]!,
                           width: isSelectedTemplate ? 2 : 1,
                         ),
                         boxShadow: isSelectedTemplate
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFF1CB273).withOpacity(0.25),
+                                  color: const Color(0xFF1B2A4A).withOpacity(0.25),
                                   blurRadius: 14,
                                   offset: const Offset(0, 4),
                                 ),
@@ -585,7 +585,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                                      colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                                     ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
@@ -640,7 +640,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1CB273),
+              color: Color(0xFF1B2A4A),
             ),
           ),
           const SizedBox(height: 8),
@@ -653,22 +653,22 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: const Color(0xFF1CB273).withOpacity(0.3)),
+                    color: const Color(0xFF1B2A4A).withOpacity(0.3)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: const Color(0xFF1CB273).withOpacity(0.3)),
+                    color: const Color(0xFF1B2A4A).withOpacity(0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide:
-                    const BorderSide(color: Color(0xFF1CB273), width: 2),
+                    const BorderSide(color: Color(0xFF1B2A4A), width: 2),
               ),
               labelStyle: const TextStyle(
-                  color: Color(0xFF1CB273), fontWeight: FontWeight.w600),
+                  color: Color(0xFF1B2A4A), fontWeight: FontWeight.w600),
               prefixIcon:
-                  const Icon(Icons.inventory_2, color: Color(0xFF1CB273)),
+                  const Icon(Icons.inventory_2, color: Color(0xFF1B2A4A)),
             ),
           ),
           const SizedBox(height: 16),
@@ -679,7 +679,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1CB273),
+              color: Color(0xFF1B2A4A),
             ),
           ),
           const SizedBox(height: 8),
@@ -693,22 +693,22 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: const Color(0xFF1CB273).withOpacity(0.3)),
+                    color: const Color(0xFF1B2A4A).withOpacity(0.3)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
-                    color: const Color(0xFF1CB273).withOpacity(0.3)),
+                    color: const Color(0xFF1B2A4A).withOpacity(0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide:
-                    const BorderSide(color: Color(0xFF1CB273), width: 2),
+                    const BorderSide(color: Color(0xFF1B2A4A), width: 2),
               ),
               labelStyle: const TextStyle(
-                  color: Color(0xFF1CB273), fontWeight: FontWeight.w600),
+                  color: Color(0xFF1B2A4A), fontWeight: FontWeight.w600),
               prefixIcon:
-                  const Icon(Icons.description, color: Color(0xFF1CB273)),
+                  const Icon(Icons.description, color: Color(0xFF1B2A4A)),
             ),
           ),
           const SizedBox(height: 16),
@@ -722,7 +722,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF166534),
+                    color: Color(0xFF0D1526),
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -741,13 +741,13 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   width: 22,
                   height: 22,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1CB273).withOpacity(0.12),
+                    color: const Color(0xFF1B2A4A).withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.help_outline,
                     size: 14,
-                    color: Color(0xFF1CB273),
+                    color: Color(0xFF1B2A4A),
                   ),
                 ),
               ),
@@ -759,7 +759,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1CB273),
+              color: Color(0xFF1B2A4A),
             ),
           ),
           const SizedBox(height: 8),
@@ -777,22 +777,22 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
-                          color: const Color(0xFF1CB273).withOpacity(0.3)),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
-                          color: const Color(0xFF1CB273).withOpacity(0.3)),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide:
-                          const BorderSide(color: Color(0xFF1CB273), width: 2),
+                          const BorderSide(color: Color(0xFF1B2A4A), width: 2),
                     ),
                     labelStyle: const TextStyle(
-                        color: Color(0xFF1CB273), fontWeight: FontWeight.w600),
+                        color: Color(0xFF1B2A4A), fontWeight: FontWeight.w600),
                     prefixIcon: const Icon(Icons.directions_car,
-                        color: Color(0xFF1CB273)),
+                        color: Color(0xFF1B2A4A)),
                   ),
                 ),
               ),
@@ -809,22 +809,22 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
-                          color: const Color(0xFF1CB273).withOpacity(0.3)),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
-                          color: const Color(0xFF1CB273).withOpacity(0.3)),
+                          color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide:
-                          const BorderSide(color: Color(0xFF1CB273), width: 2),
+                          const BorderSide(color: Color(0xFF1B2A4A), width: 2),
                     ),
                     labelStyle: const TextStyle(
-                        color: Color(0xFF1CB273), fontWeight: FontWeight.w600),
+                        color: Color(0xFF1B2A4A), fontWeight: FontWeight.w600),
                     prefixIcon: const Icon(Icons.local_shipping,
-                        color: Color(0xFF1CB273)),
+                        color: Color(0xFF1B2A4A)),
                   ),
                 ),
               ),
@@ -838,7 +838,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -859,7 +859,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     decoration: BoxDecoration(
                       gradient: isActiveTier
                           ? const LinearGradient(
-                              colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                              colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -868,14 +868,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: isActiveTier
-                            ? const Color(0xFF1CB273)
+                            ? const Color(0xFF1B2A4A)
                             : Colors.grey[300]!,
                         width: isActiveTier ? 0 : 1,
                       ),
                       boxShadow: isActiveTier
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF1CB273).withOpacity(0.3),
+                                color: const Color(0xFF1B2A4A).withOpacity(0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -907,7 +907,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -928,10 +928,10 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                  color: const Color(0xFF1CB273).withOpacity(0.2)),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.2)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1CB273).withOpacity(0.05),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.05),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -953,22 +953,22 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide(
-                                color: const Color(0xFF1CB273).withOpacity(0.3)),
+                                color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide(
-                                color: const Color(0xFF1CB273).withOpacity(0.3)),
+                                color: const Color(0xFF1B2A4A).withOpacity(0.3)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(
-                                color: Color(0xFF1CB273), width: 2),
+                                color: Color(0xFF1B2A4A), width: 2),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           prefixIcon: const Icon(Icons.add_circle_outline,
-                              color: Color(0xFF1CB273)),
+                              color: Color(0xFF1B2A4A)),
                         ),
                         onSubmitted: (value) {
                           _addCustomService(value);
@@ -985,7 +985,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                             horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                            colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1082,7 +1082,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                             left: 12, top: 6, bottom: 6, right: 6),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                            colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -1133,7 +1133,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: const Color(0xFF1CB273).withOpacity(0.2)),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.2)),
             ),
             child: Row(
               children: [
@@ -1142,7 +1142,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF166534),
+                    color: Color(0xFF0D1526),
                   ),
                 ),
                 const Spacer(),
@@ -1153,8 +1153,8 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                       isBestSeller = value;
                     });
                   },
-                  activeColor: const Color(0xFF1CB273),
-                  activeTrackColor: const Color(0xFF1CB273).withOpacity(0.3),
+                  activeColor: const Color(0xFF1B2A4A),
+                  activeTrackColor: const Color(0xFF1B2A4A).withOpacity(0.3),
                 ),
               ],
             ),
@@ -1175,7 +1175,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -1195,7 +1195,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -1208,7 +1208,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const CircularProgressIndicator(
-                        color: Color(0xFF1CB273)),
+                        color: Color(0xFF1B2A4A)),
                     const SizedBox(height: 16),
                     Text(
                       "Loading services...",
@@ -1234,7 +1234,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                       children: [
                         Icon(Icons.info_outline,
                             size: 64,
-                            color: const Color(0xFF1CB273).withOpacity(0.4)),
+                            color: const Color(0xFF1B2A4A).withOpacity(0.4)),
                         const SizedBox(height: 16),
                         Text(
                           "No services available",
@@ -1283,14 +1283,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF1CB273)
+                                ? const Color(0xFF1B2A4A)
                                 : Colors.grey[200]!,
                             width: isSelected ? 2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: isSelected
-                                  ? const Color(0xFF1CB273).withOpacity(0.12)
+                                  ? const Color(0xFF1B2A4A).withOpacity(0.12)
                                   : Colors.black.withOpacity(0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
@@ -1310,7 +1310,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                   gradient: isSelected
                                       ? const LinearGradient(
                                           colors: [
-                                            Color(0xFF1CB273),
+                                            Color(0xFF1B2A4A),
                                             Color(0xFF00C853)
                                           ],
                                         )
@@ -1352,7 +1352,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                             color: const Color(0xFFF0FDF4),
                                             child: Icon(
                                               Icons.build_circle_rounded,
-                                              color: const Color(0xFF1CB273)
+                                              color: const Color(0xFF1B2A4A)
                                                   .withOpacity(0.4),
                                               size: 30,
                                             ),
@@ -1369,7 +1369,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                         ),
                                         child: Icon(
                                           Icons.build_circle_rounded,
-                                          color: const Color(0xFF1CB273)
+                                          color: const Color(0xFF1B2A4A)
                                               .withOpacity(0.4),
                                           size: 30,
                                         ),
@@ -1459,7 +1459,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                             borderRadius:
                                                 BorderRadius.circular(6),
                                             border: Border.all(
-                                              color: const Color(0xFF1CB273)
+                                              color: const Color(0xFF1B2A4A)
                                                   .withOpacity(0.3),
                                             ),
                                           ),
@@ -1468,14 +1468,14 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                             children: [
                                               const Icon(Icons.attach_money,
                                                   size: 12,
-                                                  color: Color(0xFF1CB273)),
+                                                  color: Color(0xFF1B2A4A)),
                                               const SizedBox(width: 2),
                                               Text(
                                                 "${service.price ?? 0}",
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF1CB273),
+                                                  color: Color(0xFF1B2A4A),
                                                   fontFamily: "Pop600",
                                                 ),
                                               ),
@@ -1540,7 +1540,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF166534),
+              color: Color(0xFF0D1526),
               letterSpacing: -0.5,
             ),
           ),
@@ -1559,10 +1559,10 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                  color: const Color(0xFF1CB273).withOpacity(0.2)),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.2)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1CB273).withOpacity(0.08),
+                  color: const Color(0xFF1B2A4A).withOpacity(0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 ),
@@ -1581,7 +1581,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                         height: 28,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF166534), Color(0xFF1CB273)],
+                            colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           ),
@@ -1595,7 +1595,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF166534),
+                            color: Color(0xFF0D1526),
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -1632,7 +1632,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF166534),
+                      color: Color(0xFF0D1526),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1653,7 +1653,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                                colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -1679,7 +1679,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF1CB273), Color(0xFF00C853)],
+                              colors: [Color(0xFF1B2A4A), Color(0xFF00C853)],
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -1715,7 +1715,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF166534), Color(0xFF1CB273)],
+          colors: [Color(0xFF0D1526), Color(0xFF1B2A4A)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
@@ -1932,7 +1932,7 @@ class _AddPackageActivityState extends State<AddPackageActivity> {
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1CB273)),
+          child: CircularProgressIndicator(color: Color(0xFF1B2A4A)),
         ),
       );
 

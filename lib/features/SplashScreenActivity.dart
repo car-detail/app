@@ -223,12 +223,12 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                         gradient: const LinearGradient(
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
-                          colors: [Color(0xFF166534), Color(0xFF1CB273), Color(0xFF00E676)],
+                          colors: [Color(0xFF0D1526), Color(0xFF1B2A4A), Color(0xFF3F5A85)],
                         ),
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0xFF1CB273).withOpacity(0.5),
+                            color: Color(0xFF1B2A4A).withOpacity(0.5),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
