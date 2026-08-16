@@ -149,9 +149,10 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                 ),
 
                 // Charcoal panel -- matches the get-started screen's bottom sheet
-                Container(
+                Transform.translate(
+                  offset: const Offset(0, -28),
+                  child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.only(top: -28),
                   padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
                   decoration: BoxDecoration(
                     color: ColorClass.base_color,
@@ -254,6 +255,7 @@ class _NewLoginActivityState extends State<NewLoginActivity> {
                           ),
                         ),
                     ],
+                  ),
                   ),
                 ),
               ],
