@@ -513,37 +513,52 @@ class _ProfileActivityState extends State<ProfileActivity> {
       body: SafeArea(
         child: Column(
           children: [
-            // White Header with Green Back Button
+            // Gradient Header with Back Button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: ModernDesignSystem.brandGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: ColorClass.base_color.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Stack(
                 children: [
                   // Centered Title
-                  Center(
+                  const Center(
                     child: Text(
                       "Profile Details",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: ColorClass.base_color,
+                        color: Colors.white,
                         fontFamily: "Pop600",
                       ),
                     ),
                   ),
                   // Back Button
-                  CommonWidget.buildHeaderBackButton(
-                    context,
-                    onPressed: () => CommonWidget.safePop(context, result: true),
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => CommonWidget.safePop(context, result: true),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -580,14 +595,19 @@ class _ProfileActivityState extends State<ProfileActivity> {
                               Container(
                                 width: 120,
                                 height: 120,
+                                padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.grey[200],
-                                  border: Border.all(
-                                    color: ColorClass.base_color.withOpacity(0.2),
-                                    width: 2,
-                                  ),
+                                  gradient: ModernDesignSystem.brandGradient,
+                                  boxShadow: ModernDesignSystem.getColoredShadow(
+                                      ColorClass.base_color, opacity: 0.25),
                                 ),
+                                child: Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                padding: const EdgeInsets.all(3),
                                 child: ClipOval(
                                   child: profileurl != "" && selectedFiles.isEmpty
                                       ? Image.network(
@@ -607,6 +627,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                           CommonWidget.getImagePath("chat_profile.png"),
                                               fit: BoxFit.cover,
                                             ),
+                                          ),
                                           ),
                                           ),
                                         Positioned(
@@ -655,12 +676,14 @@ class _ProfileActivityState extends State<ProfileActivity> {
                           "First Name",
                           firstNameController,
                           icon: Icons.person_outline,
+                          accentIndex: 0,
                         ),
                         const SizedBox(height: ModernDesignSystem.spacingM),
                         _buildModernTextField(
                           "Last Name",
                           lastNameController,
                           icon: Icons.person_outline,
+                          accentIndex: 1,
                         ),
                         const SizedBox(height: ModernDesignSystem.spacingM),
                         _buildModernTextField(
@@ -668,6 +691,7 @@ class _ProfileActivityState extends State<ProfileActivity> {
                           emailController,
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
+                          accentIndex: 2,
                         ),
                         const SizedBox(height: ModernDesignSystem.spacingM),
                         
@@ -691,10 +715,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                                       border: Border.all(
-                                        color: Colors.grey[300]!,
-                                        width: 1,
+                                        color: ModernDesignSystem.accentFor(3).withOpacity(0.25),
+                                        width: 1.5,
                                       ),
                                     ),
                                     child: TextField(
@@ -712,31 +736,36 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                           fontSize: 16,
                                           fontFamily: "Pop400",
                                         ),
-                                        prefixIcon: Icon(
-                                          Icons.location_on_outlined,
-                                          color: ColorClass.base_color,
-                                          size: 22,
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.all(8),
+                                          child: ModernDesignSystem.iconTile(
+                                            Icons.location_on_outlined,
+                                            color: ModernDesignSystem.accentFor(3),
+                                            size: 36,
+                                            iconSize: 18,
+                                            circle: false,
+                                          ),
                                         ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                                           borderSide: BorderSide.none,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                                           borderSide: BorderSide.none,
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                                           borderSide: BorderSide(
-                                            color: ColorClass.base_color,
+                                            color: ModernDesignSystem.accentFor(3),
                                             width: 2,
                                           ),
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
                                         contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
+                                          horizontal: 12,
+                                          vertical: 12,
                                         ),
                                       ),
                                     ),
@@ -747,15 +776,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                   width: 56,
                                   height: 56,
                                   decoration: BoxDecoration(
-                                    color: ColorClass.base_color,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: ColorClass.base_color.withOpacity(0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
+                                    gradient: ModernDesignSystem.brandGradient,
+                                    borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
+                                    boxShadow: ModernDesignSystem.getColoredShadow(
+                                        ColorClass.base_color, opacity: 0.3),
                                   ),
                                   child: IconButton(
                                     icon: const Icon(Icons.gps_fixed, color: Colors.white),
@@ -798,18 +822,39 @@ class _ProfileActivityState extends State<ProfileActivity> {
                                           postUserDetails(context);
                                         }
                                       },
-                          style: ModernDesignSystem.modernButtonStyle(
-                            backgroundColor: ColorClass.base_color,
-                            borderRadius: ModernDesignSystem.radiusM,
-                            padding: const EdgeInsets.symmetric(vertical: ModernDesignSystem.spacingL),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            shape: const StadiumBorder(),
                           ),
-                          child: Text(
-                            "Save",
-                            style: ModernDesignSystem.bodyLarge(
-                              color: Colors.white,
-                            ).copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: ModernDesignSystem.brandGradient,
+                              borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+                              boxShadow: ModernDesignSystem.getColoredShadow(
+                                  ColorClass.base_color, opacity: 0.35),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: ModernDesignSystem.spacingL),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Save",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -831,7 +876,9 @@ class _ProfileActivityState extends State<ProfileActivity> {
     IconData? icon,
     TextInputType keyboardType = TextInputType.text,
     bool readOnly = false,
+    int accentIndex = 0,
   }) {
+    final accent = ModernDesignSystem.accentFor(accentIndex);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -848,10 +895,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
             border: Border.all(
-              color: Colors.grey[300]!,
-              width: 1,
+              color: accent.withOpacity(0.25),
+              width: 1.5,
             ),
           ),
           child: TextField(
@@ -871,32 +918,37 @@ class _ProfileActivityState extends State<ProfileActivity> {
                 fontFamily: "Pop400",
               ),
               prefixIcon: icon != null
-                  ? Icon(
-                      icon,
-                      color: ColorClass.base_color,
-                      size: 22,
+                  ? Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: ModernDesignSystem.iconTile(
+                        icon,
+                        color: accent,
+                        size: 36,
+                        iconSize: 18,
+                        circle: false,
+                      ),
                     )
                   : null,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusL),
                 borderSide: BorderSide(
-                  color: ColorClass.base_color,
+                  color: accent,
                   width: 2,
                 ),
               ),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+                horizontal: 12,
+                vertical: 12,
               ),
             ),
           ),
@@ -988,10 +1040,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
   // Build Packages Section
   Widget _buildPackagesSection(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+      decoration: ModernDesignSystem.playfulCard(
+        accent: ModernDesignSystem.accentFor(4),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1001,14 +1051,25 @@ class _ProfileActivityState extends State<ProfileActivity> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Packages",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    fontFamily: "Pop600",
-                  ),
+                Row(
+                  children: [
+                    ModernDesignSystem.iconTile(
+                      Icons.card_giftcard,
+                      color: ModernDesignSystem.accentFor(4),
+                      size: 36,
+                      iconSize: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      "Packages",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontFamily: "Pop600",
+                      ),
+                    ),
+                  ],
                 ),
                 TextButton(
                   onPressed: () {
@@ -1098,16 +1159,24 @@ class _ProfileActivityState extends State<ProfileActivity> {
       child: Container(
         width: 200,
       margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+      decoration: ModernDesignSystem.playfulCard(
+        accent: ModernDesignSystem.accentFor(4),
+        active: package.isActive ?? true,
+        borderRadius: ModernDesignSystem.radiusM,
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ModernDesignSystem.iconTile(
+              Icons.card_giftcard,
+              color: ModernDesignSystem.accentFor(4),
+              size: 32,
+              iconSize: 16,
+              circle: false,
+            ),
+            const SizedBox(height: 8),
             Text(
               package.packageName ?? "Package",
               style: const TextStyle(
@@ -1143,10 +1212,12 @@ class _ProfileActivityState extends State<ProfileActivity> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (package.isActive ?? true) ? Colors.green : Colors.grey,
-                    borderRadius: BorderRadius.circular(8),
+                    color: (package.isActive ?? true)
+                        ? ModernDesignSystem.accentFor(4)
+                        : Colors.grey,
+                    borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
                   ),
                   child: Text(
                     (package.isActive ?? true) ? "Active" : "Inactive",
@@ -1168,10 +1239,8 @@ class _ProfileActivityState extends State<ProfileActivity> {
   // Build Offers Section
   Widget _buildOffersSection(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+      decoration: ModernDesignSystem.playfulCard(
+        accent: ModernDesignSystem.accentFor(2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,14 +1250,25 @@ class _ProfileActivityState extends State<ProfileActivity> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Offers",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    fontFamily: "Pop600",
-                  ),
+                Row(
+                  children: [
+                    ModernDesignSystem.iconTile(
+                      Icons.local_offer,
+                      color: ModernDesignSystem.accentFor(2),
+                      size: 36,
+                      iconSize: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      "Offers",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontFamily: "Pop600",
+                      ),
+                    ),
+                  ],
                 ),
                 TextButton(
                   onPressed: () {
@@ -1278,10 +1358,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
       child: Container(
         width: 200,
       margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+      decoration: ModernDesignSystem.playfulCard(
+        accent: ModernDesignSystem.accentFor(2),
+        active: offer.isActive ?? true,
+        borderRadius: ModernDesignSystem.radiusM,
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1290,8 +1370,13 @@ class _ProfileActivityState extends State<ProfileActivity> {
           children: [
             Row(
               children: [
-                const Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
-                const SizedBox(width: 4),
+                ModernDesignSystem.iconTile(
+                  Icons.local_fire_department,
+                  color: Colors.orange,
+                  size: 28,
+                  iconSize: 16,
+                ),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     offer.title ?? "Offer",
@@ -1322,10 +1407,10 @@ class _ProfileActivityState extends State<ProfileActivity> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.orange,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
                   ),
                   child: Text(
                     "${offer.discount ?? 0}% OFF",
@@ -1337,10 +1422,12 @@ class _ProfileActivityState extends State<ProfileActivity> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (offer.isActive ?? true) ? Colors.green : Colors.grey,
-                    borderRadius: BorderRadius.circular(8),
+                    color: (offer.isActive ?? true)
+                        ? ModernDesignSystem.accentFor(2)
+                        : Colors.grey,
+                    borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
                   ),
                   child: Text(
                     (offer.isActive ?? true) ? "Active" : "Inactive",

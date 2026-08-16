@@ -206,6 +206,83 @@ class ModernDesignSystem {
   // Animation Curves
   static const Curve animationCurve = Curves.easeOutCubic;
   static const Curve springCurve = Curves.easeOutBack;
+
+  // --- Playful accents ---
+  // A small rotating palette so repeated tiles (fields, cards) don't all
+  // read as the same flat brand-green block.
+  static const List<Color> accentPalette = [
+    Color(0xff1CB273), // brand green
+    Color(0xff3F51B5), // indigo
+    Color(0xffFF7A59), // coral
+    Color(0xff9C6ADE), // violet
+    Color(0xffFFB020), // amber
+    Color(0xff00B8D9), // cyan
+  ];
+
+  static Color accentFor(int index) =>
+      accentPalette[index % accentPalette.length];
+
+  /// Big rounded icon tile with a tinted background — the "colorful icon in
+  /// a circle/rounded-square" building block used across playful cards.
+  static Widget iconTile(
+    IconData icon, {
+    Color? color,
+    double size = 44,
+    double iconSize = 22,
+    bool circle = true,
+  }) {
+    final tint = color ?? accentPalette.first;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: tint.withOpacity(0.14),
+        shape: circle ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: circle ? null : BorderRadius.circular(radiusM),
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, color: tint, size: iconSize),
+    );
+  }
+
+  /// Brand gradient, used sparingly for headers/hero accents/primary CTAs.
+  static LinearGradient get brandGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [ColorClass.base_color, const Color(0xff17A085)],
+      );
+
+  /// Fully-rounded pill button — gradient fill, no elevation shadow (the
+  /// gradient itself carries the visual weight).
+  static ButtonStyle pillButtonStyle({Color? backgroundColor}) {
+    return ElevatedButton.styleFrom(
+      backgroundColor: backgroundColor ?? ColorClass.base_color,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      shape: const StadiumBorder(),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+    );
+  }
+
+  /// Card with a colored left-accent strip via a thicker tinted border,
+  /// used to give list cards (packages/offers/services) some personality
+  /// without a full redesign of their layout.
+  static BoxDecoration playfulCard({
+    required Color accent,
+    bool active = true,
+    double borderRadius = radiusL,
+  }) {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(
+        color: active ? accent.withOpacity(0.35) : Colors.grey[200]!,
+        width: active ? 1.5 : 1,
+      ),
+      boxShadow: active ? getColoredShadow(accent, opacity: 0.1) : shadowSmall,
+    );
+  }
 }
 
 
