@@ -283,6 +283,36 @@ class ModernDesignSystem {
       boxShadow: active ? getColoredShadow(accent, opacity: 0.1) : shadowSmall,
     );
   }
+
+  /// A thin dashed "road line" divider — a subtle automotive motif for
+  /// separating sections, used sparingly (not on every divider in the app).
+  static Widget roadDivider({double height = 20, Color? color}) {
+    return SizedBox(
+      height: height,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const dashWidth = 6.0;
+          const dashGap = 5.0;
+          final count = (constraints.maxWidth / (dashWidth + dashGap)).floor();
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              count,
+              (_) => Container(
+                width: dashWidth,
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: dashGap / 2),
+                decoration: BoxDecoration(
+                  color: (color ?? Colors.grey[300])!,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 

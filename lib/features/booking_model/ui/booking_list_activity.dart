@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
 import '../../../Common/ShimmerLoader.dart';
+import '../../../design_system/components/app_header.dart';
 import '../data_model/booking_data_manager.dart';
 import '../data_model/booking_list_bean.dart';
 import '../model/complete_model_bean.dart';
@@ -69,53 +70,16 @@ class BookingListActivityState extends State<BookingListActivity> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF4),
+      appBar: AppHeader(
+        title: "Bookings",
+        onBack: () {
+          if (mounted && context.mounted) {
+            CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
+          }
+        },
+      ),
       body: Column(
         children: [
-          // Modern Header
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 12,
-              bottom: 20,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF166534), Color(0xFF1CB273)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                CommonWidget.buildBackButton(
-                  context,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  iconColor: Colors.white,
-                  onPressed: () {
-                    if (mounted && context.mounted) {
-                      CommonWidget.navigateToKillAllScreen(context, const DashboardActivity());
-                    }
-                  },
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  "Bookings",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: "Pop600",
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           Container(
             margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             padding: const EdgeInsets.all(4),

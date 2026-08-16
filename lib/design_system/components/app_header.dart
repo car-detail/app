@@ -1,0 +1,142 @@
+import 'package:flutter/material.dart';
+import '../../Common/ModernDesignSystem.dart';
+
+/// Standard gradient page header — back button, title, optional subtitle,
+/// optional trailing actions, with the same decorative "blob" texture and
+/// brand gradient used across the app. Every screen was previously building
+/// its own slightly-different version of this; use this instead so
+/// navigation/headers look identical everywhere.
+class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+  const AppHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.onBack,
+    this.actions = const [],
+    this.leading,
+    this.decorative = true,
+  });
+
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onBack;
+  final List<Widget> actions;
+  final Widget? leading;
+  final bool decorative;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 24);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(28),
+        bottomRight: Radius.circular(28),
+      ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
+        decoration: BoxDecoration(gradient: ModernDesignSystem.brandGradient),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (decorative) ...[
+              Positioned(
+                top: -30,
+                right: -40,
+                child: _blob(120),
+              ),
+              Positioned(
+                bottom: -40,
+                left: -30,
+                child: _blob(90),
+              ),
+            ],
+            Row(
+              children: [
+                leading ??
+                    _CircleIconButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: onBack ?? () => Navigator.maybePop(context),
+                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.85)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                ...actions,
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _blob(double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.06)),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
+}
+
+/// Same circular glass-style icon button used for header actions
+/// (e.g. logout, edit) so trailing icons match the back button.
+class AppHeaderAction extends StatelessWidget {
+  const AppHeaderAction({super.key, required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => _CircleIconButton(icon: icon, onTap: onTap);
+}
