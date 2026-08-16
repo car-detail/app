@@ -66,7 +66,7 @@ class OfferListModelData {
         this.vendor,
         this.service,
         this.location,
-        this.isCurrentlyActive,
+        this.isCurrentlyActive = false,
         this.validFrom,
         this.validUntil,
         this.updatedAt,

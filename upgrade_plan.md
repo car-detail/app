@@ -17,12 +17,13 @@
 |---|---|
 | Booking conflict prevention (backend) | ✅ Done — vendor hours check, slot capacity, duplicate-booking rejection in `bookings.service.ts` |
 | Nearby vendor search (backend + user app) | ✅ Done — lat/long/radius queries, category filter, zoom-based radius |
-| Vendor onboarding flow | 🟡 Exists but duplicated 3x, unclear which is live |
+| Vendor onboarding flow | 🟡 De-duplicated (Phase 0.2/0.3 done) — `SimpleAddShopActivity` confirmed as the one live screen, dead chain removed |
 | Services / packages / offers management | 🟡 Exists, functional, UI not modern |
 | Modern/fun UI | ⬜ Not started — no animation lib, no design system, no theming layer |
 | State management | ⬜ Not started — raw `setState`, God-Activity files up to 3,200 lines |
 | Automated tests | ⬜ Not started — 1 test file for ~50k LOC vendor app |
-| Git hygiene | 🟡 Large uncommitted mixed changeset in working tree |
+| Git hygiene | ✅ Working tree committed as checkpoint, now clean |
+| Pre-existing compile errors | ✅ Fixed — 24 → 0 `flutter analyze` errors (Phase 0.3a) |
 
 ---
 
@@ -31,9 +32,10 @@
 
 | # | Task | Repo | Status |
 |---|---|---|---|
-| 0.1 | Commit or discard the current uncommitted changeset (audio files, manifest edits, deleted iOS project files) so we start from a clean tree | app | ⬜ |
-| 0.2 | Identify which vendor-registration screen is actually wired into navigation (`simple_add_shop_activity.dart` vs `ultra_simple_vendor_registration.dart` vs `edit_vendor_activity.dart`) | app | ⬜ |
-| 0.3 | Delete the dead/superseded onboarding variants once confirmed | app | ⬜ |
+| 0.1 | Commit or discard the current uncommitted changeset (audio files, manifest edits, deleted iOS project files) so we start from a clean tree | app | ✅ Committed as checkpoint (`15d6ab4`) |
+| 0.2 | Identify which vendor-registration screen is actually wired into navigation (`simple_add_shop_activity.dart` vs `ultra_simple_vendor_registration.dart` vs `edit_vendor_activity.dart`) | app | ✅ `SimpleAddShopActivity` confirmed live; `UltraSimpleVendorRegistration` chain confirmed unreachable (`/register` route had zero callers) |
+| 0.3 | Delete the dead/superseded onboarding variants once confirmed | app | ✅ Deleted `registor_vendor_activity.dart`, `simple_registor_vendor_activity.dart`, `ultra_simple_vendor_registration.dart`; collapsed redundant redirect wrapper; removed dead `/register` route; `flutter analyze` clean of new errors (`b6b1259`) |
+| 0.3a | Triage the 24 pre-existing `flutter analyze` errors surfaced during this cleanup | app | ✅ Fixed all 24: (1) `ApiFuntion.dart` had a duplicate `patchdatauser` method plus a stray extra `}` that prematurely closed the class, hiding `sendMultipartRequest` from 4 call sites — removed the duplicate + brace; (2) `edit_user_details_activity.dart` had a botched duplicate-paste breaking `_buildTextField`, cleaned up; (3) `LoginActivity.dart` was fully dead (superseded by `new_login_activity.dart`, zero real references) — deleted; (4) discovered and deleted an entire stray duplicate `features/` directory at the *project root* (outside `lib/`) — 3 stale files `flutter analyze` was scanning that could never actually compile into the app; (5) added a default value for `OfferListModelData.isCurrentlyActive`. `flutter analyze` now reports 0 errors |
 | 0.4 | Audit other duplicated screens (`enhanced_offer_screen.dart` vs `enhanced_offer_list_screen.dart`, etc.) and remove dead ones | app | ⬜ |
 | 0.5 | Add `flutter analyze` + a stricter lint set (enable `avoid_print`, `prefer_const_constructors`, etc.) to CI | app, app-user | ⬜ |
 | 0.6 | Set up CI (GitHub Actions or similar) running analyze + tests on PRs | app, app-user, cahrz-api | ⬜ |

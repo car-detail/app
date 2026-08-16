@@ -444,7 +444,6 @@ class ApiFuntions {
       return http.Response(jsonEncode(message), 400);
     }
   }
-  }
 
   Future<File> _compressImageIfNeeded(File file, int maxImageSize) async {
     if (kIsWeb) {
@@ -803,113 +802,6 @@ class ApiFuntions {
       
       if (context.mounted) CommonWidget.errorShowSnackBarFor(context, errorMessage);
       throw Exception(errorMessage);
-    }
-  }
-  Future<http.Response> patchdatauser(
-      BuildContext context, String endpoint, dynamic data,
-      {String token = "", bool skipAutoNavigation = false}) async {
-    
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String token = sharedPreferences.getString(Constant.accessToken) ?? "";
-    debugPrint('Context: $context');
-    debugPrint("=========datainjsonEncode${jsonEncode(data)} ");
-    try {
-      List<InternetAddress> result = [];
-      if (!kIsWeb) {
-        result = await InternetAddress.lookup('google.com');
-      }
-      if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
-        final url = '${Constant.baseurl}$endpoint';
-        debugPrint('🟣 PATCH Request: $url');
-        debugPrint('📦 Body: ${jsonEncode(data)}');
-        
-        final response = await http.patch(
-            Uri.parse(url),
-            body: jsonEncode(data),
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer $token",
-              "ngrok-skip-browser-warning": "true"
-            });
-            
-        debugPrint('🟢 PATCH Response ($url)');
-        debugPrint('📊 Status Code: ${response.statusCode}');
-        debugPrint('📄 Response Body: ${response.body}');
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          return response;
-          /*Map<String, dynamic> message = (jsonDecode(response.body));
-          if (message['status'] == true) {
-            debugPrint(response);
-            return response;
-          } else {
-            var error = message['message'];
-            debugPrint(response.body);
-            debugPrint(error);
-            showSnackBar(context,error);
-            return error;
-          }*/
-        } else if(response.statusCode == 401){
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          /*CommonWidget.errorShowSnackBarFor(
-              context, "${response.statusCode.toString()} Error Code");*/
-          //var data = ErrorModel.fromJson(jsonDecode(response.body));
-          /*if(data.message!.length>0)
-            CommonWidget.errorShowSnackBarFor(context, data.message![0]);*/
-          debugPrint(response.body);
-        if (context.mounted && !skipAutoNavigation) {
-          sharedPreferences.clear();
-          CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
-        }
-          return response;
-        } else {
-          if (context.mounted && Navigator.canPop(context)) {
-        CommonWidget.safePop(context);
-      }
-          Map<String, dynamic> message = (jsonDecode(response.body));
-
-          // Handle message as both string and array (backend returns array)
-          String errorMessage = "";
-          if (message['message'] != null) {
-            if (message['message'] is List && (message['message'] as List).isNotEmpty) {
-              errorMessage = (message['message'] as List)[0].toString();
-            } else if (message['message'] is List && (message['message'] as List).isEmpty) {
-              errorMessage = "An error occurred";
-            } else {
-              errorMessage = message['message'].toString();
-            }
-          }
-          
-          if (context.mounted && errorMessage.isNotEmpty) {
-            CommonWidget.errorShowSnackBarFor(context, errorMessage);
-          }
-          debugPrint(response.body);
-          debugPrint(errorMessage);
-          if (context.mounted) showSnackBar(context, errorMessage);
-          return response;
-          //Common.showToast(mes);
-        }
-      } else {
-        Map<String, dynamic> message = {
-          'status_message': "Please Check Network Connection"
-        };
-        var mes = message['status_message'];
-        debugPrint(mes);
-        showSnackBar(context, "Please Check Network Connection");
-        return mes;
-      }
-    } on SocketException catch (_) {
-      Map<String, dynamic> message = {
-        'status_message': "Please Check Network Connection"
-      };
-      var mes = message['status_message'];
-      debugPrint(mes);
-      showSnackBar(context, "Please Check Network Connection");
-      return mes;
     }
   }
 

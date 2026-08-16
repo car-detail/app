@@ -807,10 +807,6 @@ class _EditUserDetailsActivityState extends State<EditUserDetailsActivity> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
         Row(
           children: [
             Text(
