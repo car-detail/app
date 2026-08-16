@@ -159,13 +159,18 @@ class _HomeActivityState extends State<HomeActivity> {
               cancelledBookings = data['cancelledBookings'] ?? 0;
               totalReviews = data['totalReviews'] ?? 0;
               vendorRating = (data['averageRating'] ?? 0.0).toDouble();
-              isAnalyticsLoading = false;
             });
           }
         }
       }
     } catch (e) {
       debugPrint("Failed to fetch analytics: $e");
+    } finally {
+      // Always stop the loading spinner once the request settles, whether
+      // it succeeded, returned an unexpected shape, or threw -- otherwise
+      // it spins forever (e.g. a new vendor with no bookings yet, where
+      // the backend may return data: null instead of zeroed fields).
+      if (mounted) setState(() => isAnalyticsLoading = false);
     }
   }
 
