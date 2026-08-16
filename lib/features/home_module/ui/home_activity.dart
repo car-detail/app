@@ -10,7 +10,6 @@ import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
-import 'package:car_app/design_system/components/car_silhouette.dart';
 import 'package:car_app/features/categories_module/ui/categories_list_activity.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_list_screen.dart';
@@ -370,14 +369,10 @@ class _HomeActivityState extends State<HomeActivity> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Positioned(
-                  right: 4,
-                  bottom: 4,
-                  // Side-profile silhouette reads clearly at small/low-
-                  // opacity/clipped sizes; the front-facing CarWashIcon's
-                  // detail lines disappear here and it looks like a blob.
-                  child: CarSilhouette(size: 130, opacity: 0.3, rotation: -0.04),
-                ),
+                // No car watermark here -- this header is already full
+                // (vendor name + notification bell), no safe space for a
+                // badge without overlapping real content. The low-opacity
+                // silhouette wasn't reading well anyway.
                 Column(
               children: [
                 // Top row with vendor name and notifications

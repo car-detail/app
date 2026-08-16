@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Common/Color.dart';
 import '../../Common/ModernDesignSystem.dart';
 import 'car_silhouette.dart';
 
@@ -16,6 +17,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.actions = const [],
     this.leading,
     this.decorative = true,
+    this.showCarBadge = true,
   });
 
   final String title;
@@ -24,6 +26,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget> actions;
   final Widget? leading;
   final bool decorative;
+  final bool showCarBadge;
 
   // preferredSize has no BuildContext, so the status bar height is read
   // directly from the platform (not MediaQuery) -- without this, Scaffold
@@ -61,18 +64,41 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 left: -30,
                 child: _blob(90),
               ),
-              // Side-profile car silhouette watermark. The front-facing
-              // CarWashIcon reads fine at full size/opacity (splash screen)
-              // but its internal detail lines (headlights, windshield)
-              // disappear at small size + low opacity + clipped bounds,
-              // leaving just an unrecognizable blob. A side-profile
-              // silhouette (body + two wheel circles) is recognizable as
-              // "a car" from its outline alone, no internal detail needed.
-              Positioned(
-                right: 0,
-                bottom: 6,
-                child: CarSilhouette(size: 130, opacity: 0.35, rotation: -0.04),
-              ),
+              // Neither the front-facing nor side-profile hand-drawn vector
+              // read well as a low-opacity background watermark -- crushed
+              // detail or an unrecognizable smudge either way. Using the
+              // real car-wash photo instead, as a small crisp fully-opaque
+              // badge (not a translucent texture), which is what actually
+              // reads as "designed" rather than "blurry."
+              if (showCarBadge)
+                Positioned(
+                  right: 4,
+                  top: -4,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/car_image.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            CarSilhouette(size: 40, color: ColorClass.base_color, opacity: 1),
+                      ),
+                    ),
+                  ),
+                ),
             ],
             Row(
               children: [

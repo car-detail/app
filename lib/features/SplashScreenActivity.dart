@@ -205,12 +205,25 @@ class _SplashScreenActivityState extends State<SplashScreenActivity>
                 child: Container(
                   width: 280,
                   height: 280,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                  child: Center(
-                    child: CarWashIcon(size: 170, color: ColorClass.base_color),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/car_image.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: CarWashIcon(size: 170, color: ColorClass.base_color),
+                      ),
+                    ),
                   ),
                 ),
               ),
