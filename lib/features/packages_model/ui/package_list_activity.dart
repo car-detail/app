@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 import 'package:car_app/features/packages_model/data_manager/package_data_manager.dart';
 import 'package:car_app/features/packages_model/model/package_model_data.dart';
 import 'package:car_app/features/packages_model/ui/add_package_activity.dart';
@@ -260,10 +261,7 @@ class _PackageListActivityState extends State<PackageListActivity> {
 
   Widget _buildLoading() {
     return Center(
-      child: CircularProgressIndicator(
-        color: ColorClass.base_color,
-        strokeWidth: 2.5,
-      ),
+      child: CarLoader(color: ModernDesignSystem.accentFor(4)),
     );
   }
 

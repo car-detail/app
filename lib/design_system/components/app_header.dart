@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Common/ModernDesignSystem.dart';
+import 'car_silhouette.dart';
 
 /// Standard gradient page header — back button, title, optional subtitle,
 /// optional trailing actions, with the same decorative "blob" texture and
@@ -59,6 +60,14 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 bottom: -40,
                 left: -30,
                 child: _blob(90),
+              ),
+              // faint car watermark -- the car-themed identity, kept subtle
+              // (8% opacity) so it reads as texture, not decoration fighting
+              // the title for attention
+              Positioned(
+                right: -6,
+                bottom: -4,
+                child: CarSilhouette(size: 100, opacity: 0.1, rotation: -0.05),
               ),
             ],
             Row(

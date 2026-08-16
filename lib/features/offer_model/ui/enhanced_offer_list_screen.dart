@@ -3,6 +3,7 @@ import 'package:car_app/Common/Color.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/car_loader.dart';
 import 'package:car_app/features/offer_model/data_manager/offer_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_screen.dart';
 import 'package:car_app/features/offer_model/model/offer_list_model_bean.dart';
@@ -276,13 +277,13 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
           // Offers List
           Expanded(
             child: isLoading
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(color: Color(0xFF1CB273)),
-                        SizedBox(height: 16),
-                        Text("Loading offers...", style: TextStyle(color: Color(0xFF1CB273), fontWeight: FontWeight.w600)),
+                        CarLoader(color: ModernDesignSystem.accentFor(2)),
+                        const SizedBox(height: 12),
+                        const Text("Loading offers...", style: TextStyle(color: Color(0xFF1CB273), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   )
