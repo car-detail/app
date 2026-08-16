@@ -66,4 +66,8 @@ class HomeDataManager {
   getForceUpdate(BuildContext context) {
     return apiFuntions.getdatauser(context, Constant.forceUpdate,cycle: false);
   }
+  getVendorAnalytics(BuildContext context) {
+    return apiFuntions.getdatauser(context,
+        "${Constant.vendorAnalytics}${sharedPreferences.getString(Constant.vendorId) ?? ""}");
+  }
 }

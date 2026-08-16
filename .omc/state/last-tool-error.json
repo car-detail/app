@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__code-review-graph__get_hub_nodes_tool",
+  "tool_input_preview": "{\"top_n\":15}",
+  "error": "Error calling tool 'get_hub_nodes_tool': 'NoneType' object has no attribute 'resolve'",
+  "timestamp": "2026-08-16T06:51:08.111Z",
+  "retry_count": 1
+}

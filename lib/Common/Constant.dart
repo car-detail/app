@@ -1,8 +1,8 @@
 class Constant {
   // Updated base URL with /api prefix - requires full app restart (not hot reload)
-  static var baseurl = "http://localhost:7007/api/"; //dev
+  // static var baseurl = "http://localhost:7007/api/"; //dev
   // static var baseurl = "https://lvpwhs37-7007.inc1.devtunnels.ms/api/";
-  // static var baseurl = "https://api.cahrz.com/api/"; //dev
+  static var baseurl = "https://api.cahrz.com/api/"; //dev
   //static var baseurl = "https://cp6zsf8t-7007.inc1.devtunnels.ms/"; //dev
   // static var baseurl = "https://cf5f40e34c76.ngrok-free.app/"; //ngrok tunnel
   static var versionNumber = "v1";
@@ -50,6 +50,15 @@ class Constant {
   static var updatePackage = "$versionNumber/packages/update-package";
   static var deletePackage = "$versionNumber/packages/delete-package";
   static var markTourShown = "$versionNumber/user/mark-tour-shown";
+
+  // New API endpoints for 11 features
+  static var vendorAnalytics = "$versionNumber/bookings/vendor-analytics/";
+  static var rescheduleBooking = "$versionNumber/bookings/reschedule/";
+  static var duplicateOffer = "$versionNumber/offers/duplicate/";
+  static var pauseService = "$versionNumber/services/pause-service/";
+  static var trackOfferView = "$versionNumber/offers/track-view/";
+  static var claimOffer = "$versionNumber/offers/claim/";
+
 
   static double textsise14 = 14;
 

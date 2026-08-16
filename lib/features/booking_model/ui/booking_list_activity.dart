@@ -14,6 +14,7 @@ import '../../../Common/ShimmerLoader.dart';
 import '../data_model/booking_data_manager.dart';
 import '../data_model/booking_list_bean.dart';
 import '../model/complete_model_bean.dart';
+import 'reschedule_booking_screen.dart';
 
 class BookingListActivity extends StatefulWidget {
   final bool isTab;
@@ -459,6 +460,57 @@ class BookingListActivityState extends State<BookingListActivity> {
                                       fontSize: 13,
                                       fontFamily: "Pop500",
                                       color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RescheduleBookingScreen(
+                                  booking: data,
+                                  dataManager: dataManager!,
+                                ),
+                              ),
+                            );
+                            if (result == true && mounted) {
+                              getBookingListFilter(context);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: const Color(0xFF166534), width: 1.5),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.edit_calendar_rounded, size: 15, color: Color(0xFF166534)),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    "Reschedule Booking",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontFamily: "Pop500",
+                                      color: Color(0xFF166534),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

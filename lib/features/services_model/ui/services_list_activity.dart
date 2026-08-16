@@ -411,8 +411,10 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFF1CB273), Color(0xFF00E676)],
+                                      gradient: LinearGradient(
+                                        colors: data.isPaused == true
+                                            ? [const Color(0xFFF59E0B), const Color(0xFFD97706)]
+                                            : [const Color(0xFF1CB273), const Color(0xFF00E676)],
                                       ),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
@@ -428,9 +430,9 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        const Text(
-                                          "Active",
-                                          style: TextStyle(
+                                        Text(
+                                          data.isPaused == true ? "Paused" : "Active",
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
@@ -566,7 +568,34 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: _buildFancyActionButton(
+                            data.isPaused == true ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                            data.isPaused == true ? "Resume" : "Pause",
+                            data.isPaused == true ? Colors.green[600]! : Colors.orange[700]!,
+                            () async {
+                              final newStatus = data.isPaused != true;
+                              final response = await servicesDataManager!.pauseService(
+                                context,
+                                data.sId.toString(),
+                                newStatus,
+                              );
+                              if (response.statusCode == 200) {
+                                if (mounted) {
+                                  setState(() {
+                                    data.isPaused = newStatus;
+                                  });
+                                  CommonWidget.successShowSnackBarFor(
+                                    context,
+                                    newStatus ? "Service paused successfully!" : "Service resumed successfully!"
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: _buildFancyActionButton(
                             Icons.visibility_rounded,

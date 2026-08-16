@@ -363,6 +363,89 @@ class ApiFuntions {
     }
   }
 
+  Future<http.Response> patchdatauser(
+      BuildContext context, String endpoint, dynamic data,
+      {String token = "", bool skipAutoNavigation = false}) async {
+    
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String token = sharedPreferences.getString(Constant.accessToken)??"";
+    debugPrint('Context: $context');
+    debugPrint("=========datainjsonEncode${jsonEncode(data)} ");
+    try {
+      List<InternetAddress> result = [];
+      if(!kIsWeb) {
+        result = await InternetAddress.lookup('google.com');
+      }
+      if ((result.isNotEmpty && result[0].rawAddress.isNotEmpty) || kIsWeb) {
+        final url = '${Constant.baseurl}$endpoint';
+        debugPrint('🟣 PATCH Request: $url');
+        debugPrint('📦 Body: ${jsonEncode(data)}');
+        
+        final response = await http.patch(
+            Uri.parse(url),
+            body: jsonEncode(data),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+              "ngrok-skip-browser-warning": "true"
+            });
+            
+        debugPrint('🟢 PATCH Response ($url)');
+        debugPrint('📊 Status Code: ${response.statusCode}');
+        debugPrint('📄 Response Body: ${response.body}');
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
+          return response;
+        } else if(response.statusCode == 401){
+          if (!skipAutoNavigation) {
+            if (context.mounted && Navigator.canPop(context)) {
+              CommonWidget.safePop(context);
+            }
+            debugPrint(response.body);
+            if (context.mounted) {
+              sharedPreferences.clear();
+              CommonWidget.navigateToKillAllScreen(context, const NewLoginActivity());
+            }
+          }
+          return response;
+        } else {
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
+            CommonWidget.safePop(context);
+          }
+          try {
+            var data = ErrorModel.fromJson(jsonDecode(response.body));
+            if (context.mounted && data.message!.isNotEmpty) {
+              CommonWidget.errorShowSnackBarFor(context, data.message![0]);
+            }
+          } catch (_) {
+            CommonWidget.errorShowSnackBarFor(context, "Error: ${response.statusCode}");
+          }
+          debugPrint(response.body);
+          return response;
+        }
+      } else {
+        Map<String, dynamic> message = {
+          'status_message': "Please Check Network Connection"
+        };
+        var mes = message['status_message'];
+        debugPrint(mes);
+        if (context.mounted) showSnackBar(context, "Please Check Network Connection");
+        return http.Response(jsonEncode(message), 400);
+      }
+    } on SocketException catch (_) {
+      Map<String, dynamic> message = {
+        'status_message': "Please Check Network Connection"
+      };
+      var mes = message['status_message'];
+      debugPrint(mes);
+      if (context.mounted) showSnackBar(context, "Please Check Network Connection");
+      return http.Response(jsonEncode(message), 400);
+    }
+  }
+  }
+
   Future<File> _compressImageIfNeeded(File file, int maxImageSize) async {
     if (kIsWeb) {
       return file;
@@ -437,13 +520,12 @@ class ApiFuntions {
     "ngrok-skip-browser-warning": "true"
     });
       // File size limits (in bytes)
-      const int maxImageSize = 5 * 1024 * 1024; // 5 MB for images
-      const int maxDocumentSize = 10 * 1024 * 1024; // 10 MB for documents
+      const int maxImageSize = 900 * 1024; // 900 KB for images to stay under server's 1 MB Nginx limit
       const int maxFileSize = 100 * 1024 * 1024; // 100 MB absolute max
 
-      // Allowed file extensions (all lowercase since we convert to lowercase)
+      // Allowed image extensions only
       final allowedImageExtensions = ['.jpg', '.jpeg', '.png'];
-      final allowedDocumentExtensions = ['.pdf', '.doc', '.docx', '.xlsx', '.xls', '.ppt', '.pptx'];
+      final heicExtensions = ['.heic', '.heif']; // iPhone formats — auto-converted to JPEG
 
       // Add files to the request with validation
       for (var file in files) {
@@ -485,7 +567,35 @@ class ApiFuntions {
           }
         } else {
           fileName = _getFileNameFromPath(file.path);
-          fileExtension = _getFileExtension(fileName);
+          fileExtension = _getFileExtension(fileName).toLowerCase();
+
+          // ── HEIC / HEIF → JPEG auto-conversion ──────────────────────────
+          if (heicExtensions.contains(fileExtension)) {
+            debugPrint('🔄 HEIC detected — converting to JPEG automatically...');
+            try {
+              final tempDir = await getTemporaryDirectory();
+              final targetPath = '${tempDir.path}/converted_${DateTime.now().millisecondsSinceEpoch}.jpg';
+              final xFile = await FlutterImageCompress.compressAndGetFile(
+                file.path,
+                targetPath,
+                format: CompressFormat.jpeg,
+                quality: 90,
+                keepExif: false,
+              );
+              if (xFile != null) {
+                uploadFile = File(xFile.path);
+                fileName = _getFileNameFromPath(uploadFile.path);
+                fileExtension = '.jpg';
+                debugPrint('✅ HEIC → JPEG conversion successful: $fileName');
+              } else {
+                debugPrint('⚠️ HEIC conversion returned null — using original file');
+              }
+            } catch (convErr) {
+              debugPrint('⚠️ HEIC conversion failed ($convErr) — using original file');
+            }
+          }
+          // ────────────────────────────────────────────────────────────────
+
           if (fileExtension.isEmpty) {
             if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
               CommonWidget.safePop(context);
@@ -495,9 +605,9 @@ class ApiFuntions {
             }
             throw Exception('File has no extension: $fileName');
           }
-          debugPrint('📁 Mobile File: $fileName, Extension: $fileExtension, Full Path: ${file.path}');
+          debugPrint('📁 Mobile File: $fileName, Extension: $fileExtension, Full Path: ${uploadFile.path}');
           try {
-            if (!await file.exists()) {
+            if (!await uploadFile.exists()) {
               if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
                 CommonWidget.safePop(context);
               }
@@ -506,7 +616,7 @@ class ApiFuntions {
               }
               throw Exception('File not found: $fileName');
             }
-            fileSize = await file.length();
+            fileSize = await uploadFile.length();
           } catch (e) {
             if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
               CommonWidget.safePop(context);
@@ -531,17 +641,19 @@ class ApiFuntions {
         }
 
         bool isImage = allowedImageExtensions.contains(fileExtension);
-        bool isDocument = allowedDocumentExtensions.contains(fileExtension);
 
-        if (!isImage && !isDocument) {
+        if (!isImage) {
           if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
             CommonWidget.safePop(context);
           }
           if (context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileExtension. Please use images (JPG, PNG) or documents (PDF, DOC, XLS, PPT)');
+            CommonWidget.errorShowSnackBarFor(context, 'Only image files (JPG, PNG) are allowed. Please choose an image.');
           }
           throw Exception('Unsupported file format: $fileExtension');
         }
+
+        // After HEIC conversion, re-evaluate isImage with updated extension
+        isImage = allowedImageExtensions.contains(fileExtension);
 
         if (!kIsWeb && isImage && fileSize > maxImageSize) {
           uploadFile = await _compressImageIfNeeded(file, maxImageSize);
@@ -556,74 +668,46 @@ class ApiFuntions {
             CommonWidget.safePop(context);
           }
           if (context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (5 MB). Please choose a smaller image.');
+            CommonWidget.errorShowSnackBarFor(context, 'Image size exceeds maximum limit (1 MB). Please choose a smaller image.');
           }
           throw Exception('Image size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
         }
 
-        if (isDocument && fileSize > maxDocumentSize) {
-          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
-            CommonWidget.safePop(context);
-          }
-          if (context.mounted) {
-            CommonWidget.errorShowSnackBarFor(context, 'Document size exceeds maximum limit (10 MB)');
-          }
-          throw Exception('Document size exceeds maximum limit: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
-        }
-
-        MediaType? contentType;
-        if (fileExtension == '.pdf') {
-          contentType = MediaType('application', 'pdf');
-        } else if (fileExtension == '.doc' || fileExtension == '.docx') {
-          contentType = MediaType('application', 'msword');
-        } else if (fileExtension == '.xlsx' || fileExtension == '.xls') {
-          contentType = MediaType('application', 'vnd.ms-excel');
-        } else if (fileExtension == '.ppt' || fileExtension == '.pptx') {
-          contentType = MediaType('application', 'vnd.ms-powerpoint');
-        } else if (isImage) {
-          if (fileExtension == '.png') {
-            contentType = MediaType('image', 'png');
-          } else if (fileExtension == '.jpg' || fileExtension == '.jpeg') {
-            contentType = MediaType('image', 'jpeg');
-          }
-        }
-
-        debugPrint('📄 Content Type: ${contentType?.mimeType ?? "NULL"}');
-
-        if (contentType != null) {
-          try {
-            if (kIsWeb && fileBytes != null) {
-              request.files.add(
-                http.MultipartFile.fromBytes(
-                  filekey,
-                  fileBytes,
-                  filename: fileName,
-                  contentType: contentType,
-                ),
-              );
-            } else {
-              request.files.add(
-                await http.MultipartFile.fromPath(
-                  filekey,
-                  uploadFile.path,
-                  filename: fileName,
-                  contentType: contentType,
-                ),
-              );
-            }
-          } catch (e) {
-            if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
-              CommonWidget.safePop(context);
-            }
-            CommonWidget.errorShowSnackBarFor(context, 'Error reading file: ${e.toString()}');
-            throw Exception('Error reading file: $e');
-          }
+        MediaType contentType;
+        if (fileExtension == '.png') {
+          contentType = MediaType('image', 'png');
         } else {
+          contentType = MediaType('image', 'jpeg');
+        }
+
+        debugPrint('📄 Content Type: ${contentType.mimeType}');
+
+        try {
+          if (kIsWeb && fileBytes != null) {
+            request.files.add(
+              http.MultipartFile.fromBytes(
+                filekey,
+                fileBytes,
+                filename: fileName,
+                contentType: contentType,
+              ),
+            );
+          } else {
+            request.files.add(
+              await http.MultipartFile.fromPath(
+                filekey,
+                uploadFile.path,
+                filename: fileName,
+                contentType: contentType,
+              ),
+            );
+          }
+        } catch (e) {
           if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
             CommonWidget.safePop(context);
           }
-          CommonWidget.errorShowSnackBarFor(context, 'Unsupported file format: $fileName');
-          throw Exception('Unsupported file format: $fileName');
+          CommonWidget.errorShowSnackBarFor(context, 'Error reading image file: ${e.toString()}');
+          throw Exception('Error reading file: $e');
         }
       }
       data.forEach((key, value) {
@@ -801,7 +885,7 @@ class ApiFuntions {
           }
           
           if (context.mounted && errorMessage.isNotEmpty) {
-            CommonWidget.errorShowSnackBarFor(context, "$errorMessage Error Code");
+            CommonWidget.errorShowSnackBarFor(context, errorMessage);
           }
           debugPrint(response.body);
           debugPrint(errorMessage);

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:audioplayers/audioplayers.dart';
 // import 'dart:ffi'; // Not available on web platform
 
 import 'package:flutter/services.dart';
@@ -80,6 +81,16 @@ class _HomeActivityState extends State<HomeActivity> {
   double vendorRating = 0.0;
   Timer? _refreshTimer;
 
+  // Analytics fields
+  int todayBookingsCount = 0;
+  double weeklyRevenue = 0.0;
+  int pendingBookings = 0;
+  int completedBookings = 0;
+  int cancelledBookings = 0;
+  int totalReviews = 0;
+  bool isAnalyticsLoading = true;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   @override
   void initState() {
     super.initState();
@@ -96,6 +107,12 @@ class _HomeActivityState extends State<HomeActivity> {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (mounted) {
         print("🔔 Notification received in foreground, refreshing data...");
+        // Play notification sound
+        try {
+          _audioPlayer.play(UrlSource('https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav'));
+        } catch (e) {
+          debugPrint("Failed to play sound: $e");
+        }
         start();
       }
     });
@@ -105,6 +122,7 @@ class _HomeActivityState extends State<HomeActivity> {
   void dispose() {
     offerPageController?.dispose();
     _refreshTimer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -121,8 +139,36 @@ class _HomeActivityState extends State<HomeActivity> {
     if (vendorIdValue.isNotEmpty) {
       getdetails(context);
       getServices(context); // Load services data for Business Overview
+      getAnalytics(context);
     } else {
       // Don't make API calls if there's no vendorId
+    }
+  }
+
+  getAnalytics(BuildContext context) async {
+    if (!mounted) return;
+    try {
+      var response = await dataManager!.getVendorAnalytics(context);
+      if (response.statusCode == 200) {
+        var body = jsonDecode(response.body);
+        if (body['status'] == 'success' && body['data'] != null) {
+          var data = body['data'];
+          if (mounted) {
+            setState(() {
+              todayBookingsCount = data['todayBookings'] ?? 0;
+              weeklyRevenue = (data['weeklyRevenue'] ?? 0).toDouble();
+              pendingBookings = data['pendingBookings'] ?? 0;
+              completedBookings = data['completedBookings'] ?? 0;
+              cancelledBookings = data['cancelledBookings'] ?? 0;
+              totalReviews = data['totalReviews'] ?? 0;
+              vendorRating = (data['averageRating'] ?? 0.0).toDouble();
+              isAnalyticsLoading = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Failed to fetch analytics: $e");
     }
   }
 
@@ -608,43 +654,9 @@ class _HomeActivityState extends State<HomeActivity> {
                       ),
                     ),
                   
-                  // Business Metrics Cards
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetricCard(
-                            "Bookings",
-                            "${records.length}",
-                            "calendar_blue.png",
-                            const Color(0xFF3B82F6), // Blue
-                            0,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildMetricCard(
-                            "Services",
-                            "${servicesData.length}",
-                            "assignment.png",
-                            const Color(0xFFF59E0B), // Orange
-                            1,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildMetricCard(
-                            "Rating",
-                            vendorRating > 0 ? vendorRating.toStringAsFixed(1) : "—",
-                            "stars_icon.png",
-                            const Color(0xFFFBBF24), // Amber
-                            2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Business Metrics Cards & Analytics Dashboard
+                  if (vendorId.isNotEmpty)
+                    _buildDashboardAnalyticsCard(),
                   
                   const SizedBox(height: 25),
                   
@@ -1015,6 +1027,218 @@ class _HomeActivityState extends State<HomeActivity> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDashboardAnalyticsCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 4,
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.withOpacity(0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Business Analytics",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Pop600",
+                  color: Colors.black87,
+                ),
+              ),
+              if (isAnalyticsLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: ColorClass.base_color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Live",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: ColorClass.base_color,
+                      fontFamily: "Pop600",
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              // Today's Bookings
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Today's Bookings",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF166534),
+                          fontFamily: "Pop500",
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "$todayBookingsCount",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF166534),
+                          fontFamily: "Pop700",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Weekly Revenue
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Weekly Revenue",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF1E40AF),
+                          fontFamily: "Pop500",
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "${Constant.rupee}${weeklyRevenue.toStringAsFixed(0)}",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E40AF),
+                          fontFamily: "Pop700",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Status counts row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildMiniStatus("Pending", pendingBookings, Colors.amber),
+              _buildMiniStatus("Completed", completedBookings, Colors.green),
+              _buildMiniStatus("Cancelled", cancelledBookings, Colors.red),
+            ],
+          ),
+          const Divider(height: 32),
+          // Ratings & Reviews
+          Row(
+            children: [
+              const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
+              const SizedBox(width: 6),
+              Text(
+                vendorRating > 0 ? vendorRating.toStringAsFixed(1) : "—",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Pop600",
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                "($totalReviews reviews)",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                  fontFamily: "Pop400",
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStatus(String label, int count, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontFamily: "Pop400",
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(
+            "$count",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Pop600",
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

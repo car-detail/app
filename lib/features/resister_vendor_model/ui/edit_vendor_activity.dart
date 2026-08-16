@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:car_app/Common/CommonPopUp.dart';
 import 'package:car_app/features/resister_vendor_model/model/edit_vendor_bean.dart';
@@ -351,7 +352,6 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
       
       List<File> image = [selectedFiles[0]];
       
-      // Show loading indicator
       if (!mounted || !context.mounted) return;
       
       // Store navigator state before showing dialog
@@ -365,24 +365,29 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
         ),
       );
       
-      var response = await dataManager!.postImage(
-        image,
-        context,
-        skipAutoNavigation: true, // Skip auto-navigation to handle 401 ourselves
-      );
-      
-      // Close loading indicator - pop the dialog route
-      if (mounted && context.mounted) {
-        try {
-          // Use the navigator to pop the dialog (most recent route)
-          if (navigator.canPop()) {
-            navigator.pop();
-          }
-        } catch (e) {
+      http.Response? response;
+      try {
+        response = await dataManager!.postImage(
+          image,
+          context,
+          skipAutoNavigation: true,
+        );
+      } catch (uploadError) {
+        // sendMultipartRequest already showed a specific error snackbar — just close dialog
+        if (mounted && context.mounted) {
+          try { if (navigator.canPop()) navigator.pop(); } catch (_) {}
         }
+        return; // don't show a second generic error
       }
       
-      if (!mounted || !context.mounted) return;
+      // Close loading indicator
+      if (mounted && context.mounted) {
+        try {
+          if (navigator.canPop()) navigator.pop();
+        } catch (e) {}
+      }
+      
+      if (!mounted || !context.mounted || response == null) return;
       
       // Check if response is HTML (error page) instead of JSON
       if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
@@ -394,17 +399,26 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
       
       // Check response status code
       if (response.statusCode == 401) {
-        // 401 means unauthorized - token might be expired or missing
-        // Since we skipped auto-navigation, handle it here
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Session expired. Please save your shop details and login again.");
+          CommonWidget.errorShowSnackBarFor(context, "Session expired. Please login again.");
         }
         return;
       }
       
       if (response.statusCode != 200 && response.statusCode != 201) {
-        if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Unable to upload image. Please try again.");
+        // Try to extract real error message from backend
+        try {
+          final errorBody = jsonDecode(response.body);
+          final msg = errorBody['message'] is List
+              ? (errorBody['message'] as List).first.toString()
+              : (errorBody['message']?.toString() ?? "Upload failed (${response.statusCode})");
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, msg);
+          }
+        } catch (_) {
+          if (mounted && context.mounted) {
+            CommonWidget.errorShowSnackBarFor(context, "Upload failed (${response.statusCode}). Please try again.");
+          }
         }
         return;
       }
@@ -427,22 +441,19 @@ class _EditVendorActivityState extends State<EditVendorActivity> {
         }
       } catch (jsonError) {
         if (mounted && context.mounted) {
-          CommonWidget.errorShowSnackBarFor(context, "Error processing image upload. Please try again.");
+          CommonWidget.errorShowSnackBarFor(context, "Error processing upload response. Please try again.");
         }
       }
     } catch (e) {
-      // Close loading indicator if still open - find and close any open dialogs
+      // Unexpected error — close dialog if open
       if (mounted) {
         try {
-          // Try to find and close the dialog by checking if we can pop
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-        } catch (popError) {
-        }
+          if (Navigator.canPop(context)) Navigator.pop(context);
+        } catch (_) {}
       }
-      if (mounted && context.mounted) {
-        CommonWidget.errorShowSnackBarFor(context, "Error uploading image. Please check your connection and try again.");
+      // Only show if it's not already handled by sendMultipartRequest
+      if (mounted && context.mounted && !e.toString().contains('Failed to upload files')) {
+        CommonWidget.errorShowSnackBarFor(context, "Unexpected error: ${e.toString()}");
       }
     }
   }

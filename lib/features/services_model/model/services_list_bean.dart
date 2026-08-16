@@ -49,6 +49,7 @@ class ServicesListData {
   int? promotionSerialNumber;
   bool? isActive;
   bool? isDeleted;
+  bool? isPaused;
   List<TimeSlots>? timeSlots;
   String? createdAt;
   String? updatedAt;
@@ -77,6 +78,7 @@ class ServicesListData {
         this.promotionSerialNumber,
         this.isActive,
         this.isDeleted,
+        this.isPaused,
         this.timeSlots,
         this.createdAt,
         this.updatedAt,
@@ -144,6 +146,7 @@ class ServicesListData {
         offers.add(Offers.fromJson(v));
       });
     }
+    isPaused = json['isPaused'];
     id = json['id'];
   }
 
@@ -171,6 +174,7 @@ class ServicesListData {
     data['promotionSerialNumber'] = promotionSerialNumber;
     data['isActive'] = isActive;
     data['isDeleted'] = isDeleted;
+    data['isPaused'] = isPaused;
     if (timeSlots != null) {
       data['timeSlots'] = timeSlots!.map((v) => v.toJson()).toList();
     }

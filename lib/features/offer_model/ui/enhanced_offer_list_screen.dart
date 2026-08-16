@@ -606,6 +606,26 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                   ),
                 ],
                 
+                // Statistics Row: Views and Claims
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.visibility_outlined, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${offer.viewCount ?? 0} views",
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600], fontFamily: "Pop500"),
+                    ),
+                    const SizedBox(width: 16),
+                    Icon(Icons.bookmark_added_outlined, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${offer.claimCount ?? 0} claims",
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600], fontFamily: "Pop500"),
+                    ),
+                  ],
+                ),
+                
                 const SizedBox(height: 16),
                 
                 // Action Buttons
@@ -647,11 +667,19 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _buildModernActionButton(
-                        offer.isCurrentlyActive == true ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        offer.isCurrentlyActive == true ? "Pause" : "Activate",
+                        isExpired
+                            ? Icons.replay_rounded
+                            : (offer.isCurrentlyActive == true ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                        isExpired
+                            ? "Re-run"
+                            : (offer.isCurrentlyActive == true ? "Pause" : "Activate"),
                         () {
-                          if (mounted && context.mounted) {
-                            _toggleOfferStatus(offer.sId.toString());
+                          if (isExpired) {
+                            _reRunOffer(context, offer);
+                          } else {
+                            if (mounted && context.mounted) {
+                              _toggleOfferStatus(offer.sId.toString());
+                            }
                           }
                         },
                         isSecondary: true,
@@ -914,6 +942,54 @@ class _EnhancedOfferListScreenState extends State<EnhancedOfferListScreen> {
       }
     } catch (e) {
       CommonWidget.errorShowSnackBarFor(context, "Error updating offer: $e");
+    }
+  }
+
+  Future<void> _reRunOffer(BuildContext context, OfferListModelData offer) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: ColorClass.base_color,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null) {
+      final formattedDate = "${picked.year.toString().padLeft(4, '0')}-"
+          "${picked.month.toString().padLeft(2, '0')}-"
+          "${picked.day.toString().padLeft(2, '0')} 23:59:59.000";
+      
+      try {
+        var response = await offerDataManager!.duplicateOffer(
+          context,
+          offer.sId.toString(),
+          formattedDate,
+        );
+        if (response.statusCode == 201) {
+          var resBody = jsonDecode(response.body);
+          if (resBody['status'] == 'success') {
+            if (mounted) {
+              CommonWidget.successShowSnackBarFor(context, "Offer duplicated and re-run successfully!");
+              await getOffers();
+            }
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          CommonWidget.errorShowSnackBarFor(context, "Failed to re-run offer: $e");
+        }
+      }
     }
   }
 }

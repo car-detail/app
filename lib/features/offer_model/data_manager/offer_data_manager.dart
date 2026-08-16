@@ -61,33 +61,44 @@ class OfferDataManager{
       String validUntil,
       String serviceId,
       String image) {
+    // Only include location if we have valid (non-zero) coordinates.
+    // If lat/long are missing or 0.0, the server falls back to the vendor's
+    // authoritative location stored in MongoDB.
+    final rawLat = sharedPreferences.getString(Constant.lat) ?? "0.0";
+    final rawLong = sharedPreferences.getString(Constant.long) ?? "0.0";
+    final lat = double.tryParse(rawLat) ?? 0.0;
+    final lng = double.tryParse(rawLong) ?? 0.0;
+    final hasValidLocation = lat.abs() > 0.0001 && lng.abs() > 0.0001;
+
+    final Map<String, dynamic> body = <String, dynamic>{
+      "title": title,
+      "vendor": sharedPreferences.getString(Constant.vendorId) ?? "",
+      "service": serviceId,
+      "description": description,
+      "image": image,
+      "discount": discount.isEmpty ? null : (double.tryParse(discount)),
+      "validFrom": "${DateTime.now().year.toString().padLeft(4, '0')}-"
+          "${DateTime.now().month.toString().padLeft(2, '0')}-"
+          "${DateTime.now().day.toString().padLeft(2, '0')} 00:00:00.000",
+      "validUntil": validUntil.isEmpty ? null : validUntil,
+      "isActive": true,
+    };
+
+    if (hasValidLocation) {
+      body["location"] = {
+        "name": sharedPreferences.getString(Constant.location) ?? "",
+        "coordinates": {"long": lng, "lat": lat},
+      };
+    }
+
     return apiFuntions.postdatauser(
       context,
       Constant.addOffer,
-      <String, dynamic>{
-        "title": title,
-        "vendor": sharedPreferences.getString(Constant.vendorId) ?? "",
-        "service": serviceId,
-        "description": description,
-        "image": image,
-        "discount": discount.isEmpty ? null : (double.tryParse(discount)),
-        "validFrom": "${DateTime.now().year.toString().padLeft(4, '0')}-"
-            "${DateTime.now().month.toString().padLeft(2, '0')}-"
-            "${DateTime.now().day.toString().padLeft(2, '0')} 00:00:00.000",
-        "validUntil": validUntil.isEmpty ? null : validUntil,
-        "location": {
-          "name": sharedPreferences.getString(Constant.location) ?? "",
-          "coordinates": {
-            "long": double.parse(sharedPreferences.getString(Constant.long) ?? "0.0"),
-            "lat": double.parse(sharedPreferences.getString(Constant.lat) ?? "0.0"),
-
-          }
-        },
-        "isActive": true,
-      },
+      body,
       skipAutoNavigation: true,
     );
   }
+
 
   editOffer(
       BuildContext context,
@@ -119,6 +130,17 @@ class OfferDataManager{
       context,
       "${Constant.editOffer}$offerId",
       data,
+    );
+  }
+
+  duplicateOffer(BuildContext context, String offerId, String? validUntil) {
+    return apiFuntions.postdatauser(
+      context,
+      "${Constant.duplicateOffer}$offerId",
+      <String, dynamic>{
+        if (validUntil != null) "validUntil": validUntil,
+      },
+      skipAutoNavigation: true,
     );
   }
 }

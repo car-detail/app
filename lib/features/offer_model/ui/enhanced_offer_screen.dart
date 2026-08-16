@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:car_app/Common/Color.dart';
@@ -33,6 +34,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   String uploadedImageUrl = "";
   String? offerType;
   bool isLoadingServices = true;
+  bool isSaving = false;
   DateTime? validUntilDate; // Null means "Forever"
 
   // Managers
@@ -171,93 +173,104 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Image Selection
-                  _buildImageSelectionSection(),
-                  const SizedBox(height: 30),
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. Image Selection
+                      _buildImageSelectionSection(),
+                      const SizedBox(height: 30),
 
-                  // 2. Templates
-                  const Text(
-                    "Quick Templates",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTemplateSelector(),
-                  const SizedBox(height: 30),
+                      // 2. Templates
+                      const Text(
+                        "Quick Templates",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTemplateSelector(),
+                      const SizedBox(height: 30),
 
-                  // 3. Form Fields
-                  const Text(
-                    "Offer Details",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: titleController,
-                    label: "Offer Title *",
-                    hint: "e.g., 20% Off Car Wash",
-                    icon: Icons.title,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: descriptionController,
-                    label: "Description",
-                    hint: "Describe your offer...",
-                    icon: Icons.description,
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDatePicker(),
-                  const SizedBox(height: 30),
+                      // 3. Form Fields
+                      const Text(
+                        "Offer Details",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: titleController,
+                        label: "Offer Title *",
+                        hint: "e.g., 20% Off Car Wash",
+                        icon: Icons.title,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: descriptionController,
+                        label: "Description",
+                        hint: "Describe your offer...",
+                        icon: Icons.description,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildDatePicker(),
+                      const SizedBox(height: 30),
 
-                  // 4. Service Selection
-                  const Text(
-                    "Apply to Services *",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
+                      // 4. Service Selection
+                      const Text(
+                        "Apply to Services *",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "Pop600"),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildServiceSelectionList(),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  _buildServiceSelectionList(),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ),
-
-          // Submit Button
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
                 ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: _createOffer,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorClass.base_color,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 54),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
-                shadowColor: ColorClass.base_color.withOpacity(0.4),
               ),
-              child: Text(
-                widget.offerToEdit != null ? "Update Offer" : "Create Offer",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+              // Submit Button
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: isSaving ? null : _createOffer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorClass.base_color,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 54),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 4,
+                    shadowColor: ColorClass.base_color.withOpacity(0.4),
+                  ),
+                  child: Text(
+                    widget.offerToEdit != null ? "Update Offer" : "Create Offer",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
+          if (isSaving)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
         ],
       ),
     );
@@ -273,17 +286,7 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: () {
-            BaseActivity.showFilePicker(context, (List<File>? list) async {
-              if (list != null && list.isNotEmpty) {
-                setState(() {
-                  selectedFiles = [list[0]];
-                  uploadedImageUrl = ""; // Reset until upload complete
-                });
-                await _uploadImage(context);
-              }
-            });
-          },
+          onTap: _pickImage,
           child: Container(
             height: 180,
             width: double.infinity,
@@ -302,14 +305,12 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
                         Positioned(
                           top: 10,
                           right: 10,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.black.withOpacity(0.5),
-                            radius: 18,
-                            child: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.white, size: 18),
-                              onPressed: () {
-                                // Re-trigger picker
-                              },
+                          child: GestureDetector(
+                            onTap: _pickImage,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black.withOpacity(0.5),
+                              radius: 18,
+                              child: const Icon(Icons.edit, color: Colors.white, size: 18),
                             ),
                           ),
                         ),
@@ -551,6 +552,18 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    BaseActivity.showFilePicker(context, (List<File>? list) async {
+      if (list != null && list.isNotEmpty) {
+        setState(() {
+          selectedFiles = [list[0]];
+          uploadedImageUrl = ""; // Reset until upload complete
+        });
+        await _uploadImage(context);
+      }
+    });
+  }
+
   Future<void> _uploadImage(BuildContext context) async {
     if (selectedFiles.isEmpty) return;
 
@@ -562,6 +575,8 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
         if (mounted && context.mounted) {
           CommonWidget.errorShowSnackBarFor(context, "API Error: Received HTML instead of JSON. Please check your backend connection.");
         }
+        // Clear stale file selection so validation doesn't get blocked
+        setState(() { selectedFiles = []; });
         return;
       }
 
@@ -575,17 +590,20 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
             CommonWidget.successShowSnackBarFor(context, "Image uploaded successfully!");
           }
         } else {
+          setState(() { selectedFiles = []; });
           if (mounted && context.mounted) {
             CommonWidget.errorShowSnackBarFor(context, data.message ?? "Failed to upload image");
           }
         }
       } else {
+        setState(() { selectedFiles = []; });
         if (mounted && context.mounted) {
           CommonWidget.errorShowSnackBarFor(context, "Upload failed with status: ${response.statusCode}");
         }
       }
     } catch (e) {
       debugPrint("Error uploading image: $e");
+      setState(() { selectedFiles = []; });
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error uploading image: $e");
       }
@@ -612,73 +630,90 @@ class _EnhancedOfferScreenState extends State<EnhancedOfferScreen> {
   Future<void> _createOffer() async {
     if (!_validateForm()) return;
 
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
+    setState(() {
+      isSaving = true;
+    });
 
+    try {
       int successCount = 0;
       String lastErrorMessage = "Failed to create offers";
 
       for (var service in selectedServices) {
-        var response;
-        if (widget.offerToEdit != null) {
-          response = await offerDataManager!.editOffer(
-            context,
-            widget.offerToEdit!.sId!,
-            titleController.text.trim(),
-            descriptionController.text.trim(),
-            "", // No explicit discount for now
-            validUntilDate?.toIso8601String() ?? "",
-            service.sId!,
-            uploadedImageUrl,
-          );
-        } else {
-          response = await offerDataManager!.addOffer(
-            context,
-            titleController.text.trim(),
-            descriptionController.text.trim(),
-            "", // No explicit offer value needed anymore
-            "",
-            validUntilDate?.toIso8601String() ?? "",
-            service.sId!,
-            uploadedImageUrl,
-          );
-        }
-
-        if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
-          lastErrorMessage = "API Error: Received HTML instead of JSON.";
-          continue;
-        }
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          var data = jsonDecode(response.body);
-          if (data['status'] == "success") {
-            successCount++;
+        try {
+          var response;
+          if (widget.offerToEdit != null) {
+            response = await offerDataManager!.editOffer(
+              context,
+              widget.offerToEdit!.sId!,
+              titleController.text.trim(),
+              descriptionController.text.trim(),
+              "", // No explicit discount for now
+              validUntilDate?.toIso8601String() ?? "",
+              service.sId!,
+              uploadedImageUrl,
+            ).timeout(const Duration(seconds: 30));
           } else {
-            lastErrorMessage = data['message'] ?? lastErrorMessage;
+            response = await offerDataManager!.addOffer(
+              context,
+              titleController.text.trim(),
+              descriptionController.text.trim(),
+              "", // No explicit offer value needed anymore
+              "",
+              validUntilDate?.toIso8601String() ?? "",
+              service.sId!,
+              uploadedImageUrl,
+            ).timeout(const Duration(seconds: 30));
           }
-        } else {
-          lastErrorMessage = "Server returned error: ${response.statusCode}";
+
+          if (response.body.startsWith('<!DOCTYPE html>') || response.body.startsWith('<html')) {
+            lastErrorMessage = "API Error: Received HTML instead of JSON.";
+            continue;
+          }
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            var data = jsonDecode(response.body);
+            if (data['status'] == "success") {
+              successCount++;
+            } else {
+              lastErrorMessage = data['message'] ?? lastErrorMessage;
+            }
+          } else {
+            lastErrorMessage = "Server returned error: ${response.statusCode}";
+          }
+        } on TimeoutException {
+          lastErrorMessage = "Request timed out. Please check your connection and try again.";
+        } catch (serviceError) {
+          lastErrorMessage = "Error: $serviceError";
         }
       }
 
-      if (mounted) Navigator.of(context).pop(); // Close loading
-
       if (successCount > 0) {
+        if (mounted) {
+          // Always reset saving state BEFORE popping the screen
+          setState(() { isSaving = false; });
+        }
         if (mounted && context.mounted) {
           CommonWidget.successShowSnackBarFor(context, widget.offerToEdit != null ? "Offer updated successfully!" : "Offer(s) created successfully!");
-          Navigator.of(context).pop(true);
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop(true);
+          }
         }
       } else {
+        if (mounted) {
+          setState(() {
+            isSaving = false;
+          });
+        }
         if (mounted && context.mounted) {
           CommonWidget.errorShowSnackBarFor(context, lastErrorMessage);
         }
       }
     } catch (e) {
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
       if (mounted && context.mounted) {
         CommonWidget.errorShowSnackBarFor(context, "Error creating offer: $e");
       }

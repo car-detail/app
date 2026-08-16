@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+import 'package:car_app/Common/NotificationService.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'features/SplashScreenActivity.dart';
 import 'features/dashboard_module/ui/dashboard_activity.dart';
@@ -23,6 +24,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Custom Local Notifications
+  await NotificationService.initialize();
   
   // Set the background messaging handler early on
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -59,8 +63,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
       title: 'Cahrz Vendor App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        // fontFamily: 'PopReg',
+        colorScheme: ColorScheme.fromSeed(seedColor: ColorClass.base_color),
+        useMaterial3: true,
           appBarTheme: AppBarTheme(
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: ColorClass.base_color,

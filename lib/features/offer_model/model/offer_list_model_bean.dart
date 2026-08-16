@@ -49,6 +49,8 @@ class OfferListModelData {
   String? validUntil;
   String? updatedAt;
   int? iV;
+  int? viewCount;
+  int? claimCount;
 
   OfferListModelData(
       {this.sId,
@@ -64,10 +66,12 @@ class OfferListModelData {
         this.vendor,
         this.service,
         this.location,
-        isCurrentlyActive,
+        this.isCurrentlyActive,
         this.validFrom,
         this.validUntil,
         this.updatedAt,
+        this.viewCount,
+        this.claimCount,
         this.iV});
 
   OfferListModelData.fromJson(Map<String, dynamic> json) {
@@ -91,6 +95,8 @@ class OfferListModelData {
     validFrom = json['validFrom'];
     validUntil = json['validUntil'];
     updatedAt = json['updatedAt'];
+    viewCount = json['viewCount'] ?? 0;
+    claimCount = json['claimCount'] ?? 0;
     iV = json['__v'];
   }
 
@@ -117,6 +123,8 @@ class OfferListModelData {
     data['validFrom'] = validFrom;
     data['validUntil'] = validUntil;
     data['updatedAt'] = updatedAt;
+    data['viewCount'] = viewCount;
+    data['claimCount'] = claimCount;
     data['__v'] = iV;
     return data;
   }

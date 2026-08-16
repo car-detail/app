@@ -42,4 +42,13 @@ class BookingDataManager {
           "commentByVendor": reason
         });
   }
+  rescheduleBooking(BuildContext context, String bookingId, String newDate, String newTimeSlot) {
+    return apiFuntions.patchdatauser(
+        context,
+        "${Constant.rescheduleBooking}$bookingId",
+        <String, dynamic>{
+          "newDate": newDate,
+          "newTimeSlot": newTimeSlot,
+        });
+  }
 }

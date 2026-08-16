@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1776740762861,
+  "lastScanned": 1786863017716,
   "projectRoot": "/Users/macbook/Anuj/cahrz/app",
   "techStack": {
     "languages": [],
@@ -40,7 +40,7 @@
       "path": "android",
       "purpose": null,
       "fileCount": 8,
-      "lastAccessed": 1776740762837,
+      "lastAccessed": 1786863017697,
       "keyFiles": [
         "build.gradle.kts",
         "gradle.properties",
@@ -52,31 +52,29 @@
     "assets": {
       "path": "assets",
       "purpose": "Static assets",
-      "fileCount": 0,
-      "lastAccessed": 1776740762845,
+      "fileCount": 1,
+      "lastAccessed": 1786863017697,
       "keyFiles": []
     },
     "build": {
       "path": "build",
       "purpose": "Build output",
       "fileCount": 1,
-      "lastAccessed": 1776740762845,
-      "keyFiles": [
-        "fa875cea96ff9eb23bebfb51f104f901.cache.dill.track.dill"
-      ]
+      "lastAccessed": 1786863017698,
+      "keyFiles": []
     },
     "features": {
       "path": "features",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776740762846,
+      "lastAccessed": 1786863017699,
       "keyFiles": []
     },
     "fonts": {
       "path": "fonts",
       "purpose": null,
       "fileCount": 10,
-      "lastAccessed": 1776740762847,
+      "lastAccessed": 1786863017699,
       "keyFiles": [
         "Comfortaa-Bold.ttf",
         "Inter-Bold.ttf",
@@ -88,12 +86,13 @@
     "ios": {
       "path": "ios",
       "purpose": null,
-      "fileCount": 5,
-      "lastAccessed": 1776740762848,
+      "fileCount": 7,
+      "lastAccessed": 1786863017699,
       "keyFiles": [
         "Podfile",
         "Podfile.lock",
         "fix_app_framework_version.sh",
+        "freesound_community-car-horn-beep-beep-two-beeps-honk-honk-6188.mp3",
         "pod_install_log.txt"
       ]
     },
@@ -101,7 +100,7 @@
       "path": "lib",
       "purpose": "Library code",
       "fileCount": 6,
-      "lastAccessed": 1776740762849,
+      "lastAccessed": 1786863017700,
       "keyFiles": [
         "ZoomImageList.dart",
         "demo_screen.dart",
@@ -114,7 +113,7 @@
       "path": "macos",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1776740762849,
+      "lastAccessed": 1786863017701,
       "keyFiles": [
         "Podfile"
       ]
@@ -123,7 +122,7 @@
       "path": "test",
       "purpose": "Test files",
       "fileCount": 1,
-      "lastAccessed": 1776740762849,
+      "lastAccessed": 1786863017702,
       "keyFiles": [
         "widget_test.dart"
       ]
@@ -132,7 +131,7 @@
       "path": "web",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1776740762850,
+      "lastAccessed": 1786863017702,
       "keyFiles": [
         "favicon.png",
         "index.html",
@@ -143,7 +142,7 @@
       "path": "android/app",
       "purpose": "Application code",
       "fileCount": 3,
-      "lastAccessed": 1776740762851,
+      "lastAccessed": 1786863017707,
       "keyFiles": [
         "build.gradle.kts",
         "google-services.json",
@@ -154,7 +153,7 @@
       "path": "lib/Api",
       "purpose": "API routes",
       "fileCount": 3,
-      "lastAccessed": 1776740762855,
+      "lastAccessed": 1786863017713,
       "keyFiles": [
         "ApiFuntion.dart",
         "api_end_point.dart",
@@ -165,7 +164,7 @@
       "path": "lib/Models",
       "purpose": "Data models",
       "fileCount": 2,
-      "lastAccessed": 1776740762856,
+      "lastAccessed": 1786863017715,
       "keyFiles": [
         "check_dialog_box.dart",
         "image_module_data.dart"
@@ -174,237 +173,9 @@
   },
   "hotPaths": [
     {
-      "path": "lib/features/specialists_module/ui/specialists_activity.dart",
-      "accessCount": 63,
-      "lastAccessed": 1776791484910,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/home_module/ui/home_activity.dart",
-      "accessCount": 48,
-      "lastAccessed": 1776772970361,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/services_model/ui/services_list_activity.dart",
-      "accessCount": 27,
-      "lastAccessed": 1776769569339,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/profile_model/ui/profile_vendor_list_activity.dart",
-      "accessCount": 20,
-      "lastAccessed": 1776768996046,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/log_in/ui/new_login_activity.dart",
-      "accessCount": 17,
-      "lastAccessed": 1776769016452,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/dashboard_module/ui/dashboard_activity.dart",
-      "accessCount": 16,
-      "lastAccessed": 1776769157815,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/packages_model/ui/package_list_activity.dart",
-      "accessCount": 14,
-      "lastAccessed": 1776769490728,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/offer_model/ui/enhanced_offer_list_screen.dart",
-      "accessCount": 13,
-      "lastAccessed": 1776768978412,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/booking_model/ui/booking_list_activity.dart",
-      "accessCount": 12,
-      "lastAccessed": 1776768980412,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/packages_model/ui/add_package_activity.dart",
-      "accessCount": 7,
-      "lastAccessed": 1776768996702,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/packages_model/ui/edit_package_activity.dart",
-      "accessCount": 6,
-      "lastAccessed": 1776768976972,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/SplashScreenActivity.dart",
-      "accessCount": 6,
-      "lastAccessed": 1776768981179,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/offer_model/ui/enhanced_offer_screen.dart",
-      "accessCount": 6,
-      "lastAccessed": 1776768997529,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/notification_model/ui/notification_activity.dart",
-      "accessCount": 5,
-      "lastAccessed": 1776768979136,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/specialists_module/model/services_details_model_data.dart",
-      "accessCount": 4,
-      "lastAccessed": 1776791180994,
-      "type": "directory"
-    },
-    {
-      "path": "lib/Common/Constant.dart",
-      "accessCount": 3,
-      "lastAccessed": 1776772882696,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/home_module/model/services_model_data.dart",
-      "accessCount": 3,
-      "lastAccessed": 1776772931745,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/Color.dart",
-      "accessCount": 2,
-      "lastAccessed": 1776741352983,
-      "type": "file"
-    },
-    {
-      "path": "lib",
-      "accessCount": 2,
-      "lastAccessed": 1776769028148,
-      "type": "directory"
-    },
-    {
-      "path": "lib/Common/ShimmerLoader.dart",
-      "accessCount": 2,
-      "lastAccessed": 1776769545957,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/home_module/data_manager/home_data_manager.dart",
-      "accessCount": 2,
-      "lastAccessed": 1776772894480,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/rating_model/model/rate_review_model_bean.dart",
-      "accessCount": 2,
-      "lastAccessed": 1776774861364,
-      "type": "file"
-    },
-    {
-      "path": "ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+      "path": "upgrade_plan.md",
       "accessCount": 1,
-      "lastAccessed": 1776741128508,
-      "type": "file"
-    },
-    {
-      "path": "lib/main.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741294522,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/SimpleDesignSystem.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741294734,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/ModernDesignSystem.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741297498,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/CommonWidget.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741297773,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/BaseActivity.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741298413,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/UXHelperWidget.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741301295,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/CommonPopUp.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741301480,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/ContainerDecoration.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741305140,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/Constants.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741308969,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/offer_model/ui/offer_list_screen.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776741309560,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/dashboard_module/model/vendor_details_main_bean.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776772837747,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/rating_model/data_manager/RatingReviewDataManager.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776772855617,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/home_module",
-      "accessCount": 1,
-      "lastAccessed": 1776772882351,
-      "type": "directory"
-    },
-    {
-      "path": "lib/features/rating_model/ui/rating_review_screen.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776774676159,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/specialists_module/ui/view_offer_list_via_detail.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776791164844,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/packages_model/model/package_model_data.dart",
-      "accessCount": 1,
-      "lastAccessed": 1776791405369,
+      "lastAccessed": 1786863737302,
       "type": "file"
     }
   ],

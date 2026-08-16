@@ -109,4 +109,15 @@ class ServicesDataManager {
       payload,
     );
   }
+
+  pauseService(BuildContext context, String serviceId, bool isPaused) {
+    return apiFuntions.patchdatauser(
+      context,
+      "${Constant.pauseService}$serviceId",
+      <String, dynamic>{
+        "isPaused": isPaused,
+      },
+      skipAutoNavigation: true,
+    );
+  }
 }

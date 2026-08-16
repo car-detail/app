@@ -15,6 +15,9 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:car_app/features/home_module/model/notification_data_bean.dart';
+import 'package:car_app/features/notification_model/ui/notification_activity.dart';
+import 'package:car_app/Common/NotificationService.dart';
 
 import '../../../Common/Color.dart';
 import '../../../Common/Constant.dart';
@@ -85,13 +88,28 @@ class _DashboardActivityState extends State<DashboardActivity> {
     // Listen for foreground messages to refresh data
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('🔔 Vendor Dashboard received foreground message: ${message.data}');
+      
+      final isBookingNotification = message.data['bookingId'] != null ||
+          message.data['id'] != null ||
+          message.data['type']?.toString().contains('BOOKING') == true ||
+          message.notification?.title?.toLowerCase().contains('booking') == true ||
+          message.notification?.body?.toLowerCase().contains('booking') == true;
+
+      if (isBookingNotification && message.notification != null) {
+        NotificationService.showBookingNotification(
+          id: message.hashCode,
+          title: message.notification?.title ?? "Booking Update",
+          body: message.notification?.body ?? "",
+        );
+      }
+
       if (message.data['type'] == 'BOOKING_CONFIRMED' || 
           message.data['type'] == 'BOOKING_CANCELLED') {
         debugPrint('🔔 New booking event detected. Refreshing data...');
         if (mounted) {
           getdetails(context);
           _loadVendorDetails();
-          if (context.mounted && message.notification != null) {
+          if (context.mounted && message.notification != null && !isBookingNotification) {
             CommonWidget.successShowSnackBarFor(context, "${message.notification?.title}: ${message.notification?.body}");
           }
         }
@@ -115,20 +133,46 @@ class _DashboardActivityState extends State<DashboardActivity> {
       } else {
         BookingListActivity.targetFilterType = 'Pending';
       }
-    }
-    
-    if (mounted) {
-      setState(() {
-        selectedpage = 1; // Navigate to Bookings tab
-      });
       
-      if (bookingId != null && bookingId.toString().isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          selectedpage = 1; // Navigate to Bookings tab
+        });
+        
         WidgetsBinding.instance.addPostFrameCallback((_) {
           BookingListActivity.bookingListKey.currentState?.handleDeepLink(
             BookingListActivity.targetBookingId ?? "",
             BookingListActivity.targetFilterType ?? "Pending"
           );
         });
+      }
+    } else {
+      // General notification click -> Navigate to NotificationActivity
+      if (mounted) {
+        _fetchAndNavigateToNotifications();
+      }
+    }
+  }
+
+  Future<void> _fetchAndNavigateToNotifications() async {
+    try {
+      final sharedPrefs = await SharedPreferences.getInstance();
+      final homeDataManager = HomeDataManager(sharedPrefs);
+      final response = await homeDataManager.getNotification(context);
+      List<Notifications> notificationsList = [];
+      if (response.statusCode == 200) {
+        final data = NotificationDataBean.fromJson(jsonDecode(response.body));
+        if (data.status == "success" && data.data != null) {
+          notificationsList = data.data?.notifications ?? [];
+        }
+      }
+      if (mounted && context.mounted) {
+        CommonWidget.navigateToScreen(context, NotificationActivity(notificationsList));
+      }
+    } catch (e) {
+      debugPrint('🔔 Error fetching notifications on click: $e');
+      if (mounted && context.mounted) {
+        CommonWidget.navigateToScreen(context, NotificationActivity(const []));
       }
     }
   }
