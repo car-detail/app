@@ -328,8 +328,8 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                       children: [
                         // Service Icon with image fallback chain
                         Container(
-                          width: 50,
-                          height: 50,
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
@@ -339,7 +339,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                                 ModernDesignSystem.accentFor(1).withOpacity(0.7),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
                                 color: ModernDesignSystem.accentFor(1).withOpacity(0.2),
@@ -350,7 +350,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                           ),
                           child: _buildServiceIconWithFallback(data),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         // Title and Info
                         Expanded(
                           child: Column(
@@ -491,7 +491,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
                           Expanded(
                             child: _buildFancyInfoCard(
                               Icons.people_rounded,
-                              "${data.timeSlotCapacity ?? "0"}/hr",
+                              data.timeSlotCapacity ?? "N/A",
                               "Capacity",
                               Colors.orange,
                             ),
@@ -617,7 +617,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
     String? coverImage = data.coverImage;
     if (coverImage != null && coverImage.trim().isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         child: Image.network(
           coverImage,
           fit: BoxFit.cover,
@@ -637,7 +637,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
     String? vendorImage = data.vendorId?.displayPicture;
     if (vendorImage != null && vendorImage.trim().isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         child: Image.network(
           vendorImage,
           fit: BoxFit.cover,
@@ -656,7 +656,7 @@ class _ServicesListActivityState extends State<ServicesListActivity> {
     return const Icon(
       Icons.local_car_wash,
       color: Colors.white,
-      size: 32,
+      size: 40,
     );
   }
 
