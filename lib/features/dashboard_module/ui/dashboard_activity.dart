@@ -691,7 +691,9 @@ class _DashboardActivityState extends State<DashboardActivity> {
       margin: EdgeInsets.only(
         left: 20,
         right: 20,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
+        bottom: MediaQuery.of(context).padding.bottom > 0
+            ? MediaQuery.of(context).padding.bottom
+            : 12,
       ),
       height: 64,
       decoration: BoxDecoration(
