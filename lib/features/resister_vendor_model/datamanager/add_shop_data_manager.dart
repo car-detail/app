@@ -124,6 +124,6 @@ class AddShopDataManager {
       "openTime": openTime,
       "closeTime": closeTime,
       "timeZone": currentTimeZone
-    });
+    }, skipAutoNavigation: true);
   }
 }

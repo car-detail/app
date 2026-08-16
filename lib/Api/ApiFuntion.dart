@@ -282,7 +282,7 @@ class ApiFuntions {
   }
   Future<http.Response> putdatauser(
       BuildContext context, String endpoint, dynamic data,
-      {String token = ""}) async {
+      {String token = "", bool skipAutoNavigation = false}) async {
     
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String token = sharedPreferences.getString(Constant.accessToken)??"";
@@ -312,12 +312,12 @@ class ApiFuntions {
         debugPrint('📊 Status Code: ${response.statusCode}');
         debugPrint('📄 Response Body: ${response.body}');
         if (response.statusCode == 200 || response.statusCode == 201) {
-          if (context.mounted && Navigator.canPop(context)) {
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
       }
           return response;
         }else if(response.statusCode == 401){
-          if (context.mounted && Navigator.canPop(context)) {
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
       }
           /*CommonWidget.errorShowSnackBarFor(
@@ -332,7 +332,7 @@ class ApiFuntions {
           }
           return response;
         }else {
-          if (context.mounted && Navigator.canPop(context)) {
+          if (!skipAutoNavigation && context.mounted && Navigator.canPop(context)) {
         CommonWidget.safePop(context);
       }
           var data = ErrorModel.fromJson(jsonDecode(response.body));

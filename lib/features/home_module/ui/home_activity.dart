@@ -10,6 +10,7 @@ import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/car_assets.dart';
 import 'package:car_app/features/categories_module/ui/categories_list_activity.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_list_screen.dart';
@@ -369,10 +370,26 @@ class _HomeActivityState extends State<HomeActivity> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // No car watermark here -- this header is already full
-                // (vendor name + notification bell), no safe space for a
-                // badge without overlapping real content. The low-opacity
-                // silhouette wasn't reading well anyway.
+                // Large grey car-wash illustration behind the text/bell,
+                // matching the reference composition -- sized big enough
+                // (unlike the earlier small low-opacity attempts) that its
+                // fine detail (hose, bubbles, sparkles) actually reads.
+                Positioned(
+                  right: 28,
+                  top: 46,
+                  bottom: 60,
+                  child: SizedBox(
+                    width: 140,
+                    child: Image.asset(
+                      CarAssets.carWashHose,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.centerRight,
+                      color: Colors.grey[400],
+                      colorBlendMode: BlendMode.srcIn,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
                 Column(
               children: [
                 // Top row with vendor name and notifications
