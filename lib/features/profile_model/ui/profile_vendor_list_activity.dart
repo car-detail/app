@@ -281,7 +281,7 @@ class _ProfileVendorListActivityState
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xff192028), Color(0xff139c7f), Color(0xff0d7f8a)],
+            colors: [Color(0xff192028), Color(0xff2A3542), Color(0xff0D1116)],
             stops: [0.0, 0.55, 1.0],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -1313,7 +1313,7 @@ class _ProfileVendorListActivityState
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  gradient: ModernDesignSystem.brandGradient,
+                  color: Colors.grey[100],
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -1380,14 +1380,14 @@ class _ProfileVendorListActivityState
               const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
           margin: const EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? accent : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: accent.withOpacity(0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                   ]
                 : null,
@@ -1403,7 +1403,7 @@ class _ProfileVendorListActivityState
                 child: Icon(
                   icon,
                   key: ValueKey<bool>(isSelected),
-                  color: isSelected ? accent : Colors.white.withOpacity(0.9),
+                  color: isSelected ? Colors.white : Colors.grey[500],
                   size: 20,
                 ),
               ),
@@ -1414,7 +1414,7 @@ class _ProfileVendorListActivityState
                   fontSize: isSelected ? 12 : 11,
                   fontWeight:
                       isSelected ? FontWeight.w700 : FontWeight.w600,
-                  color: isSelected ? accent : Colors.white.withOpacity(0.9),
+                  color: isSelected ? Colors.white : Colors.grey[500],
                 ),
                 child: Text(
                   label,

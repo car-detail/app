@@ -96,7 +96,7 @@ class _BookingActivityState extends State<BookingActivity> {
                       Container(
                           padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                           decoration: BoxDecoration(
-                              color: const Color(0xff1cb2731a),
+                              color: ColorClass.base_color.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20)),
                           child: CommonWidget.getTextWidget300(
                               bookingdata.categoryName ?? "", 14,
