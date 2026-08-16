@@ -30,6 +30,7 @@ import '../../services_model/data_manager/services_data_manager.dart';
 import '../../services_model/model/services_list_bean.dart';
 import '../../services_model/ui/modern_add_service_activity.dart';
 import '../../packages_model/ui/edit_package_activity.dart';
+import '../../packages_model/ui/add_package_activity.dart';
 import '../../offer_model/ui/enhanced_offer_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -1347,7 +1348,7 @@ class _ProfileVendorListActivityState
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: _kGreen,
+                  gradient: ModernDesignSystem.brandGradient,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -1358,15 +1359,18 @@ class _ProfileVendorListActivityState
                     _buildCustomTabButton(
                         icon: Icons.build_circle_rounded,
                         label: "Services",
-                        index: 0),
+                        index: 0,
+                        accent: ModernDesignSystem.accentFor(1)),
                     _buildCustomTabButton(
                         icon: Icons.card_giftcard_rounded,
                         label: "Packages",
-                        index: 1),
+                        index: 1,
+                        accent: ModernDesignSystem.accentFor(4)),
                     _buildCustomTabButton(
                         icon: Icons.local_offer_rounded,
                         label: "Offers",
-                        index: 2),
+                        index: 2,
+                        accent: ModernDesignSystem.accentFor(2)),
                   ],
                 ),
               ),
@@ -1390,6 +1394,7 @@ class _ProfileVendorListActivityState
     required IconData icon,
     required String label,
     required int index,
+    required Color accent,
   }) {
     final currentIndex = _tabController?.index ?? 0;
     final isSelected = currentIndex == index;
@@ -1433,7 +1438,7 @@ class _ProfileVendorListActivityState
                 child: Icon(
                   icon,
                   key: ValueKey<bool>(isSelected),
-                  color: isSelected ? _kGreen : Colors.white.withOpacity(0.9),
+                  color: isSelected ? accent : Colors.white.withOpacity(0.9),
                   size: 20,
                 ),
               ),
@@ -1444,7 +1449,7 @@ class _ProfileVendorListActivityState
                   fontSize: isSelected ? 12 : 11,
                   fontWeight:
                       isSelected ? FontWeight.w700 : FontWeight.w600,
-                  color: isSelected ? _kDark : Colors.white.withOpacity(0.9),
+                  color: isSelected ? accent : Colors.white.withOpacity(0.9),
                 ),
                 child: Text(
                   label,
@@ -1474,7 +1479,18 @@ class _ProfileVendorListActivityState
       return _emptyState(
           icon: Icons.build_circle_rounded,
           title: "No services yet",
-          sub: "Add services to showcase your offerings");
+          sub: "Add services to showcase your offerings",
+          accent: ModernDesignSystem.accentFor(1),
+          ctaLabel: "Add Service",
+          onCta: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ModernAddServiceActivity()),
+            );
+            if (result == true && mounted && venderId.isNotEmpty) {
+              await getServices(context);
+            }
+          });
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -1502,7 +1518,18 @@ class _ProfileVendorListActivityState
       return _emptyState(
           icon: Icons.card_giftcard_rounded,
           title: "No packages yet",
-          sub: "Create packages to offer bundled services");
+          sub: "Create packages to offer bundled services",
+          accent: ModernDesignSystem.accentFor(4),
+          ctaLabel: "Create Package",
+          onCta: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddPackageActivity()),
+            );
+            if (result == true && mounted && venderId.isNotEmpty) {
+              await getPackages(context);
+            }
+          });
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -1530,7 +1557,18 @@ class _ProfileVendorListActivityState
       return _emptyState(
           icon: Icons.local_offer_rounded,
           title: "No offers yet",
-          sub: "Create special offers to attract customers");
+          sub: "Create special offers to attract customers",
+          accent: ModernDesignSystem.accentFor(2),
+          ctaLabel: "Create Offer",
+          onCta: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EnhancedOfferScreen()),
+            );
+            if (result == true && mounted && venderId.isNotEmpty) {
+              await getOffers(context);
+            }
+          });
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -1544,25 +1582,62 @@ class _ProfileVendorListActivityState
     );
   }
 
-  Widget _emptyState(
-      {required IconData icon,
-      required String title,
-      required String sub}) {
+  Widget _emptyState({
+    required IconData icon,
+    required String title,
+    required String sub,
+    required Color accent,
+    required String ctaLabel,
+    required VoidCallback onCta,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
       child: Column(
         children: [
-          Icon(icon, color: Colors.grey[300], size: 60),
-          const SizedBox(height: 12),
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: accent, size: 40),
+          ),
+          const SizedBox(height: 18),
           Text(title,
-              style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)),
+              style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(sub,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+              style: TextStyle(color: Colors.grey[500], fontSize: 13, height: 1.4)),
+          const SizedBox(height: 20),
+          InkWell(
+            onTap: onCta,
+            borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(ModernDesignSystem.radiusRound),
+                boxShadow: ModernDesignSystem.getColoredShadow(accent, opacity: 0.3),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
+                  Text(ctaLabel,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
