@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,13 +27,17 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize Custom Local Notifications
-  await NotificationService.initialize();
-  
   // Set the background messaging handler early on
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
+
+  // Show the UI immediately -- don't hold the native launch screen up
+  // while a notification-permission dialog is pending. Give the engine
+  // a beat to present its first frame before requesting anything.
   runApp(const ProviderScope(child: MyApp()));
+
+  Future.delayed(const Duration(milliseconds: 1200), () {
+    unawaited(NotificationService.initialize());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -39,7 +45,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Set global status bar style to green - called before build
+    // Set global status bar style - called before build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
