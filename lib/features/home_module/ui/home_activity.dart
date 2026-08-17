@@ -14,6 +14,7 @@ import 'package:car_app/design_system/car_assets.dart';
 import 'package:car_app/features/categories_module/ui/categories_list_activity.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
 import 'package:car_app/features/offer_model/ui/enhanced_offer_list_screen.dart';
+import 'package:car_app/features/workfolio_module/ui/workfolio_activity.dart';
 import 'package:car_app/features/specialists_module/ui/specialists_activity.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -776,6 +777,20 @@ class _HomeActivityState extends State<HomeActivity> {
                                 const Color(0xFF14B8A6), // Teal
                                 () {
                                   _showQuickAddOptions(context);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                "Workfolio",
+                                Icons.photo_library_rounded,
+                                const Color(0xFFEC4899), // Pink
+                                () {
+                                  CommonWidget.navigateToScreen(
+                                    context,
+                                    const WorkfolioActivity(),
+                                  );
                                 },
                               ),
                             ),
