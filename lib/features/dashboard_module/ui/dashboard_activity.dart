@@ -24,6 +24,7 @@ import '../../../Common/Constant.dart';
 import '../../home_module/data_manager/home_data_manager.dart';
 import '../../profile_model/ui/profile_vendor_list_activity.dart';
 import '../../resister_vendor_model/ui/registor_vendor_activity_simple.dart';
+import '../../workfolio_module/ui/workfolio_activity.dart';
 
 class DashboardActivity extends StatefulWidget {
   const DashboardActivity({super.key});
@@ -43,6 +44,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
   final GlobalKey _homeNavKey = GlobalKey();
   final GlobalKey _bookingsNavKey = GlobalKey();
   final GlobalKey _profileNavKey = GlobalKey();
+  final GlobalKey _feedNavKey = GlobalKey();
   
   // Home screen tour guide keys
   final GlobalKey _shopStatusKey = GlobalKey();
@@ -427,6 +429,7 @@ class _DashboardActivityState extends State<DashboardActivity> {
                   ),
                   _buildBookingsPage(),
                   ProfileVendorListActivity(isActive: selectedpage == 2),
+                  const WorkfolioActivity(),
                 ],
               )
             : Scaffold(
@@ -732,6 +735,13 @@ class _DashboardActivityState extends State<DashboardActivity> {
                 label: 'Profile',
                 index: 2,
                 isSelected: selectedpage == 2,
+              ),
+              _buildNavItem(
+                key: _feedNavKey,
+                icon: Icons.photo_library_rounded,
+                label: 'Feed',
+                index: 3,
+                isSelected: selectedpage == 3,
               ),
             ],
           ),

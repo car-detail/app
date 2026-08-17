@@ -783,7 +783,7 @@ class _HomeActivityState extends State<HomeActivity> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildQuickActionCard(
-                                "Workfolio",
+                                "Feed",
                                 Icons.photo_library_rounded,
                                 const Color(0xFFEC4899), // Pink
                                 () {

@@ -330,7 +330,7 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
         backgroundColor: ColorClass.base_color,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text("Workfolio", style: TextStyle(color: Colors.white, fontFamily: "Pop600", fontSize: 18)),
+        title: const Text("Feed", style: TextStyle(color: Colors.white, fontFamily: "Pop600", fontSize: 18)),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateSheet,
