@@ -344,25 +344,22 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
               ? _buildEmptyState()
               : RefreshIndicator(
                   onRefresh: () => _loadFeed(reset: true),
-                  child: GridView.builder(
+                  child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.only(bottom: 90),
                     itemCount: _posts.length + (_hasMore ? 1 : 0),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 0.82,
-                    ),
                     itemBuilder: (context, index) {
                       if (index >= _posts.length) {
-                        return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        );
                       }
                       final post = _posts[index];
-                      return _WorkfolioTile(
+                      return _WorkfolioFeedCard(
                         post: post,
                         likedByMe: _myUserId != null && post.likedBy.contains(_myUserId),
-                        onTap: () => _openPost(post, index),
+                        onOpenImage: () => _openPost(post, index),
                         onLike: () => _toggleLike(post, index),
                       );
                     },
@@ -397,86 +394,133 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
   }
 }
 
-class _WorkfolioTile extends StatelessWidget {
+/// A full-width feed card matching the familiar Instagram post layout:
+/// avatar + name header, full-bleed square photo (double-tap to like),
+/// a like row, then "name  caption" below.
+class _WorkfolioFeedCard extends StatelessWidget {
   final WorkfolioPost post;
   final bool likedByMe;
-  final VoidCallback onTap;
+  final VoidCallback onOpenImage;
   final VoidCallback onLike;
 
-  const _WorkfolioTile({
+  const _WorkfolioFeedCard({
     required this.post,
     required this.likedByMe,
-    required this.onTap,
+    required this.onOpenImage,
     required this.onLike,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.network(
-              post.image,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) {
-                if (progress == null) return child;
-                return Container(color: Colors.grey[200]);
-              },
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.grey[200],
-                child: const Icon(Icons.broken_image_rounded, color: Colors.grey),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 22, 10, 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.65)],
-                  ),
+    final subtitle = post.vendorName;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: ColorClass.base_color.withOpacity(0.1),
+                  backgroundImage: post.authorImage.isNotEmpty ? NetworkImage(post.authorImage) : null,
+                  child: post.authorImage.isEmpty
+                      ? Icon(Icons.person, color: ColorClass.base_color, size: 18)
+                      : null,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         post.authorName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontFamily: "Pop600", fontSize: 11),
+                        style: const TextStyle(fontFamily: "Pop600", fontSize: 13, color: Colors.black87),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: onLike,
-                      child: Row(
-                        children: [
-                          Icon(
-                            likedByMe ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                            color: likedByMe ? Colors.redAccent : Colors.white,
-                            size: 15,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            "${post.likeCount}",
-                            style: const TextStyle(color: Colors.white, fontFamily: "Pop500", fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      if (subtitle != null && subtitle.isNotEmpty)
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontFamily: "Pop400", fontSize: 11, color: Colors.grey[600]),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Photo
+          GestureDetector(
+            onTap: onOpenImage,
+            onDoubleTap: likedByMe ? null : onLike,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Image.network(
+                post.image,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Container(color: Colors.grey[200]);
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.broken_image_rounded, color: Colors.grey),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+
+          // Actions
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: onLike,
+                  child: Icon(
+                    likedByMe ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    color: likedByMe ? Colors.redAccent : Colors.black87,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "${post.likeCount}",
+                  style: const TextStyle(fontFamily: "Pop600", fontSize: 13, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+
+          // Caption
+          if (post.caption.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(fontFamily: "Pop400", fontSize: 13, color: Colors.black87),
+                  children: [
+                    TextSpan(
+                      text: "${post.authorName}  ",
+                      style: const TextStyle(fontFamily: "Pop600"),
+                    ),
+                    TextSpan(text: post.caption),
+                  ],
+                ),
+              ),
+            )
+          else
+            const SizedBox(height: 12),
+        ],
       ),
     );
   }
