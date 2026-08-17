@@ -329,6 +329,7 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
       appBar: AppBar(
         backgroundColor: ColorClass.base_color,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text("Workfolio", style: TextStyle(color: Colors.white, fontFamily: "Pop600", fontSize: 18)),
       ),
       floatingActionButton: FloatingActionButton.extended(
