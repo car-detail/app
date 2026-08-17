@@ -173,45 +173,141 @@
   },
   "hotPaths": [
     {
-      "path": "upgrade_plan.md",
-      "accessCount": 12,
-      "lastAccessed": 1786866699294,
-      "type": "file"
-    },
-    {
-      "path": "lib/features/resister_vendor_model/ui/simple_add_shop_activity.dart",
-      "accessCount": 11,
-      "lastAccessed": 1786866841577,
-      "type": "file"
-    },
-    {
-      "path": "lib/Api/ApiFuntion.dart",
-      "accessCount": 6,
-      "lastAccessed": 1786865611255,
+      "path": "lib/features/profile_model/ui/profile_vendor_list_activity.dart",
+      "accessCount": 65,
+      "lastAccessed": 1786910069456,
       "type": "file"
     },
     {
       "path": "lib/features/home_module/ui/home_activity.dart",
-      "accessCount": 6,
-      "lastAccessed": 1786866490479,
-      "type": "file"
-    },
-    {
-      "path": "lib/main.dart",
-      "accessCount": 6,
-      "lastAccessed": 1786866611722,
+      "accessCount": 38,
+      "lastAccessed": 1786910368085,
       "type": "file"
     },
     {
       "path": "lib/features/services_model/ui/services_list_activity.dart",
-      "accessCount": 4,
-      "lastAccessed": 1786866491574,
+      "accessCount": 32,
+      "lastAccessed": 1786910501199,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/app_header.dart",
+      "accessCount": 29,
+      "lastAccessed": 1786909323999,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/log_in/ui/profile_activity.dart",
+      "accessCount": 27,
+      "lastAccessed": 1786876937122,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/services_model/ui/modern_add_service_activity.dart",
+      "accessCount": 27,
+      "lastAccessed": 1786903014628,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/packages_model/ui/package_list_activity.dart",
+      "accessCount": 19,
+      "lastAccessed": 1786903543344,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/resister_vendor_model/ui/simple_add_shop_activity.dart",
+      "accessCount": 15,
+      "lastAccessed": 1786876452576,
+      "type": "file"
+    },
+    {
+      "path": "upgrade_plan.md",
+      "accessCount": 13,
+      "lastAccessed": 1786866890295,
       "type": "file"
     },
     {
       "path": "lib/features/dashboard_module/ui/dashboard_activity.dart",
-      "accessCount": 2,
-      "lastAccessed": 1786865259593,
+      "accessCount": 13,
+      "lastAccessed": 1786910663254,
+      "type": "file"
+    },
+    {
+      "path": "lib/main.dart",
+      "accessCount": 11,
+      "lastAccessed": 1786924702806,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/packages_model/ui/add_package_activity.dart",
+      "accessCount": 10,
+      "lastAccessed": 1786903235966,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/offer_model/ui/enhanced_offer_list_screen.dart",
+      "accessCount": 10,
+      "lastAccessed": 1786903561980,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/ModernDesignSystem.dart",
+      "accessCount": 10,
+      "lastAccessed": 1786905025512,
+      "type": "file"
+    },
+    {
+      "path": "lib/Api/ApiFuntion.dart",
+      "accessCount": 10,
+      "lastAccessed": 1786910132022,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/SplashScreenActivity.dart",
+      "accessCount": 9,
+      "lastAccessed": 1786909289204,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/car_loader.dart",
+      "accessCount": 7,
+      "lastAccessed": 1786909355880,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/booking_model/ui/booking_list_activity.dart",
+      "accessCount": 7,
+      "lastAccessed": 1786910514645,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/UXHelperWidget.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786901731613,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/offer_model/ui/enhanced_offer_screen.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786903279769,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/Color.dart",
+      "accessCount": 6,
+      "lastAccessed": 1786904997336,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/app_colors.dart",
+      "accessCount": 5,
+      "lastAccessed": 1786905051803,
+      "type": "file"
+    },
+    {
+      "path": "lib/Common/SimpleDesignSystem.dart",
+      "accessCount": 4,
+      "lastAccessed": 1786905076571,
       "type": "file"
     },
     {
@@ -239,21 +335,39 @@
       "type": "file"
     },
     {
+      "path": "analysis_options.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1786876498195,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/specialists_module/ui/specialists_activity.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786905127855,
+      "type": "file"
+    },
+    {
+      "path": "lib/features/booking_model/ui/booking_activity.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786905786381,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/bouncy_tap.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786913623571,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/staggered_fade_in.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786913626090,
+      "type": "file"
+    },
+    {
       "path": "lib/features/log_in/ui/LoginActivity.dart",
       "accessCount": 1,
       "lastAccessed": 1786865633058,
-      "type": "file"
-    },
-    {
-      "path": "lib/Common/Color.dart",
-      "accessCount": 1,
-      "lastAccessed": 1786866584756,
-      "type": "file"
-    },
-    {
-      "path": "lib/design_system/app_colors.dart",
-      "accessCount": 1,
-      "lastAccessed": 1786866623257,
       "type": "file"
     },
     {
@@ -290,6 +404,72 @@
       "path": "lib/features/resister_vendor_model/ui/widgets/shop_form_fields.dart",
       "accessCount": 1,
       "lastAccessed": 1786866799770,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/timeout_network_image.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786876436892,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/car_silhouette.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786903471008,
+      "type": "file"
+    },
+    {
+      "path": "lib/design_system/components/car_wash_icon.dart",
+      "accessCount": 1,
+      "lastAccessed": 1786903825979,
+      "type": "file"
+    },
+    {
+      "path": "assets/images/car_image.png",
+      "accessCount": 1,
+      "lastAccessed": 1786906782995,
+      "type": "file"
+    },
+    {
+      "path": "assets/images/loader.png",
+      "accessCount": 1,
+      "lastAccessed": 1786906783089,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/bakkart-automatic-7836733_1920.png",
+      "accessCount": 1,
+      "lastAccessed": 1786909167784,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/bakkart-carwash-7836735_1920.png",
+      "accessCount": 1,
+      "lastAccessed": 1786909168424,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/jesusflota-car-7334823_1920.png",
+      "accessCount": 1,
+      "lastAccessed": 1786909168824,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/mohamed_hassan-car-wash-10214856_1920.png",
+      "accessCount": 1,
+      "lastAccessed": 1786909169372,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/openclipart-vectors-ford-mustang-146580_1920.png",
+      "accessCount": 1,
+      "lastAccessed": 1786909169941,
+      "type": "file"
+    },
+    {
+      "path": "assets/vetor/car-wash-detailing-station.jpg",
+      "accessCount": 1,
+      "lastAccessed": 1786909170257,
       "type": "file"
     }
   ],
