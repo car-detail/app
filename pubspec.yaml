@@ -100,7 +100,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  image_path: "assets/images/ChatGPT Image Aug 17, 2026, 05_32_35 AM.png"
+  image_path: "assets/images/logo.png"
   ios: true
   android: true
   remove_alpha_ios: true
