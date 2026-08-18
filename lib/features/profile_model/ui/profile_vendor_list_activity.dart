@@ -267,8 +267,9 @@ class _ProfileVendorListActivityState
     final lastName  = dataNew?.lastName  ?? "";
     final phone     = dataNew?.mobile    ?? "";
     final email     = dataNew?.email     ?? "";
-    final avatarUrl = dataNew?.vendorDetails != null &&
-            dataNew!.vendorDetails!.isNotEmpty
+    final hasVendorDetails = dataNew?.vendorDetails != null && dataNew!.vendorDetails!.isNotEmpty;
+    final shopName  = hasVendorDetails ? (dataNew!.vendorDetails![0].displayName ?? "") : "";
+    final avatarUrl = hasVendorDetails
         ? (dataNew!.vendorDetails![0].displayPicture ?? "")
         : "";
 
@@ -412,7 +413,7 @@ class _ProfileVendorListActivityState
                     Text(
                       firstName.isNotEmpty
                           ? "$firstName $lastName".trim()
-                          : "Your Profile",
+                          : (shopName.isNotEmpty ? shopName : "Your Profile"),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
