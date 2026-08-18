@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"which cliclick 2>&1; echo \\\"---\\\"; which idb 2>&1\",\"description\":\"Check for coordinate-clicking tools\"}",
-  "error": "Exit code 1\ncliclick not found\n---\nidb not found",
-  "timestamp": "2026-08-16T21:20:44.746Z",
-  "retry_count": 1
-}

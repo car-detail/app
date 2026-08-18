@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1786863017716,
+  "lastScanned": 1787050246270,
   "projectRoot": "/Users/macbook/Anuj/cahrz/app",
   "techStack": {
     "languages": [],
@@ -40,7 +40,7 @@
       "path": "android",
       "purpose": null,
       "fileCount": 8,
-      "lastAccessed": 1786863017697,
+      "lastAccessed": 1787050246251,
       "keyFiles": [
         "build.gradle.kts",
         "gradle.properties",
@@ -53,28 +53,23 @@
       "path": "assets",
       "purpose": "Static assets",
       "fileCount": 1,
-      "lastAccessed": 1786863017697,
+      "lastAccessed": 1787050246254,
       "keyFiles": []
     },
     "build": {
       "path": "build",
       "purpose": "Build output",
-      "fileCount": 1,
-      "lastAccessed": 1786863017698,
-      "keyFiles": []
-    },
-    "features": {
-      "path": "features",
-      "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1786863017699,
-      "keyFiles": []
+      "fileCount": 2,
+      "lastAccessed": 1787050246266,
+      "keyFiles": [
+        "0ea6338a9744699c4765127c07d5f7ae.cache.dill.track.dill"
+      ]
     },
     "fonts": {
       "path": "fonts",
       "purpose": null,
       "fileCount": 10,
-      "lastAccessed": 1786863017699,
+      "lastAccessed": 1787050246266,
       "keyFiles": [
         "Comfortaa-Bold.ttf",
         "Inter-Bold.ttf",
@@ -87,7 +82,7 @@
       "path": "ios",
       "purpose": null,
       "fileCount": 7,
-      "lastAccessed": 1786863017699,
+      "lastAccessed": 1787050246266,
       "keyFiles": [
         "Podfile",
         "Podfile.lock",
@@ -100,7 +95,7 @@
       "path": "lib",
       "purpose": "Library code",
       "fileCount": 6,
-      "lastAccessed": 1786863017700,
+      "lastAccessed": 1787050246266,
       "keyFiles": [
         "ZoomImageList.dart",
         "demo_screen.dart",
@@ -113,7 +108,7 @@
       "path": "macos",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1786863017701,
+      "lastAccessed": 1787050246268,
       "keyFiles": [
         "Podfile"
       ]
@@ -122,7 +117,7 @@
       "path": "test",
       "purpose": "Test files",
       "fileCount": 1,
-      "lastAccessed": 1786863017702,
+      "lastAccessed": 1787050246269,
       "keyFiles": [
         "widget_test.dart"
       ]
@@ -131,7 +126,7 @@
       "path": "web",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1786863017702,
+      "lastAccessed": 1787050246269,
       "keyFiles": [
         "favicon.png",
         "index.html",
@@ -142,7 +137,7 @@
       "path": "android/app",
       "purpose": "Application code",
       "fileCount": 3,
-      "lastAccessed": 1786863017707,
+      "lastAccessed": 1787050246269,
       "keyFiles": [
         "build.gradle.kts",
         "google-services.json",
@@ -153,7 +148,7 @@
       "path": "lib/Api",
       "purpose": "API routes",
       "fileCount": 3,
-      "lastAccessed": 1786863017713,
+      "lastAccessed": 1787050246270,
       "keyFiles": [
         "ApiFuntion.dart",
         "api_end_point.dart",
@@ -164,7 +159,7 @@
       "path": "lib/Models",
       "purpose": "Data models",
       "fileCount": 2,
-      "lastAccessed": 1786863017715,
+      "lastAccessed": 1787050246270,
       "keyFiles": [
         "check_dialog_box.dart",
         "image_module_data.dart"
@@ -174,14 +169,14 @@
   "hotPaths": [
     {
       "path": "lib/features/profile_model/ui/profile_vendor_list_activity.dart",
-      "accessCount": 65,
-      "lastAccessed": 1786910069456,
+      "accessCount": 70,
+      "lastAccessed": 1787024647286,
       "type": "file"
     },
     {
       "path": "lib/features/home_module/ui/home_activity.dart",
-      "accessCount": 38,
-      "lastAccessed": 1786910368085,
+      "accessCount": 48,
+      "lastAccessed": 1787024493733,
       "type": "file"
     },
     {
@@ -221,15 +216,15 @@
       "type": "file"
     },
     {
-      "path": "upgrade_plan.md",
-      "accessCount": 13,
-      "lastAccessed": 1786866890295,
+      "path": "lib/features/dashboard_module/ui/dashboard_activity.dart",
+      "accessCount": 14,
+      "lastAccessed": 1786964860411,
       "type": "file"
     },
     {
-      "path": "lib/features/dashboard_module/ui/dashboard_activity.dart",
+      "path": "upgrade_plan.md",
       "accessCount": 13,
-      "lastAccessed": 1786910663254,
+      "lastAccessed": 1786866890295,
       "type": "file"
     },
     {
@@ -270,8 +265,8 @@
     },
     {
       "path": "lib/design_system/components/car_loader.dart",
-      "accessCount": 7,
-      "lastAccessed": 1786909355880,
+      "accessCount": 8,
+      "lastAccessed": 1786965140375,
       "type": "file"
     },
     {
@@ -365,6 +360,12 @@
       "type": "file"
     },
     {
+      "path": "lib/design_system/components/car_silhouette.dart",
+      "accessCount": 2,
+      "lastAccessed": 1786965144136,
+      "type": "file"
+    },
+    {
       "path": "lib/features/log_in/ui/LoginActivity.dart",
       "accessCount": 1,
       "lastAccessed": 1786865633058,
@@ -410,12 +411,6 @@
       "path": "lib/design_system/components/timeout_network_image.dart",
       "accessCount": 1,
       "lastAccessed": 1786876436892,
-      "type": "file"
-    },
-    {
-      "path": "lib/design_system/components/car_silhouette.dart",
-      "accessCount": 1,
-      "lastAccessed": 1786903471008,
       "type": "file"
     },
     {
