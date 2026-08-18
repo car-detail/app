@@ -309,17 +309,67 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
           post: post,
           isMine: post.authorId == _myUserId,
           onLike: () => _toggleLike(post, index),
-          onDelete: _dataManager == null
-              ? null
-              : () async {
-                  await _dataManager!.deletePost(context, post.id);
-                  if (mounted) {
-                    setState(() => _posts.removeWhere((p) => p.id == post.id));
-                  }
-                },
+          onDelete: _dataManager == null ? null : () => _deletePost(post),
         ),
       ),
     );
+  }
+
+  Future<void> _deletePost(WorkfolioPost post) async {
+    if (_dataManager == null) return;
+    await _dataManager!.deletePost(context, post.id);
+    if (mounted) {
+      setState(() => _posts.removeWhere((p) => p.id == post.id));
+    }
+  }
+
+  Future<void> _confirmDeletePost(WorkfolioPost post) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 18),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                onTap: () => Navigator.of(sheetContext).pop(true),
+                leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                title: const Text(
+                  "Delete post",
+                  style: TextStyle(fontFamily: "Pop600", fontSize: 15, color: Colors.red),
+                ),
+              ),
+              ListTile(
+                onTap: () => Navigator.of(sheetContext).pop(false),
+                leading: const Icon(Icons.close_rounded, color: Colors.black54),
+                title: const Text(
+                  "Cancel",
+                  style: TextStyle(fontFamily: "Pop500", fontSize: 15, color: Colors.black87),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (confirmed == true) {
+      await _deletePost(post);
+    }
   }
 
   @override
@@ -359,8 +409,10 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
                       return _WorkfolioFeedCard(
                         post: post,
                         likedByMe: _myUserId != null && post.likedBy.contains(_myUserId),
+                        isMine: _myUserId != null && post.authorId == _myUserId,
                         onOpenImage: () => _openPost(post, index),
                         onLike: () => _toggleLike(post, index),
+                        onDelete: () => _confirmDeletePost(post),
                       );
                     },
                   ),
@@ -400,14 +452,18 @@ class _WorkfolioActivityState extends State<WorkfolioActivity> {
 class _WorkfolioFeedCard extends StatelessWidget {
   final WorkfolioPost post;
   final bool likedByMe;
+  final bool isMine;
   final VoidCallback onOpenImage;
   final VoidCallback onLike;
+  final VoidCallback onDelete;
 
   const _WorkfolioFeedCard({
     required this.post,
     required this.likedByMe,
+    required this.isMine,
     required this.onOpenImage,
     required this.onLike,
+    required this.onDelete,
   });
 
   @override
@@ -453,6 +509,13 @@ class _WorkfolioFeedCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (isMine)
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.more_vert_rounded, color: Colors.black54, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  ),
               ],
             ),
           ),
