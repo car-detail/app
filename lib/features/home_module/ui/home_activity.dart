@@ -10,6 +10,8 @@ import 'package:car_app/Common/CommonBean.dart';
 import 'package:car_app/Common/CommonWidget.dart';
 import 'package:car_app/Common/Constant.dart';
 import 'package:car_app/Common/ModernDesignSystem.dart';
+import 'package:car_app/design_system/components/bouncy_tap.dart';
+import 'package:car_app/design_system/components/staggered_fade_in.dart';
 import 'package:car_app/design_system/car_assets.dart';
 import 'package:car_app/features/categories_module/ui/categories_list_activity.dart';
 import 'package:car_app/features/home_module/data_manager/home_data_manager.dart';
@@ -703,66 +705,35 @@ class _HomeActivityState extends State<HomeActivity> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildQuickActionCard(
-                                "Services",
-                                Icons.auto_awesome_rounded,
-                                const Color(0xFF192028), // Green
-                                () {
-                                  CommonWidget.navigateToScreen(
-                                    context, 
-                                    const ServicesListActivity()
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                "Packages",
-                                Icons.card_giftcard_rounded,
-                                const Color(0xFF8B5CF6), // Purple
-                                () {
-                                  CommonWidget.navigateToScreen(
-                                    context, 
-                                    const PackageListActivity()
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                "Offers",
-                                Icons.local_fire_department_rounded,
-                                const Color(0xFFF59E0B), // Orange
-                                () {
-                                  CommonWidget.navigateToScreen(
-                                    context, 
-                                    const EnhancedOfferListScreen()
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                "Bookings",
-                                Icons.event_available_rounded,
-                                const Color(0xFF3B82F6), // Blue
-                                () {
-                                  if (widget.onTabChange != null) {
-                                    widget.onTabChange!(1);
-                                  } else {
+                              child: StaggeredFadeIn(
+                                child: _buildQuickActionCard(
+                                  "Services",
+                                  Icons.auto_awesome_rounded,
+                                  const Color(0xFF192028), // Charcoal
+                                  () {
                                     CommonWidget.navigateToScreen(
-                                      context, 
-                                      const BookingListActivity()
+                                      context,
+                                      const ServicesListActivity()
                                     );
-                                  }
-                                },
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StaggeredFadeIn(
+                                delay: const Duration(milliseconds: 50),
+                                child: _buildQuickActionCard(
+                                  "Packages",
+                                  Icons.card_giftcard_rounded,
+                                  const Color(0xFF8B5CF6), // Purple
+                                  () {
+                                    CommonWidget.navigateToScreen(
+                                      context,
+                                      const PackageListActivity()
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ],
@@ -771,27 +742,75 @@ class _HomeActivityState extends State<HomeActivity> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildQuickActionCard(
-                                "Quick Add",
-                                Icons.add_circle_rounded,
-                                const Color(0xFF14B8A6), // Teal
-                                () {
-                                  _showQuickAddOptions(context);
-                                },
+                              child: StaggeredFadeIn(
+                                delay: const Duration(milliseconds: 100),
+                                child: _buildQuickActionCard(
+                                  "Offers",
+                                  Icons.local_fire_department_rounded,
+                                  const Color(0xFFF59E0B), // Orange
+                                  () {
+                                    CommonWidget.navigateToScreen(
+                                      context,
+                                      const EnhancedOfferListScreen()
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: _buildQuickActionCard(
-                                "Feed",
-                                Icons.photo_library_rounded,
-                                const Color(0xFFEC4899), // Pink
-                                () {
-                                  CommonWidget.navigateToScreen(
-                                    context,
-                                    const WorkfolioActivity(),
-                                  );
-                                },
+                              child: StaggeredFadeIn(
+                                delay: const Duration(milliseconds: 150),
+                                child: _buildQuickActionCard(
+                                  "Bookings",
+                                  Icons.event_available_rounded,
+                                  const Color(0xFF3B82F6), // Blue
+                                  () {
+                                    if (widget.onTabChange != null) {
+                                      widget.onTabChange!(1);
+                                    } else {
+                                      CommonWidget.navigateToScreen(
+                                        context,
+                                        const BookingListActivity()
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: StaggeredFadeIn(
+                                delay: const Duration(milliseconds: 200),
+                                child: _buildQuickActionCard(
+                                  "Quick Add",
+                                  Icons.add_circle_rounded,
+                                  const Color(0xFF14B8A6), // Teal
+                                  () {
+                                    _showQuickAddOptions(context);
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StaggeredFadeIn(
+                                delay: const Duration(milliseconds: 250),
+                                child: _buildQuickActionCard(
+                                  "Feed",
+                                  Icons.photo_library_rounded,
+                                  const Color(0xFFEC4899), // Pink
+                                  () {
+                                    CommonWidget.navigateToScreen(
+                                      context,
+                                      const WorkfolioActivity(),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ],
@@ -1015,52 +1034,69 @@ class _HomeActivityState extends State<HomeActivity> {
 
   // Helper method to build quick action cards - Compact neutral design
   Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+    final hsl = HSLColor.fromColor(color);
+    final Color deeper = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
+
+    return BouncyTap(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.16),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [color, deeper],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                    fontFamily: "Pop600",
+                borderRadius: BorderRadius.circular(13),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ),
-              Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey[400]),
-            ],
-          ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                  fontFamily: "Pop600",
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.arrow_forward_rounded, size: 13, color: color),
+            ),
+          ],
         ),
       ),
     );
